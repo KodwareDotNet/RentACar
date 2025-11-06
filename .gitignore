@@ -50,8 +50,6 @@
 /RentACar/RentACar/bin/Debug/net8.0/RentACar.Interfaces.pdb
 /RentACar/RentACar/bin/Debug/net8.0/RentACar.Map.dll
 /RentACar/RentACar/bin/Debug/net8.0/RentACar.Map.pdb
-/RentACar/RentACar/bin/Debug/net8.0/RentACar.Models.dll
-/RentACar/RentACar/bin/Debug/net8.0/RentACar.Models.pdb
 /RentACar/RentACar/bin/Debug/net8.0/RentACar.pdb
 /RentACar/RentACar/bin/Debug/net8.0/RentACar.Repository.dll
 /RentACar/RentACar/bin/Debug/net8.0/RentACar.Repository.pdb
@@ -124,11 +122,7 @@
 /RentACar/RentACar.Models/bin/Debug/net8.0/RentACar.ViewModel.pdb
 /RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.AssemblyInfoInputs.cache
 /RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.assets.cache
-/RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.csproj.AssemblyReference.cache
-/RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.csproj.CoreCompileInputs.cache
-/RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.csproj.FileListAbsolute.txt
-/RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.dll
-/RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.GeneratedMSBuildEditorConfig.editorconfig
+ditorconfig
 /RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.pdb
 /RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.sourcelink.json
 /RentACar/RentACar.Models/obj/project.assets.json
@@ -210,7 +204,6 @@
 /RentACar/RentACar.Service/obj/Debug/net8.0/RentACar.F57E0446.Up2Date
 /RentACar/RentACar.ViewModel/obj/Debug/net8.0/RentACar.ViewModel.GeneratedMSBuildEditorConfig.editorconfig
 /RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.B7FD3D2A.Up2Date
-/RentACar/RentACar.Models
 /RentACar/RentACar.Map/obj/Debug/net8.0/ref/RentACar.Map.dll
 /RentACar/RentACar.Map/obj/Debug/net8.0/refint/RentACar.Map.dll
 /RentACar/RentACar.Map/obj/Debug/net8.0/RentACar.4AEFF3CB.Up2Date
@@ -238,3 +231,12 @@
 /RentACar/RentACar/obj/Debug/net8.0/EndpointInfo/RentACar.OpenApiFiles.cache
 /RentACar/RentACar/obj/Debug/net8.0/EndpointInfo/RentACar.json
 /RentACar/RentACar/RentACar.csproj.user
+/RentACar/.vs/ProjectEvaluation/rentacar.metadata.v9.bin
+/RentACar/.vs/ProjectEvaluation/rentacar.projects.v9.bin
+/RentACar/.vs/ProjectEvaluation/rentacar.strings.v9.bin
+/RentACar/RentACar.Interfaces/obj/Debug/net8.0/RentACar.Interfaces.csproj.BuildWithSkipAnalyzers
+/RentACar/RentACar.Map/obj/Debug/net8.0/RentACar.Map.csproj.BuildWithSkipAnalyzers
+/RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.csproj.BuildWithSkipAnalyzers
+/RentACar/RentACar.Models/obj/Debug/net8.0/RentACar.Models.csproj.FileListAbsolute.txt
+/RentACar/RentACar.Repository/obj/Debug/net8.0/RentACar.Repository.csproj.BuildWithSkipAnalyzers
+/RentACar/RentACar.Service/obj/Debug/net8.0/RentACar.Service.csproj.BuildWithSkipAnalyzers
