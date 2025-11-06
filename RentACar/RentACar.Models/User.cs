@@ -1,0 +1,26 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RentACar.Models
+{
+    public class User
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
+        public string? GoogleId { get; set; }
+        public int OrganizationId { get; set; }
+        public string Token { get; set; } = string.Empty;
+        public DateTime ExpiresAt { get; set; }
+        public string RefreshToken { get; set; } = string.Empty;
+        public string? Permission { get; set; }
+
+        public List<string> CategoryPermissions { get; set; } = new List<string>();
+    }
+}
+
