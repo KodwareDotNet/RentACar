@@ -1,5 +1,5 @@
 // src/pages/LoginPage.jsx
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import {
   Box,
   Paper,
@@ -16,7 +16,7 @@ import {
   Tab,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../api/services/authService";
+import authService from '../api/services/authService';
 
 // Keyframe animations
 const slideUp = keyframes`
@@ -238,9 +238,6 @@ function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // REMOVED: useEffect that checks authentication on mount
-  // This allows the page to display even if the API is not running
-
   // Handle tab change
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -263,6 +260,7 @@ function LoginPage() {
     setLoading(true);
 
     try {
+      debugger
       const response = await authService.login({
         email,
         password,
@@ -272,12 +270,6 @@ function LoginPage() {
       navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
-      // Enhanced error message for when API is not running
-    //   if (error.message?.includes("fetch") || error.message?.includes("Network") || !error.message) {
-    //     setError("Unable to connect to server. Please check if the API is running.");
-    //   } else {
-    //     setError(error.message || "Invalid email or password");
-    //   }
     } finally {
       setLoading(false);
     }
@@ -315,12 +307,6 @@ function LoginPage() {
       navigate("/news");
     } catch (error) {
       console.error("Registration error:", error);
-      // Enhanced error message for when API is not running
-    //   if (error.message?.includes("fetch") || error.message?.includes("Network") || !error.message) {
-    //     setError("Unable to connect to server. Please check if the API is running.");
-    //   } else {
-    //     setError(error.message || "Registration failed");
-    //   }
     } finally {
       setLoading(false);
     }

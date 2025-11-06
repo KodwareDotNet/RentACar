@@ -1,116 +1,348 @@
-import { Link } from "react-router-dom";
-import Logo from "../images/logo/logo.png";
-import { useState } from "react";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Button,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import Logo from '../images/logo/logo.png';
+import AddCustomerModal from './AddCustomerModal'
+import AddCarModal from './AddCarModal';
+
 
 function Navbar() {
-  const [nav, setNav] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
 
-  const openNav = () => {
-    setNav(!nav);
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    window.scrollTo(0, 0);
+    if (mobileOpen) {
+      setMobileOpen(false);
+    }
+  };
+
+  const toggleCustomerModal = () => {
+    setShowCustomerModal((prev) => !prev);
+  };
+
+  const handleCustomerSubmit = (customerData) => {
+    console.log("Customer data:", customerData);
+    setShowCustomerModal(false);
+    // Add your API call or data handling here
+  };
+
+  const navItems = [
+    { label: 'Home', path: '/home', className: 'home-link' },
+    { label: 'About', path: '/about', className: 'about-link' },
+    { label: 'Vehicle Models', path: '/models', className: 'models-link' },
+    { label: 'Testimonials', path: '/testimonials', className: 'testi-link' },
+    { label: 'Our Team', path: '/team', className: 'team-link' },
+    { label: 'Contact', path: '/contact', className: 'contact-link' },
+  ];
+
+  const drawer = (
+    <Box
+      sx={{
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: '#ffffff',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+      }}
+    >
+      <IconButton
+        onClick={handleDrawerToggle}
+        sx={{
+          position: 'absolute',
+          top: '3.5rem',
+          right: '3.5rem',
+          fontSize: '3rem',
+          color: '#010103',
+          transition: 'all 0.3s',
+          '&:hover': {
+            color: '#ff4d30',
+          },
+        }}
+      >
+        <CloseIcon sx={{ fontSize: '3rem' }} />
+      </IconButton>
+      <List
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '3rem',
+          textAlign: 'center',
+        }}
+      >
+        {navItems.map((item) => (
+          <ListItem key={item.label} disablePadding>
+            <ListItemButton
+              onClick={() => handleNavigation(item.path)}
+              sx={{
+                textAlign: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ListItemText
+                primary={item.label}
+                sx={{
+                  '& .MuiTypography-root': {
+                    fontSize: '2.3rem',
+                    fontWeight: 500,
+                    color: '#010103',
+                    fontFamily: '"Rubik", sans-serif',
+                    transition: 'all 0.3s',
+                  },
+                  '&:hover .MuiTypography-root': {
+                    color: '#ff4d30',
+                  },
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
 
   return (
     <>
-      <nav>
-        {/* mobile */}
-        <div className={`mobile-navbar ${nav ? "open-nav" : ""}`}>
-          <div onClick={openNav} className="mobile-navbar__close">
-            <i className="fa-solid fa-xmark"></i>
-          </div>
-          <ul className="mobile-navbar__links">
-            <li>
-              <Link onClick={openNav} to="/">
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link onClick={openNav} to="/about">
-                About
-              </Link>
-            </li>
-            <li>
-              <Link onClick={openNav} to="/models">
-                Models
-              </Link>
-            </li>
-            <li>
-              <Link onClick={openNav} to="/testimonials">
-                Testimonials
-              </Link>
-            </li>
-            <li>
-              <Link onClick={openNav} to="/team">
-                Our Team
-              </Link>
-            </li>
-            <li>
-              <Link onClick={openNav} to="/contact">
-                Contact
-              </Link>
-            </li>
-          </ul>
-        </div>
+      <AppBar
+        position="absolute"
+        elevation={0}
+        sx={{
+          backgroundColor: 'transparent',
+          maxWidth: '133rem',
+          width: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          top: 0,
+        }}
+      >
+        <Toolbar
+          sx={{
+            justifyContent: 'space-between',
+            padding: '2.7rem 2rem',
+            minHeight: 'auto !important',
+          }}
+        >
+          {/* Logo */}
+          <Box
+            onClick={() => handleNavigation('/home')}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="logo"
+              sx={{
+                width: '14.5rem',
+                height: 'auto',
+              }}
+            />
+          </Box>
 
-        {/* desktop */}
+          {/* Desktop Navigation */}
+          {!isMobile && (
+            <>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: '2.1rem',
+                }}
+              >
+                {navItems.map((item) => (
+                  <Button
+                    key={item.label}
+                    onClick={() => handleNavigation(item.path)}
+                    className={item.className}
+                    sx={{
+                      fontSize: '1.6rem',
+                      fontFamily: '"Rubik", sans-serif',
+                      fontWeight: 500,
+                      color: '#010103',
+                      textTransform: 'none',
+                      padding: 0,
+                      minWidth: 'auto',
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                        color: '#ff4d30',
+                      },
+                    }}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Box>
 
-        <div className="navbar">
-          <div className="navbar__img">
-            <Link to="/" onClick={() => window.scrollTo(0, 0)}>
-              <img src={Logo} alt="logo-img" />
-            </Link>
-          </div>
-          <ul className="navbar__links">
-            <li>
-              <Link className="home-link" to="/">
-                Home
-              </Link>
-            </li>
-            <li>
-              {" "}
-              <Link className="about-link" to="/about">
-                About
-              </Link>
-            </li>
-            <li>
-              {" "}
-              <Link className="models-link" to="/models">
-                Vehicle Models
-              </Link>
-            </li>
-            <li>
-              {" "}
-              <Link className="testi-link" to="/testimonials">
-                Testimonials
-              </Link>
-            </li>
-            <li>
-              {" "}
-              <Link className="team-link" to="/team">
-                Our Team
-              </Link>
-            </li>
-            <li>
-              {" "}
-              <Link className="contact-link" to="/contact">
-                Contact
-              </Link>
-            </li>
-          </ul>
-          <div className="navbar__buttons">
-            <Link className="navbar__buttons__sign-in" to="/">
-              Sign In
-            </Link>
-            <Link className="navbar__buttons__register" to="/">
-              Register
-            </Link>
-          </div>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: '2.5rem',
+                  alignItems: 'center',
+                }}
+              >
+                {/* ADD CUSTOMER BUTTON - ADD THIS */}
+                <Button
+                  onClick={toggleCustomerModal}
+                  sx={{
+                    fontSize: '1.6rem',
+                    fontFamily: '"Rubik", sans-serif',
+                    fontWeight: 500,
+                    backgroundColor: '#ff4d30',
+                    color: 'white',
+                    padding: '1.5rem 3rem',
+                    borderRadius: '3px',
+                    boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.35)',
+                    textTransform: 'none',
+                    transition: 'all 0.3s',
+                    '&:hover': {
+                      backgroundColor: '#fa4226',
+                      boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.5)',
+                    },
+                  }}
+                >
+                  Add Customer
+                </Button>
+                <Button
+                  onClick={toggleCustomerModal}
+                  sx={{
+                    fontSize: '1.6rem',
+                    fontFamily: '"Rubik", sans-serif',
+                    fontWeight: 500,
+                    backgroundColor: '#ff4d30',
+                    color: 'white',
+                    padding: '1.5rem 3rem',
+                    borderRadius: '3px',
+                    boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.35)',
+                    textTransform: 'none',
+                    transition: 'all 0.3s',
+                    '&:hover': {
+                      backgroundColor: '#fa4226',
+                      boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.5)',
+                    },
+                  }}
+                >
+                  Add Car
+                </Button>
 
-          {/* mobile */}
-          <div className="mobile-hamb" onClick={openNav}>
-            <i className="fa-solid fa-bars"></i>
-          </div>
-        </div>
-      </nav>
+                <Button
+                  onClick={() => handleNavigation('/')}
+                  sx={{
+                    fontSize: '1.6rem',
+                    fontFamily: '"Rubik", sans-serif',
+                    fontWeight: 500,
+                    color: '#010103',
+                    textTransform: 'none',
+                    padding: 0,
+                    minWidth: 'auto',
+                    transition: 'all 0.3s',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                      color: '#ff4d30',
+                    },
+                  }}
+                >
+                  Sign In
+                </Button>
+                {/* <Button
+                  onClick={() => handleNavigation('/')}
+                  sx={{
+                    fontSize: '1.6rem',
+                    fontFamily: '"Rubik", sans-serif',
+                    fontWeight: 500,
+                    backgroundColor: '#ff4d30',
+                    color: 'white',
+                    padding: '1.5rem 3rem',
+                    borderRadius: '3px',
+                    boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.35)',
+                    textTransform: 'none',
+                    transition: 'all 0.3s',
+                    '&:hover': {
+                      backgroundColor: '#fa4226',
+                      boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.5)',
+                    },
+                  }}
+                >
+                  Register
+                </Button> */}
+              </Box>
+            </>
+          )}
+
+          {/* Mobile menu button */}
+          {isMobile && (
+            <IconButton
+              onClick={handleDrawerToggle}
+              sx={{
+                fontSize: '2.8rem',
+                color: '#010103',
+                transition: 'all 0.3s',
+                '&:hover': {
+                  color: '#ff4d30',
+                  backgroundColor: 'transparent',
+                },
+              }}
+            >
+              <MenuIcon sx={{ fontSize: '2.8rem' }} />
+            </IconButton>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      {/* Mobile drawer */}
+      <Drawer
+        anchor="left"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: '100%',
+            boxSizing: 'border-box',
+          },
+        }}
+        transitionDuration={500}
+      >
+        {drawer}
+      </Drawer>
+      <AddCustomerModal
+        modal={showCustomerModal}
+        openModal={toggleCustomerModal}
+        confirmAdding={handleCustomerSubmit}
+      />
+      {/* <AddCarModal
+        modal={showModal}
+        openModal={toggleModal}
+        cardetail={selectedCarDetail}
+        confirmBooking={handleConfirm}
+      /> */}
     </>
   );
 }
