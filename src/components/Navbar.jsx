@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
@@ -25,8 +25,10 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [showAddCarModal, setShowAddCarModal] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -40,9 +42,24 @@ function Navbar() {
     }
   };
 
+  const handleAuthClick = () => {
+    if (isLoggedIn) {
+      localStorage.removeItem("token");
+      handleNavigation("/")
+    } else {
+      handleNavigation("/")
+    }
+
+  }
+
   const toggleCustomerModal = () => {
     setShowCustomerModal((prev) => !prev);
   };
+
+  const toggleAddCarModal = () => {
+    setShowAddCarModal((prev) => !prev);
+  }
+
 
   const handleCustomerSubmit = (customerData) => {
     console.log("Customer data:", customerData);
@@ -50,13 +67,25 @@ function Navbar() {
     // Add your API call or data handling here
   };
 
+  const handleAddCarSubmit = (carData) => {
+    console.log("Added Car:", carData);
+    setShowAddCarModal(false);
+  }
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
+
   const navItems = [
     { label: 'Home', path: '/home', className: 'home-link' },
-    { label: 'About', path: '/about', className: 'about-link' },
-    { label: 'Vehicle Models', path: '/models', className: 'models-link' },
-    { label: 'Testimonials', path: '/testimonials', className: 'testi-link' },
-    { label: 'Our Team', path: '/team', className: 'team-link' },
-    { label: 'Contact', path: '/contact', className: 'contact-link' },
+    { label: 'Vehicles', path: '/models', className: 'models-link' },
+    { label: 'Add Car', onClick: toggleAddCarModal },
+    { label: 'Add Customer', onClick: toggleCustomerModal}
   ];
 
   const drawer = (
@@ -99,7 +128,14 @@ function Navbar() {
         {navItems.map((item) => (
           <ListItem key={item.label} disablePadding>
             <ListItemButton
-              onClick={() => handleNavigation(item.path)}
+              // onClick={() => handleNavigation(item.path)}
+              onClick={() => {
+                if (item.onClick) {
+                  item.onClick(); // 🔥 calls toggleAddCarModal
+                } else {
+                  handleNavigation(item.path); // 🔥 navigates normally
+                }
+              }}
               sx={{
                 textAlign: 'center',
                 justifyContent: 'center',
@@ -180,7 +216,14 @@ function Navbar() {
                 {navItems.map((item) => (
                   <Button
                     key={item.label}
-                    onClick={() => handleNavigation(item.path)}
+                    // onClick={() => handleNavigation(item.path)}
+                    onClick={() => {
+                      if (item.onClick) {
+                        item.onClick(); // 🔥 calls toggleAddCarModal
+                      } else {
+                        handleNavigation(item.path); // 🔥 navigates normally
+                      }
+                    }}
                     className={item.className}
                     sx={{
                       fontSize: '1.6rem',
@@ -209,52 +252,9 @@ function Navbar() {
                   alignItems: 'center',
                 }}
               >
-                {/* ADD CUSTOMER BUTTON - ADD THIS */}
+              
                 <Button
-                  onClick={toggleCustomerModal}
-                  sx={{
-                    fontSize: '1.6rem',
-                    fontFamily: '"Rubik", sans-serif',
-                    fontWeight: 500,
-                    backgroundColor: '#ff4d30',
-                    color: 'white',
-                    padding: '1.5rem 3rem',
-                    borderRadius: '3px',
-                    boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.35)',
-                    textTransform: 'none',
-                    transition: 'all 0.3s',
-                    '&:hover': {
-                      backgroundColor: '#fa4226',
-                      boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.5)',
-                    },
-                  }}
-                >
-                  Add Customer
-                </Button>
-                <Button
-                  onClick={toggleCustomerModal}
-                  sx={{
-                    fontSize: '1.6rem',
-                    fontFamily: '"Rubik", sans-serif',
-                    fontWeight: 500,
-                    backgroundColor: '#ff4d30',
-                    color: 'white',
-                    padding: '1.5rem 3rem',
-                    borderRadius: '3px',
-                    boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.35)',
-                    textTransform: 'none',
-                    transition: 'all 0.3s',
-                    '&:hover': {
-                      backgroundColor: '#fa4226',
-                      boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.5)',
-                    },
-                  }}
-                >
-                  Add Car
-                </Button>
-
-                <Button
-                  onClick={() => handleNavigation('/')}
+                  onClick={handleAuthClick}
                   sx={{
                     fontSize: '1.6rem',
                     fontFamily: '"Rubik", sans-serif',
@@ -270,29 +270,9 @@ function Navbar() {
                     },
                   }}
                 >
-                  Sign In
+                  {isLoggedIn ? "Logout" : "Sign In"}
                 </Button>
-                {/* <Button
-                  onClick={() => handleNavigation('/')}
-                  sx={{
-                    fontSize: '1.6rem',
-                    fontFamily: '"Rubik", sans-serif',
-                    fontWeight: 500,
-                    backgroundColor: '#ff4d30',
-                    color: 'white',
-                    padding: '1.5rem 3rem',
-                    borderRadius: '3px',
-                    boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.35)',
-                    textTransform: 'none',
-                    transition: 'all 0.3s',
-                    '&:hover': {
-                      backgroundColor: '#fa4226',
-                      boxShadow: '0 10px 15px 0 rgba(255, 83, 48, 0.5)',
-                    },
-                  }}
-                >
-                  Register
-                </Button> */}
+
               </Box>
             </>
           )}
@@ -337,12 +317,11 @@ function Navbar() {
         openModal={toggleCustomerModal}
         confirmAdding={handleCustomerSubmit}
       />
-      {/* <AddCarModal
-        modal={showModal}
-        openModal={toggleModal}
-        cardetail={selectedCarDetail}
-        confirmBooking={handleConfirm}
-      /> */}
+      <AddCarModal
+        modal={showAddCarModal}
+        openModal={toggleAddCarModal}
+        onAddCar={handleAddCarSubmit}
+      />
     </>
   );
 }

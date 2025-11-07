@@ -6,7 +6,6 @@ import CarImg3 from "../images/cars-big/toyota-box.png";
 import CarImg4 from "../images/cars-big/bmw-box.png";
 import CarImg5 from "../images/cars-big/benz-box.png";
 import CarImg6 from "../images/cars-big/passat-box.png";
-import { Link } from "react-router-dom";
 import CarCard from "../components/CarCard";
 import BookACarModal from "../components/BookACarModal";
 import { useState } from "react";
@@ -81,7 +80,6 @@ function Models() {
 
   const [showModal, setShowModal] = useState(false);
   const [selectedCarDetail, setSelectedCarDetail] = useState(null);
-  const [selectedCar, setSelectedCar] = useState(null);
 
   const toggleModal = (cardetail) => {
     setSelectedCarDetail(cardetail);
@@ -97,7 +95,7 @@ function Models() {
   return (
     <>
       <section className="models-section">
-        <HeroPages name="Vehicle Models" />
+        <HeroPages name="Vehicles" />
         <div className="container">
           <div className="models-div">
             {cars.map((car) => (

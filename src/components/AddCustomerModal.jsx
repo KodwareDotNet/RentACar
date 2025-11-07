@@ -8,12 +8,9 @@ import {
     IconButton,
     Box,
     Typography,
-    Grid,
-    MenuItem,
+    Grid
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import PhotoCamera from "@mui/icons-material/PhotoCamera";
-import DeleteIcon from "@mui/icons-material/Delete";
 
 function AddCustomerModal({ modal, openModal, confirmAdding }) {
     const [userData, setUserData] = useState({
@@ -32,26 +29,9 @@ function AddCustomerModal({ modal, openModal, confirmAdding }) {
         emergencyContact: "",
         occupation: "",
     });
-    const [uploadedImages, setUploadedImages] = useState([]);
     const [errors, setErrors] = useState({});
 
-    const handleImageUpload = (event) => {
-        const files = Array.from(event.target.files);
-        const newImages = files.map((file) => ({
-            file,
-            preview: URL.createObjectURL(file),
-        }));
-        setUploadedImages((prev) => [...prev, ...newImages]);
-    };
 
-    const handleRemoveImage = (index) => {
-        setUploadedImages((prev) => {
-            const newImages = [...prev];
-            URL.revokeObjectURL(newImages[index].preview);
-            newImages.splice(index, 1);
-            return newImages;
-        });
-    };
 
     const handleChange = (field, value) => {
         setUserData({ ...userData, [field]: value });
@@ -79,15 +59,10 @@ function AddCustomerModal({ modal, openModal, confirmAdding }) {
 
     const handleSubmit = () => {
         if (validateForm()) {
-            confirmAdding({ ...userData, images: uploadedImages });
+            confirmAdding({ ...userData});
         }
     };
 
-    React.useEffect(() => {
-        return () => {
-            uploadedImages.forEach((image) => URL.revokeObjectURL(image.preview));
-        };
-    }, [uploadedImages]);
 
     return (
         <Dialog

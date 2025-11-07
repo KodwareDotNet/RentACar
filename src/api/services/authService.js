@@ -3,8 +3,7 @@ import api from "../axiosConfig";
 const authService = {
   login: async (credentials) => {
     try {
-      debugger
-      const res = await api.post("/auth/login", credentials);
+      const res = await api.post("/Auth/login", credentials);
       const { token, role, expiresAt, refreshToken } = res.data;
       
       if (token) {
@@ -20,15 +19,6 @@ const authService = {
     }
   },
 
-  register: async (data) => {
-    try {
-      const res = await api.post("/auth/register", data);
-      // same logic as login
-      return res.data;
-    } catch (err) {
-      throw err.response?.data || { message: "Registration failed" };
-    }
-  },
 
   logout: () => {
     localStorage.clear();

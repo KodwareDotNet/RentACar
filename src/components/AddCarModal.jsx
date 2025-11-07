@@ -4,19 +4,24 @@ import { Button, IconButton, Box, Typography } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-function AddCarModal({ modal, openModal, confirmBooking, cardetail }) {
-    const [userData, setUserData] = useState({
+function AddCarModal({ modal, openModal, onAddCar }) {
+    const [carData, setCarData] = useState({
         name: "",
-        fatherName: "",
-        cnic: "",
-        licenseNumber: "",
-        phone: "",
-        age: "",
-        address: "",
-        city: "",
-        pickupDate: "",
-        dropoffDate: "",
-        carId: "",
+        brand: "",
+        model: "",
+        year: "",
+        price: "",
+        transmission: "",
+        fuel: "",
+        seats: "",
+        doors: "",
+        color: "",
+        licensePlate: "",
+        mileage: "",
+        vin: "",
+        bodyType: "",
+        engineSize: "",
+        description: ""
     });
     const [uploadedImages, setUploadedImages] = useState([]);
 
@@ -38,12 +43,13 @@ function AddCarModal({ modal, openModal, confirmBooking, cardetail }) {
         });
     };
 
-    // Update carId when it changes
-    React.useEffect(() => {
-        if (cardetail) {
-            setUserData(prev => ({ ...prev, carId: cardetail.id }));
+    const handleSubmit = () => {
+        if (uploadedImages.length === 0) {
+            alert("Please upload at least one car image");
+            return;
         }
-    }, [cardetail]);
+        onAddCar({ ...carData, images: uploadedImages });
+    };
 
     React.useEffect(() => {
         return () => {
@@ -62,197 +68,290 @@ function AddCarModal({ modal, openModal, confirmBooking, cardetail }) {
             {/* Modal Content */}
             <div className={`booking-modal ${modal ? "active-modal" : ""}`}>
                 <div className="booking-modal__title">
-                    <h2>Complete Reservation</h2>
+                    <h2>Add New Car</h2>
                     <CloseIcon
                         onClick={openModal}
                         style={{ cursor: "pointer", fontSize: "2.5rem" }}
                     />
                 </div>
 
-                {/* Car Info Section */}
-                {cardetail && (
-                    <div className="booking-modal__car-info">
-                        <div className="booking-modal__car-info__model">
-                            <h5>
-                                Vehicle: <span>{cardetail.name} - {cardetail.brand}</span>
-                            </h5>
-                            <img
-                                src={cardetail.img}
-                                alt={cardetail.name}
-                                style={{ width: '100%', height: 'auto' }}
-                            />
-                            <h5>
-                                Price: <span>${cardetail.price}/day</span>
-                            </h5>
-                            {cardetail.transmission && cardetail.fuel && (
-                                <p style={{ fontSize: '1.4rem', color: '#777', marginTop: '1rem' }}>
-                                    {cardetail.transmission} • {cardetail.fuel}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="booking-modal__car-info__dates">
-                            <h5>Rental Details</h5>
-                            <span>
-                                <i className="fa-solid fa-calendar-days"></i>
-                                <div>
-                                    <h6>Pickup Date</h6>
-                                    <p>{userData.pickupDate || "Not selected"}</p>
-                                </div>
-                            </span>
-                            <span>
-                                <i className="fa-solid fa-calendar-days"></i>
-                                <div>
-                                    <h6>Dropoff Date</h6>
-                                    <p>{userData.dropoffDate || "Not selected"}</p>
-                                </div>
-                            </span>
-                        </div>
-                    </div>
-                )}
-
-                {/* Personal Info Section */}
+                {/* Car Details Section */}
                 <div className="booking-modal__person-info">
-                    <h4>Personal Information</h4>
+                    <h4>Car Information</h4>
                     <form className="info-form">
-                        {/* Row 1: Name & Father Name */}
+                        {/* Row 1: Car Name & Brand */}
                         <div className="info-form__2col">
                             <span>
-                                <label>Full Name <b>*</b></label>
+                                <label>Car Name <b>*</b></label>
                                 <input
-                                    value={userData.name}
+                                    value={carData.name}
                                     onChange={(e) =>
-                                        setUserData({ ...userData, name: e.target.value })
+                                        setCarData({ ...carData, name: e.target.value })
                                     }
                                     type="text"
-                                    placeholder="Enter your full name"
+                                    placeholder="e.g., A1, Golf 6, Camry"
                                 />
                             </span>
 
                             <span>
-                                <label>Father Name <b>*</b></label>
+                                <label>Brand <b>*</b></label>
                                 <input
-                                    value={userData.fatherName}
+                                    value={carData.brand}
                                     onChange={(e) =>
-                                        setUserData({ ...userData, fatherName: e.target.value })
+                                        setCarData({ ...carData, brand: e.target.value })
                                     }
                                     type="text"
-                                    placeholder="Enter your father's name"
+                                    placeholder="e.g., Audi, VW, Toyota"
                                 />
                             </span>
                         </div>
 
-                        {/* Row 2: CNIC & License Number */}
+                        {/* Row 2: Model & Year */}
                         <div className="info-form__2col">
                             <span>
-                                <label>CNIC <b>*</b></label>
+                                <label>Model <b>*</b></label>
                                 <input
-                                    value={userData.cnic}
+                                    value={carData.model}
                                     onChange={(e) =>
-                                        setUserData({ ...userData, cnic: e.target.value })
+                                        setCarData({ ...carData, model: e.target.value })
                                     }
                                     type="text"
-                                    placeholder="XXXXX-XXXXXXX-X"
-                                    maxLength="15"
+                                    placeholder="e.g., Sport, Premium, Base"
                                 />
                             </span>
 
                             <span>
-                                <label>License Number <b>*</b></label>
+                                <label>Year <b>*</b></label>
                                 <input
-                                    value={userData.licenseNumber}
+                                    value={carData.year}
                                     onChange={(e) =>
-                                        setUserData({ ...userData, licenseNumber: e.target.value })
-                                    }
-                                    type="text"
-                                    placeholder="Enter your license number"
-                                />
-                            </span>
-                        </div>
-
-                        {/* Row 3: Phone & Age */}
-                        <div className="info-form__2col">
-                            <span>
-                                <label>Phone <b>*</b></label>
-                                <input
-                                    value={userData.phone}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, phone: e.target.value })
-                                    }
-                                    type="tel"
-                                    placeholder="Enter your phone number"
-                                />
-                            </span>
-
-                            <span>
-                                <label>Age <b>*</b></label>
-                                <input
-                                    value={userData.age}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, age: e.target.value })
+                                        setCarData({ ...carData, year: e.target.value })
                                     }
                                     type="number"
-                                    placeholder="18"
-                                    min="18"
-                                    max="100"
+                                    placeholder="e.g., 2024"
+                                    min="1990"
+                                    max="2025"
                                 />
                             </span>
                         </div>
 
-                        {/* Row 4: Address & City */}
+                        {/* Row 3: Price & Transmission */}
                         <div className="info-form__2col">
                             <span>
-                                <label>Address <b>*</b></label>
+                                <label>Price (per day) <b>*</b></label>
                                 <input
-                                    value={userData.address}
+                                    value={carData.price}
                                     onChange={(e) =>
-                                        setUserData({ ...userData, address: e.target.value })
+                                        setCarData({ ...carData, price: e.target.value })
                                     }
-                                    type="text"
-                                    placeholder="Enter your street address"
+                                    type="number"
+                                    placeholder="e.g., 45"
+                                    min="0"
                                 />
                             </span>
 
                             <span>
-                                <label>City <b>*</b></label>
-                                <input
-                                    value={userData.city}
+                                <label>Transmission <b>*</b></label>
+                                <select
+                                    value={carData.transmission}
                                     onChange={(e) =>
-                                        setUserData({ ...userData, city: e.target.value })
+                                        setCarData({ ...carData, transmission: e.target.value })
                                     }
-                                    type="text"
-                                    placeholder="Enter your city"
-                                />
+                                    style={{
+                                        width: '100%',
+                                        padding: '1.2rem 1.5rem',
+                                        fontSize: '1.6rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '3px'
+                                    }}
+                                >
+                                    <option value="">Select</option>
+                                    <option value="Manual">Manual</option>
+                                    <option value="Automatic">Automatic</option>
+                                </select>
                             </span>
                         </div>
 
-                        {/* Row 5: Pickup & Dropoff Dates */}
+                        {/* Row 4: Fuel & Body Type */}
                         <div className="info-form__2col">
                             <span>
-                                <label>Pickup Date <b>*</b></label>
-                                <input
-                                    value={userData.pickupDate}
+                                <label>Fuel Type <b>*</b></label>
+                                <select
+                                    value={carData.fuel}
                                     onChange={(e) =>
-                                        setUserData({ ...userData, pickupDate: e.target.value })
+                                        setCarData({ ...carData, fuel: e.target.value })
                                     }
-                                    type="date"
+                                    style={{
+                                        width: '100%',
+                                        padding: '1.2rem 1.5rem',
+                                        fontSize: '1.6rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '3px'
+                                    }}
+                                >
+                                    <option value="">Select</option>
+                                    <option value="Petrol">Petrol</option>
+                                    <option value="Diesel">Diesel</option>
+                                    <option value="Electric">Electric</option>
+                                    <option value="Hybrid">Hybrid</option>
+                                </select>
+                            </span>
+
+                            <span>
+                                <label>Body Type <b>*</b></label>
+                                <select
+                                    value={carData.bodyType}
+                                    onChange={(e) =>
+                                        setCarData({ ...carData, bodyType: e.target.value })
+                                    }
+                                    style={{
+                                        width: '100%',
+                                        padding: '1.2rem 1.5rem',
+                                        fontSize: '1.6rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '3px'
+                                    }}
+                                >
+                                    <option value="">Select</option>
+                                    <option value="Sedan">Sedan</option>
+                                    <option value="Hatchback">Hatchback</option>
+                                    <option value="SUV">SUV</option>
+                                    <option value="Coupe">Coupe</option>
+                                    <option value="Convertible">Convertible</option>
+                                    <option value="Wagon">Wagon</option>
+                                </select>
+                            </span>
+                        </div>
+
+                        {/* Row 5: Seats & Doors */}
+                        <div className="info-form__2col">
+                            <span>
+                                <label>Seats <b>*</b></label>
+                                <input
+                                    value={carData.seats}
+                                    onChange={(e) =>
+                                        setCarData({ ...carData, seats: e.target.value })
+                                    }
+                                    type="number"
+                                    placeholder="e.g., 5"
+                                    min="2"
+                                    max="8"
                                 />
                             </span>
 
                             <span>
-                                <label>Dropoff Date <b>*</b></label>
+                                <label>Doors <b>*</b></label>
                                 <input
-                                    value={userData.dropoffDate}
+                                    value={carData.doors}
                                     onChange={(e) =>
-                                        setUserData({ ...userData, dropoffDate: e.target.value })
+                                        setCarData({ ...carData, doors: e.target.value })
                                     }
-                                    type="date"
+                                    type="number"
+                                    placeholder="e.g., 4"
+                                    min="2"
+                                    max="5"
                                 />
                             </span>
                         </div>
+
+                        {/* Row 6: Color & License Plate */}
+                        <div className="info-form__2col">
+                            <span>
+                                <label>Color <b>*</b></label>
+                                <input
+                                    value={carData.color}
+                                    onChange={(e) =>
+                                        setCarData({ ...carData, color: e.target.value })
+                                    }
+                                    type="text"
+                                    placeholder="e.g., White, Black, Silver"
+                                />
+                            </span>
+
+                            <span>
+                                <label>License Plate <b>*</b></label>
+                                <input
+                                    value={carData.licensePlate}
+                                    onChange={(e) =>
+                                        setCarData({ ...carData, licensePlate: e.target.value })
+                                    }
+                                    type="text"
+                                    placeholder="e.g., ABC-1234"
+                                />
+                            </span>
+                        </div>
+
+                        {/* Row 7: Mileage & Engine Size */}
+                        <div className="info-form__2col">
+                            <span>
+                                <label>Mileage (km)</label>
+                                <input
+                                    value={carData.mileage}
+                                    onChange={(e) =>
+                                        setCarData({ ...carData, mileage: e.target.value })
+                                    }
+                                    type="number"
+                                    placeholder="e.g., 50000"
+                                    min="0"
+                                />
+                            </span>
+
+                            <span>
+                                <label>Engine Size (L)</label>
+                                <input
+                                    value={carData.engineSize}
+                                    onChange={(e) =>
+                                        setCarData({ ...carData, engineSize: e.target.value })
+                                    }
+                                    type="text"
+                                    placeholder="e.g., 2.0L, 3.5L"
+                                />
+                            </span>
+                        </div>
+
+                        {/* Row 8: VIN */}
+                        <div className="info-form__1col">
+                            <span>
+                                <label>VIN (Vehicle Identification Number)</label>
+                                <input
+                                    value={carData.vin}
+                                    onChange={(e) =>
+                                        setCarData({ ...carData, vin: e.target.value })
+                                    }
+                                    type="text"
+                                    placeholder="17-character VIN"
+                                    maxLength="17"
+                                />
+                            </span>
+                        </div>
+
+                        {/* Row 9: Description */}
+                        <div className="info-form__1col">
+                            <span>
+                                <label>Description</label>
+                                <textarea
+                                    value={carData.description}
+                                    onChange={(e) =>
+                                        setCarData({ ...carData, description: e.target.value })
+                                    }
+                                    placeholder="Additional features and details about the car"
+                                    rows="4"
+                                    style={{
+                                        width: '100%',
+                                        padding: '1.2rem 1.5rem',
+                                        fontSize: '1.6rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '3px',
+                                        fontFamily: 'inherit',
+                                        resize: 'vertical'
+                                    }}
+                                />
+                            </span>
+                        </div>
+
                         {/* Image Upload Section */}
                         <div className="info-form__1col" style={{ marginTop: '2rem' }}>
-                            <label>Upload Images (Optional)</label>
+                            <label>Upload Car Images <b>*</b></label>
                             <Box sx={{ mt: 2 }}>
                                 <Button
                                     variant="contained"
@@ -274,7 +373,7 @@ function AddCarModal({ modal, openModal, confirmBooking, cardetail }) {
                                     />
                                 </Button>
                                 <Typography variant="caption" display="block" sx={{ mt: 1, color: '#777' }}>
-                                    You can upload multiple images 
+                                    Upload multiple images of the car (required)
                                 </Typography>
                             </Box>
 
@@ -300,7 +399,7 @@ function AddCarModal({ modal, openModal, confirmBooking, cardetail }) {
                                         >
                                             <img
                                                 src={image.preview}
-                                                alt={`Upload ${index + 1}`}
+                                                alt={`Car ${index + 1}`}
                                                 style={{
                                                     width: '100%',
                                                     height: '100%',
@@ -329,12 +428,13 @@ function AddCarModal({ modal, openModal, confirmBooking, cardetail }) {
                                 </Box>
                             )}
                         </div>
+
                         <div className="reserve-button">
                             <button
                                 type="button"
-                                onClick={() => confirmBooking({ ...userData, images: uploadedImages })}
+                                onClick={handleSubmit}
                             >
-                                Book Now
+                                Add Car
                             </button>
                         </div>
                     </form>

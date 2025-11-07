@@ -1,5 +1,5 @@
 // src/pages/LoginPage.jsx
-import React, { useState , useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Paper,
@@ -12,8 +12,6 @@ import {
   TextField,
   Button,
   Alert,
-  Tabs,
-  Tab,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import authService from '../api/services/authService';
@@ -120,23 +118,6 @@ const Subtitle = styled(Typography)(({ theme }) => ({
   },
 }));
 
-const StyledTabs = styled(Tabs)({
-  marginBottom: "1.5rem",
-  "& .MuiTabs-indicator": {
-    backgroundColor: "#ff5722",
-    height: "3px",
-  },
-});
-
-const StyledTab = styled(Tab)({
-  textTransform: "none",
-  fontSize: "1rem",
-  fontWeight: 600,
-  color: "#666",
-  "&.Mui-selected": {
-    color: "#ff5722",
-  },
-});
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   marginBottom: theme.spacing(2),
@@ -230,23 +211,10 @@ function LoginPage() {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   // State management
-  const [tabValue, setTabValue] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Handle tab change
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-    setError("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setName("");
-  };
 
   // Handle sign in
   const handleSignIn = async () => {
@@ -260,7 +228,6 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      debugger
       const response = await authService.login({
         email,
         password,
@@ -275,217 +242,125 @@ function LoginPage() {
     }
   };
 
-  // Handle registration
-  const handleRegister = async () => {
-    setError("");
-
-    if (!name || !email || !password || !confirmPassword) {
-      setError("Please fill in all fields");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await authService.register({
-        name,
-        email,
-        password,
-      });
-
-      console.log("Registration success:", response);
-      navigate("/news");
-    } catch (error) {
-      console.error("Registration error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Handle Enter key press
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      tabValue === 0 ? handleSignIn() : handleRegister();
-    }
+    if (e.key === "Enter" ) handleSignIn();
   };
 
-  return (
-    <LoginContainer>
-      <Box
-        sx={{
-          width: "100%",
-          maxWidth: "520px",
-          display: "flex",
-          justifyContent: "center",
-          margin: "0 auto",
-        }}
-      >
-        <LoginCard elevation={0}>
-          {/* Logo and Title */}
-          <LogoContainer>
-            <LogoIcon>
-              <svg
-                width={isSmallScreen ? "35" : "40"}
-                height={isSmallScreen ? "35" : "40"}
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5 17H4C2.89543 17 2 16.1046 2 15V12C2 10.8954 2.89543 10 4 10H5M19 17H20C21.1046 17 22 16.1046 22 15V12C22 10.8954 21.1046 10 20 10H19M5 17C5 18.6569 6.34315 20 8 20C9.65685 20 11 18.6569 11 17M5 17C5 15.3431 6.34315 14 8 14C9.65685 14 11 15.3431 11 17M19 17C19 18.6569 17.6569 20 16 20C14.3431 20 13 18.6569 13 17M19 17C19 15.3431 17.6569 14 16 14C14.3431 14 13 15.3431 13 17M11 17H13M5 10V6C5 4.89543 5.89543 4 7 4H17C18.1046 4 19 4.89543 19 6V10"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </LogoIcon>
-            <MainTitle component="h1">CAR Rental</MainTitle>
-            <Subtitle>Plan your trip with us</Subtitle>
-          </LogoContainer>
 
-          {/* Tabs for Sign In / Register */}
-          <StyledTabs value={tabValue} onChange={handleTabChange} centered variant="fullWidth">
-            <StyledTab label="Sign In" />
-            <StyledTab label="Register" />
-          </StyledTabs>
 
-          {/* Error Alert */}
-          {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: "10px" }}>
-              {error}
-            </Alert>
-          )}
-
-          {/* Sign In Form */}
-          {tabValue === 0 ? (
-            <Box>
-              <StyledTextField
-                label="Email"
-                variant="outlined"
-                fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={loading}
-                type="email"
+return (
+  <LoginContainer>
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: "520px",
+        display: "flex",
+        justifyContent: "center",
+        margin: "0 auto",
+      }}
+    >
+      <LoginCard elevation={0}>
+        {/* Logo and Title */}
+        <LogoContainer>
+          <LogoIcon>
+            <svg
+              width={isSmallScreen ? "35" : "40"}
+              height={isSmallScreen ? "35" : "40"}
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5 17H4C2.89543 17 2 16.1046 2 15V12C2 10.8954 2.89543 10 4 10H5M19 17H20C21.1046 17 22 16.1046 22 15V12C22 10.8954 21.1046 10 20 10H19M5 17C5 18.6569 6.34315 20 8 20C9.65685 20 11 18.6569 11 17M5 17C5 15.3431 6.34315 14 8 14C9.65685 14 11 15.3431 11 17M19 17C19 18.6569 17.6569 20 16 20C14.3431 20 13 18.6569 13 17M19 17C19 15.3431 17.6569 14 16 14C14.3431 14 13 15.3431 13 17M11 17H13M5 10V6C5 4.89543 5.89543 4 7 4H17C18.1046 4 19 4.89543 19 6V10"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
-              <StyledTextField
-                label="Password"
-                type="password"
-                variant="outlined"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={loading}
-              />
+            </svg>
+          </LogoIcon>
+          <MainTitle component="h1">CAR Rental</MainTitle>
+          <Subtitle>Plan your trip with us</Subtitle>
+        </LogoContainer>
 
-              <Box textAlign="right" mb={2}>
-                <StyledLink href="#" underline="none" sx={{ fontSize: "0.875rem" }}>
-                  Forgot Password?
-                </StyledLink>
-              </Box>
+        {/* Error Alert */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2, borderRadius: "10px" }}>
+            {error}
+          </Alert>
+        )}
 
-              <StyledButton fullWidth onClick={handleSignIn} disabled={loading}>
-                {loading ? "Signing In..." : "Sign In"}
-              </StyledButton>
-            </Box>
-          ) : (
-            /* Register Form */
-            <Box>
-              <StyledTextField
-                label="Full Name"
-                variant="outlined"
-                fullWidth
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={loading}
-              />
-              <StyledTextField
-                label="Email"
-                variant="outlined"
-                fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={loading}
-                type="email"
-              />
-              <StyledTextField
-                label="Password"
-                type="password"
-                variant="outlined"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={loading}
-              />
-              <StyledTextField
-                label="Confirm Password"
-                type="password"
-                variant="outlined"
-                fullWidth
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={loading}
-              />
+        {/* Sign In Form */}
+        <Box>
+          <StyledTextField
+            label="Email"
+            variant="outlined"
+            fullWidth
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={loading}
+            type="email"
+          />
+          <StyledTextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            fullWidth
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={loading}
+          />
 
-              <StyledButton fullWidth onClick={handleRegister} disabled={loading}>
-                {loading ? "Creating Account..." : "Create Account"}
-              </StyledButton>
-            </Box>
-          )}
-
-          {/* Footer */}
-          <Box textAlign="center" mt={3}>
-            <FooterText>
-              By continuing, you agree to our{" "}
-              <StyledLink href="#" underline="none">
-                Terms
-              </StyledLink>{" "}
-              and{" "}
-              <StyledLink href="#" underline="none">
-                Privacy Policy
-              </StyledLink>
-            </FooterText>
+          <Box textAlign="right" mb={2}>
+            <StyledLink href="#" underline="none" sx={{ fontSize: "0.875rem" }}>
+              Forgot Password?
+            </StyledLink>
           </Box>
-        </LoginCard>
-      </Box>
 
-      {/* Floating car decorations in background */}
-      <BackgroundDecoration>
-        <FloatingCar delay={0} size={120} top="10%" left="5%">
-          <svg viewBox="0 0 24 24" fill="white">
-            <path d="M5 17H4C2.89543 17 2 16.1046 2 15V12C2 10.8954 2.89543 10 4 10H5M19 17H20C21.1046 17 22 16.1046 22 15V12C22 10.8954 21.1046 10 20 10H19M5 17C5 18.6569 6.34315 20 8 20C9.65685 20 11 18.6569 11 17M5 17C5 15.3431 6.34315 14 8 14C9.65685 14 11 15.3431 11 17M19 17C19 18.6569 17.6569 20 16 20C14.3431 20 13 18.6569 13 17M19 17C19 15.3431 17.6569 14 16 14C14.3431 14 13 15.3431 13 17M11 17H13M5 10V6C5 4.89543 5.89543 4 7 4H17C18.1046 4 19 4.89543 19 6V10" />
-          </svg>
-        </FloatingCar>
-        <FloatingCar delay={2} size={150} top="60%" right="8%">
-          <svg viewBox="0 0 24 24" fill="white">
-            <path d="M5 17H4C2.89543 17 2 16.1046 2 15V12C2 10.8954 2.89543 10 4 10H5M19 17H20C21.1046 17 22 16.1046 22 15V12C22 10.8954 21.1046 10 20 10H19M5 17C5 18.6569 6.34315 20 8 20C9.65685 20 11 18.6569 11 17M5 17C5 15.3431 6.34315 14 8 14C9.65685 14 11 15.3431 11 17M19 17C19 18.6569 17.6569 20 16 20C14.3431 20 13 18.6569 13 17M19 17C19 15.3431 17.6569 14 16 14C14.3431 14 13 15.3431 13 17M11 17H13M5 10V6C5 4.89543 5.89543 4 7 4H17C18.1046 4 19 4.89543 19 6V10" />
-          </svg>
-        </FloatingCar>
-        <FloatingCar delay={4} size={100} bottom="15%" left="15%">
-          <svg viewBox="0 0 24 24" fill="white">
-            <path d="M5 17H4C2.89543 17 2 16.1046 2 15V12C2 10.8954 2.89543 10 4 10H5M19 17H20C21.1046 17 22 16.1046 22 15V12C22 10.8954 21.1046 10 20 10H19M5 17C5 18.6569 6.34315 20 8 20C9.65685 20 11 18.6569 11 17M5 17C5 15.3431 6.34315 14 8 14C9.65685 14 11 15.3431 11 17M19 17C19 18.6569 17.6569 20 16 20C14.3431 20 13 18.6569 13 17M19 17C19 15.3431 17.6569 14 16 14C14.3431 14 13 15.3431 13 17M11 17H13M5 10V6C5 4.89543 5.89543 4 7 4H17C18.1046 4 19 4.89543 19 6V10" />
-          </svg>
-        </FloatingCar>
-      </BackgroundDecoration>
-    </LoginContainer>
-  );
+          <StyledButton fullWidth onClick={handleSignIn} disabled={loading}>
+            {loading ? "Signing In..." : "Sign In"}
+          </StyledButton>
+        </Box>
+
+        {/* Footer */}
+        <Box textAlign="center" mt={3}>
+          <FooterText>
+            By continuing, you agree to our{" "}
+            <StyledLink href="#" underline="none">
+              Terms
+            </StyledLink>{" "}
+            and{" "}
+            <StyledLink href="#" underline="none">
+              Privacy Policy
+            </StyledLink>
+          </FooterText>
+        </Box>
+      </LoginCard>
+    </Box>
+
+    {/* Floating car decorations in background */}
+    <BackgroundDecoration>
+      <FloatingCar delay={0} size={120} top="10%" left="5%">
+        <svg viewBox="0 0 24 24" fill="white">
+          <path d="M5 17H4C2.89543 17 2 16.1046 2 15V12C2 10.8954 2.89543 10 4 10H5M19 17H20C21.1046 17 22 16.1046 22 15V12C22 10.8954 21.1046 10 20 10H19M5 17C5 18.6569 6.34315 20 8 20C9.65685 20 11 18.6569 11 17M5 17C5 15.3431 6.34315 14 8 14C9.65685 14 11 15.3431 11 17M19 17C19 18.6569 17.6569 20 16 20C14.3431 20 13 18.6569 13 17M19 17C19 15.3431 17.6569 14 16 14C14.3431 14 13 15.3431 13 17M11 17H13M5 10V6C5 4.89543 5.89543 4 7 4H17C18.1046 4 19 4.89543 19 6V10" />
+        </svg>
+      </FloatingCar>
+      <FloatingCar delay={2} size={150} top="60%" right="8%">
+        <svg viewBox="0 0 24 24" fill="white">
+          <path d="M5 17H4C2.89543 17 2 16.1046 2 15V12C2 10.8954 2.89543 10 4 10H5M19 17H20C21.1046 17 22 16.1046 22 15V12C22 10.8954 21.1046 10 20 10H19M5 17C5 18.6569 6.34315 20 8 20C9.65685 20 11 18.6569 11 17M5 17C5 15.3431 6.34315 14 8 14C9.65685 14 11 15.3431 11 17M19 17C19 18.6569 17.6569 20 16 20C14.3431 20 13 18.6569 13 17M19 17C19 15.3431 17.6569 14 16 14C14.3431 14 13 15.3431 13 17M11 17H13M5 10V6C5 4.89543 5.89543 4 7 4H17C18.1046 4 19 4.89543 19 6V10" />
+        </svg>
+      </FloatingCar>
+      <FloatingCar delay={4} size={100} bottom="15%" left="15%">
+        <svg viewBox="0 0 24 24" fill="white">
+          <path d="M5 17H4C2.89543 17 2 16.1046 2 15V12C2 10.8954 2.89543 10 4 10H5M19 17H20C21.1046 17 22 16.1046 22 15V12C22 10.8954 21.1046 10 20 10H19M5 17C5 18.6569 6.34315 20 8 20C9.65685 20 11 18.6569 11 17M5 17C5 15.3431 6.34315 14 8 14C9.65685 14 11 15.3431 11 17M19 17C19 18.6569 17.6569 20 16 20C14.3431 20 13 18.6569 13 17M19 17C19 15.3431 17.6569 14 16 14C14.3431 14 13 15.3431 13 17M11 17H13M5 10V6C5 4.89543 5.89543 4 7 4H17C18.1046 4 19 4.89543 19 6V10" />
+        </svg>
+      </FloatingCar>
+    </BackgroundDecoration>
+  </LoginContainer>
+);
 }
 
 export default LoginPage;
