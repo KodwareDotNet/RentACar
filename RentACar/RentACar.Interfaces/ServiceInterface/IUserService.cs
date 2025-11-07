@@ -18,5 +18,9 @@ namespace RentACar.Interfaces.ServiceInterface
         Task<int> CreateOrganization(Organization create);
         Task<int> UpdateOrganization(Organization organization);
         Task<int> DeleteOrganization(int organizationId);
+        Task<int> CreateUser(User user);
+        Task<User?> Login(string email, string password);
+
+        Task<User> GetUserByUsername(string username);
     }
 }

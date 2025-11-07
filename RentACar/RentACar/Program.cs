@@ -41,6 +41,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserMap, UserMap>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserMap, UserMap>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+
 
 
 
@@ -105,6 +107,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
+});
 var app = builder.Build();
 
 app.UseStaticFiles();
@@ -129,6 +138,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseCors("AllowReactApp");
 
 app.UseAuthorization();
 app.UseMiddleware<JwtMiddleware>();

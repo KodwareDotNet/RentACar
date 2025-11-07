@@ -1,19 +1,22 @@
-﻿using RentACar.Interfaces.RepoInterfaces;
-using RentACar.Interfaces.ServiceInterface;
-using RentACar.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using RentACar.Interfaces.RepoInterfaces;
+using RentACar.Interfaces.ServiceInterface;
+using RentACar.Models;
+using RentACar.Service;
 
 namespace RentACar.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepo;
-
-        public UserService(IUserRepository userRepo)
+        private readonly ITokenService _tokenService;
+        public UserService(IUserRepository userRepo,
+            ITokenService tokenService)
         {
-            _userRepo = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
+            _userRepo = userRepo;
+            _tokenService = tokenService;
         }
 
         public async Task<User?> GetByEmailOrGoogleIdAsync(string email, string? googleId)
@@ -88,8 +91,40 @@ namespace RentACar.Services
         {
             return await _userRepo.DeleteOrganization(id);
         }
+        public async Task<int> CreateUser(User user)
+        {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+
+            // Optional: hash password here
+            // user.Password = HashPassword(user.Password);
+
+            return await _userRepo.CreateUser(user);
+        }
+
+        public async Task<User> GetUserByUsername(string username)
+        {
+            return await _userRepo.GetUserByUsername(username);
+        }
+        //public async Task<User?> Login(string email, string password)
+        //{
+        //    return await _userRepo.Login(email, password);
+        //}
+        public async Task<User> Login(string email, string password)
+        {
+            var user = await _userRepo.Login(email, password);
+            if (user == null) return null;
+
+            // generate JWT token
+            user.Token = _tokenService.GenerateToken(user, out DateTime expiresAt);
+            user.TokenExpiresAt = expiresAt;
+
+            return user;
+        }
+
 
     }
 }
+
 
 

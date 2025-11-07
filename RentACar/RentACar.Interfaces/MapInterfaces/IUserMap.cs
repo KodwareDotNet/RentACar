@@ -1,7 +1,8 @@
-﻿using RentACar.ViewModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using RentACar.Models;
+using RentACar.ViewModel;
 
 namespace RentACar.Map
 {
@@ -28,6 +29,8 @@ namespace RentACar.Map
         Task<IEnumerable<OrganizationViewModel>> GetAllOrganizations();
         Task<int> UpdateOrganization(OrganizationViewModel update);
         Task<int> DeleteOrganization(int id);
+        Task<int> CreateUser(UserCreateDto dto);
+        Task<User?> Login(LoginDto dto);
 
 
         /// <summary>

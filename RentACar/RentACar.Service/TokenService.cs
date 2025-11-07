@@ -102,6 +102,7 @@ namespace RentACar.Service
         public TokenService(IConfiguration config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
+
         }
 
         /// <summary>
@@ -142,12 +143,42 @@ namespace RentACar.Service
                 signingCredentials: credentials
             );
 
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        public string GenerateToken(User user, out DateTime expiresAt)
+        {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
+            var key = _config["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key missing");
+            var issuer = _config["Jwt:Issuer"] ?? "";
+            var audience = _config["Jwt:Audience"] ?? "";
+            var expireMinutes = int.TryParse(_config["Jwt:ExpireMinutes"], out int minutes) ? minutes : 30;
+
+            var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Name ?? ""),
+            new Claim(ClaimTypes.Email, user.Email ?? ""),
+            new Claim(ClaimTypes.Role, user.Role ?? "")
+        };
+
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            expiresAt = DateTime.UtcNow.AddMinutes(expireMinutes);
+
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                expires: expiresAt,
+                signingCredentials: credentials
+            );
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        /// <summary>
-        /// Generates a secure, random refresh token.
-        /// </summary>
         public string GenerateRefreshToken()
         {
             var randomBytes = new byte[32];

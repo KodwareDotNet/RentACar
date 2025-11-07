@@ -111,6 +111,7 @@ namespace RentACar.Map
                 Email = organization.Email,
                 Phone = organization.Phone,
                 Address = organization.Address
+
             };
 
             return await _userService.UpdateOrganization(model);
@@ -119,9 +120,31 @@ namespace RentACar.Map
         {
             return await _userService.DeleteOrganization(id);
         }
+        public async Task<int> CreateUser(UserCreateDto dto)
+        {
+            var user = new User
+            {
+                Username = dto.Username,
+                Password = dto.Password,  // hash if needed
+                OrganizationId = dto.OrganizationId,
+                Role = "User", // default role for this endpoint
+                Email = dto.Email,
+            };
+            return await _userService.CreateUser(user);
+        }
+        public async Task<User?> Login(LoginDto dto)
+        {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
+            // Optionally: hash dto.Password before sending to service
+            return await _userService.Login(dto.Email, dto.Password);
+        }
 
     }
 }
+
+
 
 
 

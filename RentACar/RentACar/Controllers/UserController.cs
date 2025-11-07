@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentACar.Helpers;
+using RentACar.Interfaces.ServiceInterface;
 using RentACar.Map;
+using RentACar.Services;
 using RentACar.ViewModel;
 
 namespace RentACar.Controllers
@@ -12,10 +15,12 @@ namespace RentACar.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserMap _userMap;
+        private readonly IUserService _userService;
 
-        public UserController(IUserMap userMap)
+        public UserController(IUserMap userMap, IUserService userService)
         {
-            _userMap = userMap;
+            _userMap = userMap; 
+             _userService = userService;
         }
 
         [HttpGet("GetAllUsers")]
@@ -35,17 +40,6 @@ namespace RentACar.Controllers
         //        }
         //    }
         //}
-
-
-        [HttpPost("CreateUser")]
-        public async Task<int> Create([FromBody] UserViewModel user)
-        {
-            var (hash, salt) = PasswordHelper.HashPassword(user.Password);
-            user.Password = hash;
-            user.Salt = salt;
-
-            return await _userMap.Create(user);
-        }
 
 
 
@@ -77,7 +71,34 @@ namespace RentACar.Controllers
             return await _userMap.DeleteOrganization(id);
         }
 
+        //[Authorize(Roles = "Superadmin")]
+        //[HttpPost("CreateAdminUser")]
+        //public async Task<IActionResult> CreateAdmin([FromBody] UserCreateDto dto)
+        //{
+        //    return await _userMap.CreateAdminUser(dto); 
+        //}
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            if (dto == null)
+                return BadRequest("Login data is required.");
 
+            var user = await _userService.Login(dto.Email, dto.Password);
+            if (user == null)
+                return Unauthorized(new { Message = "Invalid username or password." });
+
+            // ✅ Map to LoginResponseDto here
+            var response = new LoginResponseDto
+            {
+                Token = user.Token,               // string
+                TokenExpiresAt = user.TokenExpiresAt, // DateTime
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            };
+
+            return Ok(response);
+        }
     }
 }
 
@@ -96,4 +117,3 @@ namespace RentACar.Controllers
 //    return await _userMap.DeleteOrganization(id);
 //}
 //    }
-

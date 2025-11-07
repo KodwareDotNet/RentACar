@@ -30,7 +30,7 @@ namespace RentACar.Map
         {
             Car domain1 = new Car();
             domain1.Id = news.Id;
-         
+
 
             return domain1;
         }
@@ -44,7 +44,7 @@ namespace RentACar.Map
                 RentACarViewModel model = new RentACarViewModel();
 
                 model.Id = news.Id;
-            
+
                 modelList.Add(model);
 
 
@@ -63,7 +63,5 @@ namespace RentACar.Map
         {
             return await newsService.GetAllKeyValuePair(keyValuePair, id);
         }
-
-      
     }
 }

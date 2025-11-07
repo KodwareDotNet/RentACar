@@ -24,5 +24,8 @@ namespace RentACar.Interfaces.RepoInterfaces
         Task<int> UpdateOrganization(Organization organization);
         Task<int> DeleteOrganization(int organizationId);
         Task DeleteRefreshTokenAsync(int userId);
+        Task<int> CreateUser(User user);
+        Task<User?> Login(string email, string password);
+        Task<User> GetUserByUsername(string username);
     }
 }

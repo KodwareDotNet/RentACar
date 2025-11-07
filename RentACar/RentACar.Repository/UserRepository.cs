@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Net.Sockets;
 using Dapper;
 using MenuManagement.Repositories;
 using RentACar.Interfaces.RepoInterfaces;
+using RentACar.Interfaces.ServiceInterface;
 using RentACar.Models;
 using static System.Net.Mime.MediaTypeNames;
+using static Dapper.SqlMapper;
 
 namespace MenuManagement.Repositories
 {
@@ -199,6 +202,47 @@ namespace MenuManagement.Repositories
 
             return parameters.Get<int>("@OutP");
         }
+        public async Task<int> CreateUser(User user)
+        {
+            var parameters = new
+            {
+                @Username = user.Username,
+                @PasswordHash = user.Password,
+                @OrganizationId = user.OrganizationId,
+                @UserRole = user.Role,
+                @Email = user.Email,
+            };
+
+            return await ExecuteAsync(
+                "sp_CreateUser",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+        public async Task<User> GetUserByUsername(string username)
+        {
+            return await QueryFirstOrDefaultAsync<User>(
+                "sp_GetUserByUsername",
+                new { Username = username },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+            public async Task<User?> Login(string email, string password)
+        {
+            var parameters = new
+            {
+                @Email = email,
+                PasswordHash = password
+            };
+
+            var user = await QueryFirstOrDefaultAsync<User>(
+                "sp_LoginUser",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return user;
+        }
 
     }
 }
@@ -206,6 +250,11 @@ namespace MenuManagement.Repositories
 
 
 
+
+//[Id][bigint] IDENTITY(1,1) NOT NULL,
+//    [Email] [nvarchar] (200) NOT NULL,
+
+//    [UserRole] [nvarchar] (50) NOT NULL,
 
 
 
