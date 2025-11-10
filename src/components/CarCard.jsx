@@ -1,6 +1,5 @@
 // src/components/CarCard.jsx
 import React from "react";
-import { Link } from "react-router-dom";
 
 const CarCard = ({ car, onBook }) => {
     return (
@@ -42,7 +41,7 @@ const CarCard = ({ car, onBook }) => {
                         onClick={onBook}
                         >
                         <div >
-                            Book Ride
+                            Book Car
                         </div>
                     </div>
                 </div>

@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-function AddCustomerModal({ modal, openModal, confirmAdding }) {
+function AddUserModal({ modal, openModal, confirmAdding }) {
     const [userData, setUserData] = useState({
         name: "",
         fatherName: "",
@@ -67,7 +67,6 @@ function AddCustomerModal({ modal, openModal, confirmAdding }) {
     return (
         <Dialog
             open={modal}
-            onClose={openModal}
             maxWidth="md"
             fullWidth
             PaperProps={{
@@ -95,7 +94,7 @@ function AddCustomerModal({ modal, openModal, confirmAdding }) {
                         fontFamily: '"Rubik", sans-serif',
                     }}
                 >
-                    Add New Customer
+                    Add New User
                 </Typography>
                 <IconButton
                     onClick={openModal}
@@ -123,7 +122,7 @@ function AddCustomerModal({ modal, openModal, confirmAdding }) {
                             fontFamily: '"Rubik", sans-serif',
                         }}
                     >
-                        Customer Information
+                        User Information
                     </Typography>
 
                     <Grid container spacing={2.5}>
@@ -449,7 +448,7 @@ function AddCustomerModal({ modal, openModal, confirmAdding }) {
                                         },
                                     }}
                                 >
-                                    Add Customer
+                                    Add User
                                 </Button>
                             </Box>
                         </Grid>
@@ -461,4 +460,4 @@ function AddCustomerModal({ modal, openModal, confirmAdding }) {
     );
 }
 
-export default AddCustomerModal;
+export default AddUserModal;

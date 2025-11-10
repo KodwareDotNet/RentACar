@@ -8,6 +8,7 @@ import TestimonialsPage from "./Pages/TestimonialsPage";
 import Team from "./Pages/Team";
 import Contact from "./Pages/Contact";
 import LoginPage from "./Pages/LoginPage";
+import UsersList from "./Pages/UsersList";
 
 function App() {
   const location = useLocation();
@@ -27,6 +28,7 @@ function App() {
         <Route path="testimonials" element={<TestimonialsPage />} />
         <Route path="team" element={<Team />} />
         <Route path="contact" element={<Contact />} />
+        <Route path="usersList" element={<UsersList/>} />
       </Routes>
     </>
   );

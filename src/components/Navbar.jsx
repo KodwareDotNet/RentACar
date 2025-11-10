@@ -11,34 +11,32 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
-  useTheme,
-  useMediaQuery,
 } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import Logo from '../images/logo/logo.png';
-import AddCustomerModal from './AddCustomerModal'
+import AddUserModal from './AddUserModal';
 import AddCarModal from './AddCarModal';
+import AddRoleModal from './AddRoleModal';
 
 
 function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [showAddUserModal, setshowAddUserModal] = useState(false);
   const [showAddCarModal, setShowAddCarModal] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+  const [showAddRoleModal, setShowAddRoleModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+    setDrawerOpen(!drawerOpen);
   };
 
   const handleNavigation = (path) => {
     navigate(path);
     window.scrollTo(0, 0);
-    if (mobileOpen) {
-      setMobileOpen(false);
+    if (drawerOpen) {
+      setDrawerOpen(false);
     }
   };
 
@@ -52,24 +50,32 @@ function Navbar() {
 
   }
 
-  const toggleCustomerModal = () => {
-    setShowCustomerModal((prev) => !prev);
+  const toggleAddUserModal = () => {
+    setshowAddUserModal((prev) => !prev);
   };
 
   const toggleAddCarModal = () => {
     setShowAddCarModal((prev) => !prev);
-  }
+  };
 
+  const toggleAddRoleModal = () => {
+    setShowAddRoleModal((prev) => !prev);
+  };
 
   const handleCustomerSubmit = (customerData) => {
     console.log("Customer data:", customerData);
-    setShowCustomerModal(false);
+    setshowAddUserModal(false);
     // Add your API call or data handling here
   };
 
   const handleAddCarSubmit = (carData) => {
     console.log("Added Car:", carData);
     setShowAddCarModal(false);
+  };
+
+  const handleAddRoleSubmit = (roleData) => {
+    console.log("Role Added:", roleData);
+    setShowAddRoleModal(false);
   }
 
   useEffect(() => {
@@ -85,28 +91,31 @@ function Navbar() {
     { label: 'Home', path: '/home', className: 'home-link' },
     { label: 'Vehicles', path: '/models', className: 'models-link' },
     { label: 'Add Car', onClick: toggleAddCarModal },
-    { label: 'Add Customer', onClick: toggleCustomerModal}
+    { label: 'Add User', onClick: toggleAddUserModal },
+    { label: 'Add Role', onClick: toggleAddRoleModal },
+    { label: 'User List', path: '/usersList' }
   ];
 
   const drawer = (
     <Box
       sx={{
-        width: '100vw',
+        width: '100%',
         height: '100vh',
         backgroundColor: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: { xs: 'flex-start', sm: 'center' },
+        alignItems: 'flex-start',
         position: 'relative',
+        p: { xs: 3, sm: 4 },
       }}
     >
       <IconButton
         onClick={handleDrawerToggle}
         sx={{
           position: 'absolute',
-          top: '3.5rem',
-          right: '3.5rem',
+          top: '1.5rem',
+          right: '.5rem',
           fontSize: '3rem',
           color: '#010103',
           transition: 'all 0.3s',
@@ -115,25 +124,30 @@ function Navbar() {
           },
         }}
       >
-        <CloseIcon sx={{ fontSize: '3rem' }} />
+        <CloseIcon sx={{ fontSize: '3rem', marginRight: 0 }}
+        />
       </IconButton>
       <List
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '3rem',
-          textAlign: 'center',
+          gap: { xs: '2rem', sm: '3rem' },
+          textAlign: 'left',
+          width: '100%',
+          maxWidth: { xs: '100%', sm: '250px' },
+          px: { xs: 2, sm: 4 },
+          mt: { xs: 2, sm: 15 , md: 12, lg: 10, xl:6 },
         }}
       >
         {navItems.map((item) => (
           <ListItem key={item.label} disablePadding>
             <ListItemButton
-              // onClick={() => handleNavigation(item.path)}
               onClick={() => {
                 if (item.onClick) {
-                  item.onClick(); // 🔥 calls toggleAddCarModal
+                  item.onClick();
+                  setDrawerOpen(false);
                 } else {
-                  handleNavigation(item.path); // 🔥 navigates normally
+                  handleNavigation(item.path);
                 }
               }}
               sx={{
@@ -159,6 +173,36 @@ function Navbar() {
             </ListItemButton>
           </ListItem>
         ))}
+
+        {/* Login/Logout Button */}
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => {
+              handleAuthClick();
+              setDrawerOpen(false);
+            }}
+            sx={{
+              textAlign: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <ListItemText
+              primary={isLoggedIn ? "Logout" : "Login"}
+              sx={{
+                '& .MuiTypography-root': {
+                  fontSize: '2.3rem',
+                  fontWeight: 500,
+                  color: '#010103',
+                  fontFamily: '"Rubik", sans-serif',
+                  transition: 'all 0.3s',
+                },
+                '&:hover .MuiTypography-root': {
+                  color: '#ff4d30',
+                },
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
       </List>
     </Box>
   );
@@ -184,107 +228,22 @@ function Navbar() {
             minHeight: 'auto !important',
           }}
         >
-          {/* Logo */}
+          {/* Left Section: Menu Icon + Home & Vehicles Links */}
           <Box
-            onClick={() => handleNavigation('/home')}
             sx={{
               display: 'flex',
               alignItems: 'center',
-              cursor: 'pointer',
+              gap: { xs: '1.5rem', md: '2.5rem' },
             }}
           >
-            <Box
-              component="img"
-              src={Logo}
-              alt="logo"
-              sx={{
-                width: '14.5rem',
-                height: 'auto',
-              }}
-            />
-          </Box>
-
-          {/* Desktop Navigation */}
-          {!isMobile && (
-            <>
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: '2.1rem',
-                }}
-              >
-                {navItems.map((item) => (
-                  <Button
-                    key={item.label}
-                    // onClick={() => handleNavigation(item.path)}
-                    onClick={() => {
-                      if (item.onClick) {
-                        item.onClick(); // 🔥 calls toggleAddCarModal
-                      } else {
-                        handleNavigation(item.path); // 🔥 navigates normally
-                      }
-                    }}
-                    className={item.className}
-                    sx={{
-                      fontSize: '1.6rem',
-                      fontFamily: '"Rubik", sans-serif',
-                      fontWeight: 500,
-                      color: '#010103',
-                      textTransform: 'none',
-                      padding: 0,
-                      minWidth: 'auto',
-                      transition: 'all 0.3s',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                        color: '#ff4d30',
-                      },
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                ))}
-              </Box>
-
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: '2.5rem',
-                  alignItems: 'center',
-                }}
-              >
-              
-                <Button
-                  onClick={handleAuthClick}
-                  sx={{
-                    fontSize: '1.6rem',
-                    fontFamily: '"Rubik", sans-serif',
-                    fontWeight: 500,
-                    color: '#010103',
-                    textTransform: 'none',
-                    padding: 0,
-                    minWidth: 'auto',
-                    transition: 'all 0.3s',
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                      color: '#ff4d30',
-                    },
-                  }}
-                >
-                  {isLoggedIn ? "Logout" : "Sign In"}
-                </Button>
-
-              </Box>
-            </>
-          )}
-
-          {/* Mobile menu button */}
-          {isMobile && (
+            {/* Three Lines Menu Icon */}
             <IconButton
               onClick={handleDrawerToggle}
               sx={{
                 fontSize: '2.8rem',
                 color: '#010103',
                 transition: 'all 0.3s',
+                padding: '0.5rem',
                 '&:hover': {
                   color: '#ff4d30',
                   backgroundColor: 'transparent',
@@ -293,34 +252,119 @@ function Navbar() {
             >
               <MenuIcon sx={{ fontSize: '2.8rem' }} />
             </IconButton>
-          )}
+
+            {/* Home Link */}
+            <Button
+              onClick={() => handleNavigation('/home')}
+              sx={{
+                fontSize: { xs: '1.4rem', md: '1.6rem' },
+                fontFamily: '"Rubik", sans-serif',
+                fontWeight: 500,
+                color: '#010103',
+                textTransform: 'none',
+                padding: 0,
+                minWidth: 'auto',
+                transition: 'all 0.3s',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  color: '#ff4d30',
+                },
+              }}
+            >
+              Home
+            </Button>
+
+            {/* Vehicles Link */}
+            <Button
+              onClick={() => handleNavigation('/models')}
+              sx={{
+                fontSize: { xs: '1.4rem', md: '1.6rem' },
+                fontFamily: '"Rubik", sans-serif',
+                fontWeight: 500,
+                color: '#010103',
+                textTransform: 'none',
+                padding: 0,
+                minWidth: 'auto',
+                transition: 'all 0.3s',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  color: '#ff4d30',
+                },
+              }}
+            >
+              Vehicles
+            </Button>
+          </Box>
+
+          {/* Right Section: Logout Icon (only on larger screens) */}
+          <Box
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              gap: '2.5rem',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton
+              onClick={handleAuthClick}
+              sx={{
+                fontSize: '1.6rem',
+                color: '#010103',
+                transition: 'all 0.3s',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  color: '#ff4d30',
+                },
+              }}
+            >
+              {isLoggedIn ? <LogoutIcon sx={{ fontSize: '2.4rem' }} /> : "Login"}
+            </IconButton>
+          </Box>
         </Toolbar>
       </AppBar>
 
-      {/* Mobile drawer */}
+
       <Drawer
         anchor="left"
-        open={mobileOpen}
+        open={drawerOpen}
         onClose={handleDrawerToggle}
         sx={{
           '& .MuiDrawer-paper': {
-            width: '100%',
+            width: {
+              xs: '75%',
+              sm: '50%',
+              md: '30%',
+              lg: '20%',
+            },
             boxSizing: 'border-box',
+            display: 'flex',
+            alignItems: 'flex-start',
+            transition: 'width 0.3s ease'
+          },
+          BackdropProps: {
+            sx: {
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            },
           },
         }}
         transitionDuration={500}
       >
         {drawer}
       </Drawer>
-      <AddCustomerModal
-        modal={showCustomerModal}
-        openModal={toggleCustomerModal}
+
+      <AddUserModal
+        modal={showAddUserModal}
+        openModal={toggleAddUserModal}
         confirmAdding={handleCustomerSubmit}
       />
       <AddCarModal
         modal={showAddCarModal}
         openModal={toggleAddCarModal}
         onAddCar={handleAddCarSubmit}
+      />
+      <AddRoleModal
+        modal={showAddRoleModal}
+        openModal={toggleAddRoleModal}
+        confirmAdding={handleAddRoleSubmit}
       />
     </>
   );
