@@ -18,6 +18,7 @@ namespace MenuManagement.Repositories
     {
         public UserRepository(IDbConnection connection) : base(connection)
         {
+
         }
 
         public async Task<decimal> GetDailyIncome(DateTime date)
@@ -227,7 +228,7 @@ namespace MenuManagement.Repositories
                 commandType: CommandType.StoredProcedure
             );
         }
-            public async Task<User?> Login(string email, string password)
+        public async Task<User?> Login(string email, string password)
         {
             var parameters = new
             {
@@ -243,9 +244,159 @@ namespace MenuManagement.Repositories
 
             return user;
         }
+        #region Role
 
+        public async Task<int> CreateRole(Role role)
+        {
+            if (role is null)
+                throw new ArgumentNullException(nameof(role));
+
+            var parameters = new
+            {
+                RoleName = role.RoleName ?? string.Empty,
+                OrganizationId = role.OrganizationId
+            };
+
+            return await ExecuteAsync(
+                "sp_CreateRole",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<IEnumerable<Role>> GetAllRoles()
+        {
+            return await _connection.QueryAsync<Role>(
+                "sp_GetAllRoles",
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+
+        public async Task<int> UpdateRole(Role role)
+        {
+            if (role is null)
+                throw new ArgumentNullException(nameof(role));
+
+            var parameters = new
+            {
+                RoleId = role.RoleId,
+                RoleName = role.RoleName ?? string.Empty,
+                OrganizationId = role.OrganizationId
+            };
+
+            return await ExecuteAsync(
+                "sp_UpdateRole",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<int> DeleteRole(int roleId)
+        {
+            var parameters = new
+            {
+                RoleId = roleId
+            };
+
+            return await ExecuteAsync(
+                "sp_DeleteRole",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
     }
 }
+#endregion
+
+
+//public async Task<int> CreateRole(Role role)
+//{
+//    if (role is null)
+//        throw new ArgumentNullException(nameof(role));
+
+//    var parameters = new
+//    {
+//        RoleName = role.Name,
+//        @OrganizationId = role.OrganizationId
+//    };
+
+//    return await ExecuteAsync("sp_CreateRole", parameters, commandType: CommandType.StoredProcedure);
+//}
+
+//public async Task<int> UpdateRole(Role role)
+//{
+//    if (role is null)
+//        throw new ArgumentNullException(nameof(role));
+
+//    var parameters = new
+//    {
+//        @RoleId = role.Id,
+//        @Name = role.Name,
+//        @OrganizationId = role.OrganizationId
+//    };
+
+//    return await ExecuteAsync("sp_UpdateRole", parameters, commandType: CommandType.StoredProcedure);
+//}
+
+//public async Task<int> DeleteRole(int roleId)
+//{
+//    var parameters = new { @RoleId = roleId };
+//    return await ExecuteAsync("sp_DeleteRole", parameters, commandType: CommandType.StoredProcedure);
+//}
+
+//        public async Task<int> CreateRole(Role role)
+//        {
+//            var parameters = new
+//            {
+//                RoleName = role.RoleName ?? string.Empty,
+//                OrganizationId = role.OrganizationId
+//            };
+
+//            return await ExecuteAsync(
+//                "sp_CreateRole",
+//                parameters,
+//                commandType: CommandType.StoredProcedure
+//            );
+//        }
+
+//        //public async Task<IEnumerable<Role>> GetAllRoles()
+//        //{
+//        //    return await QueryAsync<Role>(
+//        //        "sp_GetAllRoles",
+//        //        commandType: CommandType.StoredProcedure
+//        //    );
+//        //}
+
+//        public async Task<int> UpdateRole(Role role)
+//        {
+//            var parameters = new
+//            {
+//                RoleId = role.RoleId,
+//                RoleName = role.RoleName ?? string.Empty,
+//                OrganizationId = role.OrganizationId
+//            };
+
+//            return await ExecuteAsync(
+//                "sp_UpdateRole",
+//                parameters,
+//                commandType: CommandType.StoredProcedure
+//            );
+//        }
+
+//        public async Task<int> DeleteRole(int roleId)
+//        {
+//            var parameters = new { RoleId = roleId };
+
+//            return await ExecuteAsync(
+//                "sp_DeleteRole",
+//                parameters,
+//                commandType: CommandType.StoredProcedure
+//            );
+//        }
+
+//    }
+//}
 
 
 

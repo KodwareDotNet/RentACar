@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MenuManagement.Repositories;
 using RentACar.Interfaces.RepoInterfaces;
 using RentACar.Interfaces.ServiceInterface;
 using RentACar.Models;
 using RentACar.Service;
+using RentACar.ViewModel;
 
 namespace RentACar.Services
 {
@@ -12,6 +14,7 @@ namespace RentACar.Services
     {
         private readonly IUserRepository _userRepo;
         private readonly ITokenService _tokenService;
+        private readonly IUserRepository _userRepository;
         public UserService(IUserRepository userRepo,
             ITokenService tokenService)
         {
@@ -121,10 +124,65 @@ namespace RentACar.Services
 
             return user;
         }
+        //    public async Task<int> CreateRole(Role role)
+        //    {
+        //        if (role == null) throw new ArgumentNullException(nameof(role));
+        //        return await _userRepository.CreateRole(role); // <-- _userRepository must not be null
+        //    }
 
+        //    // Update Role
+        //    public async Task<int> UpdateRole(Role role)
+        //    {
+        //        if (role == null)
+        //            throw new ArgumentNullException(nameof(role));
+
+        //        if (role.Id <= 0)
+        //            throw new ArgumentException("RoleId must be valid.");
+
+        //        return await _userRepository.UpdateRole(role);
+        //    }
+
+        //    // Delete Role
+        //    public async Task<int> DeleteRole(int roleId)
+        //    {
+        //        if (roleId <= 0)
+        //            throw new ArgumentException("RoleId must be valid.");
+
+        //        return await _userRepository.DeleteRole(roleId);
+        //    }
+        //}
+        public async Task<bool> CreateRole(Role role)
+        {
+            var result = await _userRepo.CreateRole(role);
+            return result > 0;
+        }
+
+        public async Task<IEnumerable<Role>> GetAllRoles()
+        {
+            return await _userRepo.GetAllRoles();
+        }
+
+        public async Task<bool> UpdateRole(Role role)
+        {
+            if (role == null)
+                throw new ArgumentNullException(nameof(role));
+
+            var result = await _userRepo.UpdateRole(role);
+            return result > 0;
+        }
+
+        public async Task<bool> DeleteRole(int id)
+        {
+            var result = await _userRepo.DeleteRole(id);
+            return result > 0;
+        }
 
     }
+
+
+
 }
+
 
 
 

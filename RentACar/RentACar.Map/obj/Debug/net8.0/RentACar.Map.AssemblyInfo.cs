@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RentACar.Map")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d938285c0d760074606a90a59b6781d1b33d4876")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+faa714621b70f66d61a470c8c32d75583c7f3ffc")]
 [assembly: System.Reflection.AssemblyProductAttribute("RentACar.Map")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RentACar.Map")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

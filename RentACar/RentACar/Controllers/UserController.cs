@@ -19,8 +19,8 @@ namespace RentACar.Controllers
 
         public UserController(IUserMap userMap, IUserService userService)
         {
-            _userMap = userMap; 
-             _userService = userService;
+            _userMap = userMap;
+            _userService = userService;
         }
 
         [HttpGet("GetAllUsers")]
@@ -29,20 +29,15 @@ namespace RentACar.Controllers
             return await _userMap.GetAll(name, pagenumber, pageSize);
         }
 
-        //        [HttpPost("CreateUser")]
-        //        public async Task<int> Create([FromBody] UserViewModel user)
-        //        {
-        //            var (hash, salt) = HashPassword(user.Password); // Implement your hash
-        //            user.Password = hash;
-        //            user.Salt = salt;
+        //[HttpPost("CreateUser")]
+        //public async Task<int> Create([FromBody] UserViewModel user)
+        //{
+        //    var (hash, salt) = hassedPassword (user.Password); // Implement your hash
+        //    user.Password = hash;
+        //    user.Salt = salt;
 
-        //            return await _userMap.Create(user);
-        //        }
-        //    }
+        //    return await _userMap.Create(user);
         //}
-
-
-
         #region Organization
         [HttpPost("CreateOrganization")]
         public async Task<int> CreateOrganization([FromBody] OrganizationViewModel organization)
@@ -70,37 +65,91 @@ namespace RentACar.Controllers
         {
             return await _userMap.DeleteOrganization(id);
         }
+        #region Role
 
-        //[Authorize(Roles = "Superadmin")]
-        //[HttpPost("CreateAdminUser")]
-        //public async Task<IActionResult> CreateAdmin([FromBody] UserCreateDto dto)
-        //{
-        //    return await _userMap.CreateAdminUser(dto); 
-        //}
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        [HttpPost("CreateRole")]
+        public async Task<IActionResult> CreateRole([FromBody] RoleViewModel role)
         {
-            if (dto == null)
-                return BadRequest("Login data is required.");
+            var isCreated = await _userMap.CreateRole(role);
+            return Ok(isCreated);
+        }
 
-            var user = await _userService.Login(dto.Email, dto.Password);
-            if (user == null)
-                return Unauthorized(new { Message = "Invalid username or password." });
+        [HttpGet("GetAllRoles")]
+        public async Task<IEnumerable<RoleViewModel>> GetAllRoles()
+        {
+            return await _userMap.GetAllRoles();
+        }
 
-            // ✅ Map to LoginResponseDto here
-            var response = new LoginResponseDto
-            {
-                Token = user.Token,               // string
-                TokenExpiresAt = user.TokenExpiresAt, // DateTime
-                Name = user.Name,
-                Email = user.Email,
-                Role = user.Role
-            };
+        [HttpPut("UpdateRole")]
+        public async Task<IActionResult> UpdateRole([FromBody] RoleViewModel role)
+        {
+            var isUpdated = await _userMap.UpdateRole(role);
+            return Ok(isUpdated);
+        }
 
-            return Ok(response);
+        [HttpDelete("DeleteRole/{id}")]
+        public async Task<IActionResult> DeleteRole(int id)
+        {
+            var isDeleted = await _userMap.DeleteRole(id);
+            return Ok(isDeleted);
         }
     }
 }
+        #endregion
+
+
+//[Authorize(Roles = "Superadmin")]
+//[HttpPost("CreateAdminUser")]
+//public async Task<IActionResult> CreateAdmin([FromBody] UserCreateDto dto)
+//{
+//    return await _userMap.CreateAdminUser(dto); 
+//}
+//        [HttpPost("Login")]
+//        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+//        {
+//            if (dto == null)
+//                return BadRequest("Login data is required.");
+
+//            var user = await _userService.Login(dto.Email, dto.Password);
+//            if (user == null)
+//                return Unauthorized(new { Message = "Invalid username or password." });
+
+//            // ✅ Map to LoginResponseDto here
+//            var response = new LoginResponseDto
+//            {
+//                Token = user.Token,               // string
+//                TokenExpiresAt = user.TokenExpiresAt, // DateTime
+//                Name = user.Name,
+//                Email = user.Email,
+//                Role = user.Role
+//            };
+
+//            return Ok(response);
+//        }
+//        [HttpPost("CreateRole")]
+//        public async Task<IActionResult> CreateRole([FromBody] RoleViewModel role)
+//        {
+//            var id = await _userMap.CreateRole(role);
+//            return Ok(new { RoleId = id });
+//        }
+
+//        [HttpPut("UpdateRole")]
+//        public async Task<IActionResult> UpdateRole([FromBody] RoleViewModel role)
+//        {
+//            var rows = await _userMap.UpdateRole(role);
+//            return Ok(new { Updated = rows });
+//        }
+
+//        [HttpDelete("DeleteRole/{id}")]
+//        public async Task<IActionResult> DeleteRole(int id)
+//        {
+//            var rows = await _userMap.DeleteRole(id);
+//            return Ok(new { Deleted = rows });
+//        }
+
+//    }
+//}
+
 
 #endregion
 
@@ -117,3 +166,5 @@ namespace RentACar.Controllers
 //    return await _userMap.DeleteOrganization(id);
 //}
 //    }
+
+

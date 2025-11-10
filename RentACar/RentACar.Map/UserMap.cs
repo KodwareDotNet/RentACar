@@ -140,9 +140,77 @@ namespace RentACar.Map
             // Optionally: hash dto.Password before sending to service
             return await _userService.Login(dto.Email, dto.Password);
         }
+        #region
 
+        public async Task<bool> CreateRole(RoleViewModel role)
+        {
+            var model = new Role
+            {
+                RoleName = role.RoleName,
+                OrganizationId = role.OrganizationId
+            };
+            return await _userService.CreateRole(model);
+        }
+
+        public async Task<IEnumerable<RoleViewModel>> GetAllRoles()
+        {
+            var roles = await _userService.GetAllRoles();
+            return roles.Select(r => new RoleViewModel
+            {
+                RoleId = r.RoleId,
+                RoleName = r.RoleName,
+                OrganizationId = r.OrganizationId,
+                OrganizationName = r.OrganizationName
+            });
+        }
+
+        public async Task<bool> UpdateRole(RoleViewModel role)
+        {
+            var model = new Role
+            {
+                RoleId = role.RoleId,
+                RoleName = role.RoleName,
+                OrganizationId = role.OrganizationId
+            };
+            return await _userService.UpdateRole(model);
+        }
+
+       public async Task<bool> DeleteRole(int id)
+{
+    return await _userService.DeleteRole(id);
+}
     }
 }
+#endregion
+//        public async Task<int> CreateRole(RoleViewModel role)
+//        {
+//            var model = new Role
+//            {
+//                Name = role.Name,
+//                OrganizationId = role.OrganizationId
+//            };
+//            return await _userService.CreateRole(model);
+//        }
+
+//        public async Task<int> UpdateRole(RoleViewModel role)
+//        {
+//            var model = new Role
+//            {
+//                Id = role.Id,
+//                Name = role.Name,
+//                OrganizationId = role.OrganizationId
+//            };
+//            return await _userService.UpdateRole(model);
+//        }
+
+//        public async Task<int> DeleteRole(int roleId)
+//        {
+//            return await _userService.DeleteRole(roleId);
+//        }
+
+
+//    }
+//}
 
 
 

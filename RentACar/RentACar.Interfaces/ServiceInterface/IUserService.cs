@@ -22,5 +22,11 @@ namespace RentACar.Interfaces.ServiceInterface
         Task<User?> Login(string email, string password);
 
         Task<User> GetUserByUsername(string username);
+        Task<bool> CreateRole(Role role);
+        Task<IEnumerable<Role>> GetAllRoles();
+        Task<bool> UpdateRole(Role role);
+Task<bool> DeleteRole(int roleId);
+
+
     }
 }
