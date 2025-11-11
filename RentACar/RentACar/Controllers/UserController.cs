@@ -65,6 +65,20 @@ namespace RentACar.Controllers
         {
             return await _userMap.DeleteOrganization(id);
         }
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            if (dto == null)
+                return BadRequest("Invalid login request.");
+
+            var user = await _userMap.Login(dto);
+
+            if (user == null)
+                return Unauthorized("Invalid email or password.");
+
+            return Ok(user);
+        }
+
         #region Role
 
         [HttpPost("CreateRole")]
