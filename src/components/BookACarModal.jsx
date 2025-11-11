@@ -49,7 +49,7 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
         return () => {
             uploadedImages.forEach(image => URL.revokeObjectURL(image.preview));
         };
-    }, []);
+    }, [uploadedImages]);
 
     return (
         <>

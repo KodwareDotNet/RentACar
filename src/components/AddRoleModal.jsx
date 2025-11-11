@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -8,50 +8,149 @@ import {
     IconButton,
     Box,
     Typography,
-    Grid
+    Grid,
+    MenuItem,
+    CircularProgress
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useNavigate } from "react-router-dom";
+import addRoleService from '../api/services/AddRole/addRoleService';
 
 function AddRoleModal({ modal, openModal, confirmAdding }) {
+    const navigate = useNavigate();
+
     const [userData, setUserData] = useState({
-        name: "",
-        fatherName: "",
-        email: "",
-        cnic: "",
-        licenseNumber: "",
-        phone: "",
-        role: "",
+        roleName: "",
+        organizationId: "",
     });
     const [errors, setErrors] = useState({});
+    const [organizations, setOrganizations] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+    const [organizationName, setOrganizationName] = useState("");
 
+    // Fetch user role and organization when modal opens
+    useEffect(() => {
+        if (modal) {
+            checkUserRole();
+        }
+    }, [modal]);
 
+    const checkUserRole = async () => {
+        setLoading(true);
+        
+        try {
+            // Get user info from localStorage
+            const userRole = localStorage.getItem('role');
+            const orgId = localStorage.getItem('organizationId');
+            
+            console.log('User Role from localStorage:', userRole);
+            console.log('Organization ID from localStorage:', orgId);
+            
+            // Check if user is Super Admin
+            // Adjust this condition based on what your backend returns for Super Admin
+            const isSuperAdminUser = userRole === 'SuperAdmin' || userRole === 'Super Admin' || userRole === 'Admin';
+            setIsSuperAdmin(isSuperAdminUser);
+
+            // Fetch organizations
+            await fetchOrganizations();
+
+            if (!isSuperAdminUser && orgId) {
+                // For non-Super Admin users, find and set the organization name
+                const response = await addRoleService.getOrganization();
+                const userOrg = response.data.find(org => org.id === parseInt(orgId));
+                
+                if (userOrg) {
+                    setOrganizationName(userOrg.name);
+                    setUserData(prev => ({
+                        ...prev,
+                        organizationId: orgId
+                    }));
+                } else {
+                    console.warn('Organization not found for ID:', orgId);
+                    setOrganizationName("Organization not found");
+                }
+            }
+        } catch (err) {
+            console.error("Failed to check user role:", err);
+            setErrors(prev => ({
+                ...prev,
+                fetch: "Failed to load user information"
+            }));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchOrganizations = async () => {
+        try {
+            const response = await addRoleService.getOrganization();
+            setOrganizations(response.data || []);
+        } catch (err) {
+            console.error("Failed to fetch organizations:", err);
+            setErrors(prev => ({
+                ...prev,
+                fetch: "Failed to load organizations"
+            }));
+        }
+    };
 
     const handleChange = (field, value) => {
-        setUserData({ ...userData, [field]: value });
+        setUserData(prev => ({
+            ...prev,
+            [field]: value
+        }));
         if (errors[field]) {
-            setErrors({ ...errors, [field]: "" });
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            });
         }
     };
 
     const validateForm = () => {
         const newErrors = {};
-        if (!userData.name.trim()) newErrors.name = "Full name is required";
-        if (!userData.fatherName.trim()) newErrors.fatherName = "Father name is required";
-        if (!userData.cnic.trim()) newErrors.cnic = "CNIC is required";
-        if (!userData.licenseNumber.trim()) newErrors.licenseNumber = "License number is required";
-        if (!userData.phone.trim()) newErrors.phone = "Phone number is required";
-        
+        if (!userData.roleName.trim()) {
+            newErrors.roleName = "Role Name is required";
+        }
+        if (!userData.organizationId) {
+            newErrors.organizationId = "Organization is required";
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = () => {
-        if (validateForm()) {
-            confirmAdding({ ...userData});
+    const handleSubmit = async () => {
+        if (!validateForm()) return;
+
+        setSubmitting(true);
+        try {
+            const response = await addRoleService.addRole({
+                roleName: userData.roleName,
+                organizationId: parseInt(userData.organizationId),
+            });
+
+            console.log("Role added successfully:", response);
+
+            if (confirmAdding) {
+                confirmAdding(response.data);
+            }
+
+            openModal();
+            navigate("/rolesList");
+
+        } catch (err) {
+            console.error("Unable to add role:", err);
+            setErrors({
+                submit: err.message || "Failed to add role. Please try again."
+            });
+        } finally {
+            setSubmitting(false);
         }
     };
-
 
     return (
         <Dialog
@@ -65,7 +164,6 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                 },
             }}
         >
-            {/* Dialog Title */}
             <DialogTitle
                 sx={{
                     display: "flex",
@@ -99,7 +197,6 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                 </IconButton>
             </DialogTitle>
 
-            {/* Dialog Content */}
             <DialogContent sx={{ padding: "24px" }}>
                 <Box component="form" noValidate>
                     <Typography
@@ -114,18 +211,31 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                         Role Information
                     </Typography>
 
+                    {errors.fetch && (
+                        <Typography color="error" sx={{ mb: 2 }}>
+                            {errors.fetch}
+                        </Typography>
+                    )}
+
+                    {errors.submit && (
+                        <Typography color="error" sx={{ mb: 2 }}>
+                            {errors.submit}
+                        </Typography>
+                    )}
+
                     <Grid container spacing={2.5}>
-                        {/* Full Name */}
+                        {/* Role Name */}
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label="Full Name"
+                                label="Role Name"
                                 required
-                                value={userData.name}
-                                onChange={(e) => handleChange("name", e.target.value)}
-                                error={!!errors.name}
-                                helperText={errors.name}
-                                placeholder="Enter your full name"
+                                value={userData.roleName}
+                                onChange={(e) => handleChange("roleName", e.target.value)}
+                                error={!!errors.roleName}
+                                helperText={errors.roleName}
+                                placeholder="Enter Role name"
+                                disabled={submitting}
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         "&:hover fieldset": {
@@ -142,182 +252,81 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                             />
                         </Grid>
 
-                        {/* Father Name */}
+                        {/* Organization - Conditional Rendering */}
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Father Name"
-                                required
-                                value={userData.fatherName}
-                                onChange={(e) => handleChange("fatherName", e.target.value)}
-                                error={!!errors.fatherName}
-                                helperText={errors.fatherName}
-                                placeholder="Enter your father's name"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
+                            {isSuperAdmin ? (
+                                // Dropdown for Super Admin
+                                <TextField
+                                    fullWidth
+                                    select
+                                    label="Organization"
+                                    required
+                                    value={userData.organizationId}
+                                    onChange={(e) => handleChange("organizationId", e.target.value)}
+                                    error={!!errors.organizationId}
+                                    helperText={errors.organizationId}
+                                    disabled={loading || submitting}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            "&:hover fieldset": {
+                                                borderColor: "#ff4d30",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                borderColor: "#ff4d30",
+                                            },
                                         },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
+                                        "& .MuiInputLabel-root.Mui-focused": {
+                                            color: "#ff4d30",
                                         },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
-
-                        {/* Email */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Email"
-                                type="email"
-                                value={userData.email}
-                                onChange={(e) => handleChange("email", e.target.value)}
-                                placeholder="example@email.com"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
+                                    }}
+                                >
+                                    {loading ? (
+                                        <MenuItem disabled>
+                                            <CircularProgress size={20} />
+                                            <Typography sx={{ ml: 1 }}>Loading...</Typography>
+                                        </MenuItem>
+                                    ) : organizations.length === 0 ? (
+                                        <MenuItem disabled>No organizations available</MenuItem>
+                                    ) : (
+                                        organizations.map((org) => (
+                                            <MenuItem
+                                                key={org.id}
+                                                value={org.id}
+                                            >
+                                                {org.name}
+                                            </MenuItem>
+                                        ))
+                                    )}
+                                </TextField>
+                            ) : (
+                                // Read-only field for Organization users
+                                <TextField
+                                    fullWidth
+                                    label="Organization"
+                                    value={organizationName || "No Organizaton"}
+                                    disabled
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            backgroundColor: "#f5f5f5",
                                         },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
-
-                        {/* Phone */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Phone"
-                                required
-                                type="tel"
-                                value={userData.phone}
-                                onChange={(e) => handleChange("phone", e.target.value)}
-                                error={!!errors.phone}
-                                helperText={errors.phone}
-                                placeholder="Enter your phone number"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
-
-                        {/* CNIC */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="CNIC"
-                                required
-                                value={userData.cnic}
-                                onChange={(e) => handleChange("cnic", e.target.value)}
-                                error={!!errors.cnic}
-                                helperText={errors.cnic}
-                                placeholder="XXXXX-XXXXXXX-X"
-                                inputProps={{ maxLength: 15 }}
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
-
-                        {/* License Number */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="License Number"
-                                required
-                                value={userData.licenseNumber}
-                                onChange={(e) => handleChange("licenseNumber", e.target.value)}
-                                error={!!errors.licenseNumber}
-                                helperText={errors.licenseNumber}
-                                placeholder="Enter your license number"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
-
-                       
-                        {/* Role */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Role"
-                                required
-                                value={userData.role}
-                                onChange={(e) => handleChange("role", e.target.value)}
-                                error={!!errors.role}
-                                helperText={errors.role}
-                                placeholder="Enter Role"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
+                                    }}
+                                />
+                            )}
                         </Grid>
 
                         {/* Submit Button */}
-                        
                         <Grid item xs={12}>
                             <Box
                                 sx={{
                                     display: "flex",
                                     justifyContent: "flex-end",
-                                    
+                                    alignItems: "flex-end",
                                 }}
                             >
                                 <Button
                                     variant="contained"
                                     onClick={handleSubmit}
+                                    disabled={submitting || loading}
                                     sx={{
                                         backgroundColor: "#ff4d30",
                                         color: "white",
@@ -331,13 +340,22 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                                             backgroundColor: "#e63c20",
                                             boxShadow: "0 10px 15px 0 rgba(255, 83, 48, 0.5)",
                                         },
+                                        "&:disabled": {
+                                            backgroundColor: "#ccc",
+                                        },
                                     }}
                                 >
-                                    Add Role
+                                    {submitting ? (
+                                        <>
+                                            <CircularProgress size={20} sx={{ mr: 1, color: "white" }} />
+                                            Adding...
+                                        </>
+                                    ) : (
+                                        "Add Role"
+                                    )}
                                 </Button>
                             </Box>
                         </Grid>
-
                     </Grid>
                 </Box>
             </DialogContent>

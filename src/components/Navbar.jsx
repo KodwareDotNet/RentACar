@@ -93,7 +93,8 @@ function Navbar() {
     { label: 'Add Car', onClick: toggleAddCarModal },
     { label: 'Add User', onClick: toggleAddUserModal },
     { label: 'Add Role', onClick: toggleAddRoleModal },
-    { label: 'User List', path: '/usersList' }
+    { label: 'User List', path: '/usersList' },
+    { label: 'Role List', path: 'rolesList'}
   ];
 
   const drawer = (
@@ -136,7 +137,7 @@ function Navbar() {
           width: '100%',
           maxWidth: { xs: '100%', sm: '250px' },
           px: { xs: 2, sm: 4 },
-          mt: { xs: 2, sm: 15 , md: 12, lg: 10, xl:6 },
+          mt: { xs: 2, sm: 15 , md: 12, lg: 20, xl:6 },
         }}
       >
         {navItems.map((item) => (
@@ -187,7 +188,7 @@ function Navbar() {
             }}
           >
             <ListItemText
-              primary={isLoggedIn ? "Logout" : "Login"}
+              primary={isLoggedIn ? <LogoutIcon sx={{ fontSize: '2.4rem' }} /> : "Login"}
               sx={{
                 '& .MuiTypography-root': {
                   fontSize: '2.3rem',
@@ -195,6 +196,7 @@ function Navbar() {
                   color: '#010103',
                   fontFamily: '"Rubik", sans-serif',
                   transition: 'all 0.3s',
+                  
                 },
                 '&:hover .MuiTypography-root': {
                   color: '#ff4d30',

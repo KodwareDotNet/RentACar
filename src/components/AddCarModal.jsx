@@ -55,14 +55,14 @@ function AddCarModal({ modal, openModal, onAddCar }) {
         return () => {
             uploadedImages.forEach(image => URL.revokeObjectURL(image.preview));
         };
-    }, []);
+    }, [uploadedImages]);
 
     return (
         <>
             {/* Modal Overlay */}
             <div
                 className={`modal-overlay ${modal ? "active-modal" : ""}`}
-                onClick={openModal}
+                
             ></div>
 
             {/* Modal Content */}
