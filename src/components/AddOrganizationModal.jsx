@@ -11,21 +11,21 @@ import {
     Grid
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import addUserService from "../api/services/AddUser/addUserService";
+import addOrganizationService from "../api/services/AddOrganization/addOrganizationService";
 
-function AddUserModal({ modal, openModal, confirmAdding }) {
-    const [userData, setUserData] = useState({
+function AddOrganizationModal({ modal, openModal, confirmAdding }) {
+    const [organizationData, setOrganizationData] = useState({
         name: "",
         email: "",
         password: "",
-
+       
     });
     const [errors, setErrors] = useState({});
 
 
 
     const handleChange = (field, value) => {
-        setUserData({ ...userData, [field]: value });
+        setOrganizationData({ ...organizationData, [field]: value });
         if (errors[field]) {
             setErrors({ ...errors, [field]: "" });
         }
@@ -33,10 +33,9 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!userData.name.trim()) newErrors.name = "Full name is required";
-        if (!userData.email.trim()) newErrors.email = "Email is required";
-        if (!userData.password.trim()) newErrors.password = "Password is required";
-
+        if (!organizationData.name.trim()) newErrors.name = "Full name is required";
+        if (!organizationData.email.trim()) newErrors.email = "Email is required";
+        if (!organizationData.password.trim()) newErrors.password = "Password is required";
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -44,19 +43,22 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
 
     const handleSubmit = async () => {
         if (validateForm()) {
-
-            try {
-                const res = await addUserService.addUser(userData);
-                console.log("user added Successfully", res)
-                confirmAdding(userData);
+            try{
+                const res = await addOrganizationService.addOrganization(organizationData);
+                console.log("Oranization added ", res);
+                if(res){
+                alert("Added");}
+                confirmAdding(organizationData);
                 openModal();
-                setUserData({
-                    names: "",
-                    email: "",
-                    password: "",
-                });
-            } catch (err) {
-                console.error("error Adding User", err.message);
+                 setOrganizationData({
+                name: "",
+                email: "",
+                password: "",
+            });
+            }
+            catch(err){
+                console.error("error", err);
+                alert("Error Adding");
                 openModal();
             }
         }
@@ -93,7 +95,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                         fontFamily: '"Rubik", sans-serif',
                     }}
                 >
-                    Add New User
+                    Add Organization
                 </Typography>
                 <IconButton
                     onClick={openModal}
@@ -121,7 +123,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                             fontFamily: '"Rubik", sans-serif',
                         }}
                     >
-                        User Information
+                        Organization Information
                     </Typography>
 
                     <Grid container spacing={2.5}>
@@ -129,13 +131,13 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label="Full Name"
+                                label="Organization Name"
                                 required
-                                value={userData.name}
+                                value={organizationData.name}
                                 onChange={(e) => handleChange("name", e.target.value)}
                                 error={!!errors.name}
                                 helperText={errors.name}
-                                placeholder="Enter your full name"
+                                placeholder="Enter  name"
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         "&:hover fieldset": {
@@ -158,7 +160,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                                 fullWidth
                                 label="Email"
                                 type="email"
-                                value={userData.email}
+                                value={organizationData.email}
                                 onChange={(e) => handleChange("email", e.target.value)}
                                 placeholder="example@email.com"
                                 sx={{
@@ -177,15 +179,18 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                             />
                         </Grid>
 
-                        {/* PassWord */}
+                        {/* password */}
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
                                 label="Password"
+                                required
                                 type="password"
-                                value={userData.password}
+                                value={organizationData.password}
                                 onChange={(e) => handleChange("password", e.target.value)}
-                                placeholder="****"
+                                error={!!errors.password}
+                                helperText={errors.password}
+                                placeholder="Enter password"
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         "&:hover fieldset": {
@@ -200,19 +205,16 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                                     },
                                 }}
                             />
-
-
-
                         </Grid>
 
                         {/* Submit Button */}
-
+                        
                         <Grid item xs={12}>
                             <Box
                                 sx={{
                                     display: "flex",
                                     justifyContent: "flex-end",
-
+                                    
                                 }}
                             >
                                 <Button
@@ -233,7 +235,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                                         },
                                     }}
                                 >
-                                    Add User
+                                    Add Organization
                                 </Button>
                             </Box>
                         </Grid>
@@ -245,4 +247,4 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
     );
 }
 
-export default AddUserModal;
+export default AddOrganizationModal;

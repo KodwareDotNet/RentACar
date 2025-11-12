@@ -18,6 +18,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddUserModal from './AddUserModal';
 import AddCarModal from './AddCarModal';
 import AddRoleModal from './AddRoleModal';
+import AddOrganizationModal from './AddOrganizationModal';
 
 
 function Navbar() {
@@ -26,6 +27,7 @@ function Navbar() {
   const [showAddUserModal, setshowAddUserModal] = useState(false);
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
+  const [showAddOrganizationModal, setShowAddOrganizationModal]=useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleDrawerToggle = () => {
@@ -42,7 +44,7 @@ function Navbar() {
 
   const handleAuthClick = () => {
     if (isLoggedIn) {
-      localStorage.removeItem("token");
+      localStorage.clear();
       handleNavigation("/")
     } else {
       handleNavigation("/")
@@ -62,8 +64,13 @@ function Navbar() {
     setShowAddRoleModal((prev) => !prev);
   };
 
+  const toggleAddOrganizationModal =() => {
+
+    setShowAddOrganizationModal((prev)=> !prev);
+  }
+
   const handleCustomerSubmit = (customerData) => {
-    console.log("Customer data:", customerData);
+    // console.log("Customer data:", customerData);
     setshowAddUserModal(false);
     // Add your API call or data handling here
   };
@@ -76,6 +83,13 @@ function Navbar() {
   const handleAddRoleSubmit = (roleData) => {
     console.log("Role Added:", roleData);
     setShowAddRoleModal(false);
+  };
+
+  const handleAddOrganizationSubmit = (organizationData) =>{
+    console.log("Organization Added:",organizationData );
+    // setShowAddOrganizationModal(false);
+    
+
   }
 
   useEffect(() => {
@@ -91,6 +105,7 @@ function Navbar() {
     { label: 'Home', path: '/home', className: 'home-link' },
     { label: 'Vehicles', path: '/models', className: 'models-link' },
     { label: 'Add Car', onClick: toggleAddCarModal },
+    { label: 'Add organization', onClick: toggleAddOrganizationModal},
     { label: 'Add User', onClick: toggleAddUserModal },
     { label: 'Add Role', onClick: toggleAddRoleModal },
     { label: 'User List', path: '/usersList' },
@@ -367,6 +382,11 @@ function Navbar() {
         modal={showAddRoleModal}
         openModal={toggleAddRoleModal}
         confirmAdding={handleAddRoleSubmit}
+      />
+       <AddOrganizationModal
+        modal={showAddOrganizationModal}
+        openModal={toggleAddOrganizationModal}
+        confirmAdding={handleAddOrganizationSubmit}
       />
     </>
   );

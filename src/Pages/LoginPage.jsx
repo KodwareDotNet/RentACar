@@ -218,7 +218,7 @@ function LoginPage() {
   // JWT Decode function
   const decodeJWT = (token) => {
     try {
-      
+
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(
@@ -252,9 +252,10 @@ function LoginPage() {
       });
 
       console.log("Login success:", response);
-    
+
       // Extract data from response
       const { token, role, refreshToken, expiresAt } = response;
+        localStorage.setItem('token', token);
 
       // Decode JWT to get additional claims
       const decodedToken = decodeJWT(token);
@@ -264,7 +265,6 @@ function LoginPage() {
         console.log("User Role:", role);
 
         // Store all necessary data in localStorage
-        localStorage.setItem('token', token);
         localStorage.setItem('role', role);
         localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('expiresAt', expiresAt);
@@ -273,13 +273,10 @@ function LoginPage() {
         localStorage.setItem('email', decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"]);
         localStorage.setItem('userName', decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]);
         localStorage.setItem('permission', decodedToken.Permission);
-console.log("role", role)
+        console.log("role", role)
         // Navigate based on role
-        if (role === 'SuperAdmin' || role === 'Admin') {
           navigate("/home");
-        } else {
-          navigate("/home");
-        }
+        
       } else {
         setError("Failed to process login data");
       }

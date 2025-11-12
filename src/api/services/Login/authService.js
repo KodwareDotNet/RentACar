@@ -3,7 +3,7 @@ import api from "../../axiosConfig";
 const authService = {
   login: async (credentials) => {
     try {
-      const res = await api.post("/Auth/login", credentials);
+      const res = await api.post("/User/login", credentials);
       const { token, role, expiresAt, refreshToken } = res.data;
       
       if (token) {

@@ -39,15 +39,17 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
 
     const checkUserRole = async () => {
         setLoading(true);
-        
+
+
+
         try {
             // Get user info from localStorage
             const userRole = localStorage.getItem('role');
             const orgId = localStorage.getItem('organizationId');
-            
+
             console.log('User Role from localStorage:', userRole);
             console.log('Organization ID from localStorage:', orgId);
-            
+
             // Check if user is Super Admin
             // Adjust this condition based on what your backend returns for Super Admin
             const isSuperAdminUser = userRole === 'SuperAdmin' || userRole === 'Super Admin' || userRole === 'Admin';
@@ -60,7 +62,7 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                 // For non-Super Admin users, find and set the organization name
                 const response = await addRoleService.getOrganization();
                 const userOrg = response.data.find(org => org.id === parseInt(orgId));
-                
+
                 if (userOrg) {
                     setOrganizationName(userOrg.name);
                     setUserData(prev => ({
@@ -253,9 +255,8 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                         </Grid>
 
                         {/* Organization - Conditional Rendering */}
-                        <Grid item xs={12} sm={6}>
-                            {isSuperAdmin ? (
-                                // Dropdown for Super Admin
+                        {isSuperAdmin && (
+                            <Grid item xs={12} sm={6}>
                                 <TextField
                                     fullWidth
                                     select
@@ -289,30 +290,15 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                                         <MenuItem disabled>No organizations available</MenuItem>
                                     ) : (
                                         organizations.map((org) => (
-                                            <MenuItem
-                                                key={org.id}
-                                                value={org.id}
-                                            >
+                                            <MenuItem key={org.id} value={org.id}>
                                                 {org.name}
                                             </MenuItem>
                                         ))
                                     )}
                                 </TextField>
-                            ) : (
-                                // Read-only field for Organization users
-                                <TextField
-                                    fullWidth
-                                    label="Organization"
-                                    value={organizationName || "No Organizaton"}
-                                    disabled
-                                    sx={{
-                                        "& .MuiOutlinedInput-root": {
-                                            backgroundColor: "#f5f5f5",
-                                        },
-                                    }}
-                                />
-                            )}
-                        </Grid>
+                            </Grid>
+                        )}
+
 
                         {/* Submit Button */}
                         <Grid item xs={12}>
@@ -360,7 +346,8 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                 </Box>
             </DialogContent>
         </Dialog>
-    );
+    ); 
+
 }
 
 export default AddRoleModal;
