@@ -13,9 +13,10 @@ import RolesList from "./Pages/RolesList";
 
 function App() {
   const location = useLocation();
-  
+
   // Hide navbar on login page (root path)
-  const showNavbar = location.pathname !== "/";
+  const hideNavbarPaths = ["/", "/loginPage"];
+  const showNavbar = !hideNavbarPaths.includes(location.pathname);
 
   return (
     <>
@@ -29,8 +30,8 @@ function App() {
         <Route path="testimonials" element={<TestimonialsPage />} />
         <Route path="team" element={<Team />} />
         <Route path="contact" element={<Contact />} />
-        <Route path="usersList" element={<UsersList/>} />
-        <Route path="rolesList" element={<RolesList/>}/>
+        <Route path="usersList" element={<UsersList />} />
+        <Route path="rolesList" element={<RolesList />} />
       </Routes>
     </>
   );

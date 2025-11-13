@@ -101,6 +101,9 @@ function Navbar() {
     }
   }, []);
 
+  const userType = localStorage.getItem("UserType");
+
+  
   const navItems = [
     { label: 'Home', path: '/home', className: 'home-link' },
     { label: 'Vehicles', path: '/models', className: 'models-link' },
@@ -111,6 +114,22 @@ function Navbar() {
     { label: 'User List', path: '/usersList' },
     { label: 'Role List', path: 'rolesList'}
   ];
+
+
+  const filterdNavItems = navItems.filter(item => {
+    if(item.label === "Add User" && userType === "1")
+    {
+      return false;
+    }
+    else if(item.label === "Add organization" && userType === "1")
+    {
+    return false;
+  }
+  else{
+    return true;
+  }
+  });
+
 
   const drawer = (
     <Box
@@ -155,7 +174,7 @@ function Navbar() {
           mt: { xs: 2, sm: 15 , md: 12, lg: 20, xl:6 },
         }}
       >
-        {navItems.map((item) => (
+        {filterdNavItems.map((item) => (
           <ListItem key={item.label} disablePadding>
             <ListItemButton
               onClick={() => {

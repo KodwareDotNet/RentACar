@@ -35,7 +35,7 @@ api.interceptors.response.use(
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("expiresAt");
 
-      window.location.href = "/login";
+      window.location.href = "/loginPage";
     }
 
     return Promise.reject(error);

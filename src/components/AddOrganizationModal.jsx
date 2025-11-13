@@ -18,7 +18,9 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
         name: "",
         email: "",
         password: "",
-       
+        phone: "",
+        address: "",
+
     });
     const [errors, setErrors] = useState({});
 
@@ -43,23 +45,33 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
 
     const handleSubmit = async () => {
         if (validateForm()) {
-            try{
+            try {
                 const res = await addOrganizationService.addOrganization(organizationData);
                 console.log("Oranization added ", res);
-                if(res){
-                alert("Added");}
+                if (res) {
+                    alert("Added");
+                }
                 confirmAdding(organizationData);
                 openModal();
-                 setOrganizationData({
-                name: "",
-                email: "",
-                password: "",
-            });
+                setOrganizationData({
+                    name: "",
+                    email: "",
+                    password: "",
+                    phone: "",
+                    address: "",
+                });
             }
-            catch(err){
+            catch (err) {
                 console.error("error", err);
                 alert("Error Adding");
                 openModal();
+                setOrganizationData({
+                    name: "",
+                    email: "",
+                    password: "",
+                    phone: "",
+                    address: "",
+                });
             }
         }
     };
@@ -127,7 +139,7 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
                     </Typography>
 
                     <Grid container spacing={2.5}>
-                        {/* Full Name */}
+                        {/* Organization Name */}
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
@@ -207,14 +219,66 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
                             />
                         </Grid>
 
+                        {/* phone */}
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label="phone"
+                                required
+                                type="tel"
+                                value={organizationData.phone}
+                                onChange={(e) => handleChange("phone", e.target.value)}
+                                placeholder="Enter phone"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        "&:hover fieldset": {
+                                            borderColor: "#ff4d30",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor: "#ff4d30",
+                                        },
+                                    },
+                                    "& .MuiInputLabel-root.Mui-focused": {
+                                        color: "#ff4d30",
+                                    },
+                                }}
+                            />
+                        </Grid>
+
+                        {/* Address */}
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label="Address"
+                                required
+                                type="text"
+                                value={organizationData.address}
+                                onChange={(e) => handleChange("address", e.target.value)}
+                                placeholder="Enter address"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        "&:hover fieldset": {
+                                            borderColor: "#ff4d30",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor: "#ff4d30",
+                                        },
+                                    },
+                                    "& .MuiInputLabel-root.Mui-focused": {
+                                        color: "#ff4d30",
+                                    },
+                                }}
+                            />
+                        </Grid>
+
                         {/* Submit Button */}
-                        
+
                         <Grid item xs={12}>
                             <Box
                                 sx={{
                                     display: "flex",
                                     justifyContent: "flex-end",
-                                    
+
                                 }}
                             >
                                 <Button

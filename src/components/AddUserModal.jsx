@@ -15,9 +15,11 @@ import addUserService from "../api/services/AddUser/addUserService";
 
 function AddUserModal({ modal, openModal, confirmAdding }) {
     const [userData, setUserData] = useState({
-        name: "",
+        username: "",
         email: "",
         password: "",
+        organizationId: "",
+        role: "",
 
     });
     const [errors, setErrors] = useState({});
@@ -33,7 +35,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!userData.name.trim()) newErrors.name = "Full name is required";
+        if (!userData.username.trim()) newErrors.username = "User name is required";
         if (!userData.email.trim()) newErrors.email = "Email is required";
         if (!userData.password.trim()) newErrors.password = "Password is required";
 
@@ -44,20 +46,29 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
 
     const handleSubmit = async () => {
         if (validateForm()) {
-
             try {
                 const res = await addUserService.addUser(userData);
                 console.log("user added Successfully", res)
                 confirmAdding(userData);
                 openModal();
+                alert("userAdded");
                 setUserData({
-                    names: "",
+                    username: "",
                     email: "",
                     password: "",
+                    organizationId: "",
+                    role: "",
                 });
             } catch (err) {
-                console.error("error Adding User", err.message);
+                alert("error Adding User", err.message);
                 openModal();
+                setUserData({
+                    username: "",
+                    email: "",
+                    password: "",
+                    organizationId: "",
+                    role: "",
+                });
             }
         }
     };
@@ -125,17 +136,17 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                     </Typography>
 
                     <Grid container spacing={2.5}>
-                        {/* Full Name */}
+                        {/* User Name */}
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label="Full Name"
+                                label="User Name"
                                 required
-                                value={userData.name}
-                                onChange={(e) => handleChange("name", e.target.value)}
-                                error={!!errors.name}
-                                helperText={errors.name}
-                                placeholder="Enter your full name"
+                                value={userData.username}
+                                onChange={(e) => handleChange("username", e.target.value)}
+                                error={!!errors.username}
+                                helperText={errors.username}
+                                placeholder="Enter User name"
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         "&:hover fieldset": {
@@ -203,6 +214,59 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
 
 
 
+                        </Grid>
+
+                        {/* organizationId */}
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label="organizationId"
+                                type="number"
+                                value={userData.organizationId}
+                                onChange={(e) => handleChange("organizationId", e.target.value)}
+                                placeholder="organizationId"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        "&:hover fieldset": {
+                                            borderColor: "#ff4d30",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor: "#ff4d30",
+                                        },
+                                    },
+                                    "& .MuiInputLabel-root.Mui-focused": {
+                                        color: "#ff4d30",
+                                    },
+                                }}
+                            />
+
+
+
+                        </Grid>
+
+                        {/* Role */}
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label="Role"
+                                
+                                value={userData.role}
+                                onChange={(e) => handleChange("role", e.target.value)}
+                                placeholder="Role"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        "&:hover fieldset": {
+                                            borderColor: "#ff4d30",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor: "#ff4d30",
+                                        },
+                                    },
+                                    "& .MuiInputLabel-root.Mui-focused": {
+                                        color: "#ff4d30",
+                                    },
+                                }}
+                            />
                         </Grid>
 
                         {/* Submit Button */}

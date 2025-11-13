@@ -273,7 +273,7 @@ function LoginPage() {
         localStorage.setItem('email', decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"]);
         localStorage.setItem('userName', decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]);
         localStorage.setItem('permission', decodedToken.Permission);
-        console.log("role", role)
+        localStorage.setItem('UserType', decodedToken.UserType);
         // Navigate based on role
           navigate("/home");
         
