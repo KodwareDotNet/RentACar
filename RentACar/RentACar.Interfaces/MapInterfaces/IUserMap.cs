@@ -32,6 +32,7 @@ namespace RentACar.Map
         Task<int> CreateUser(UserCreateDto dto);
         Task<User?> Login(LoginDto dto);
         Task<bool> CreateRole(RoleViewModel role);
+        //Task<int> CreateCategory(Categoryviewmodel category);
         Task<IEnumerable<RoleViewModel>> GetAllRoles();
         Task<bool> UpdateRole(RoleViewModel role);
         Task<bool> DeleteRole(int id);

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using RentACar.Helpers;
 using RentACar.Interfaces.ServiceInterface;
 using RentACar.Map;
+using RentACar.Models;
 using RentACar.Services;
 using RentACar.ViewModel;
 
@@ -28,6 +29,22 @@ namespace RentACar.Controllers
         {
             return await _userMap.GetAll(name, pagenumber, pageSize);
         }
+        [HttpPost("CreateUser")]
+        public async Task<IActionResult> CreateUser([FromBody] UserCreateDto dto)
+        {
+            var userModel = new User
+            {
+                Username = dto.Username,
+                Name = dto.Username,
+                Email = dto.Email,
+                Password = dto.Password,
+                Role = dto.Role,
+                OrganizationId = dto.OrganizationId
+            };
+
+            var user = await _userService.CreateUser(userModel);
+            return Ok(user);
+        }
 
         //[HttpPost("CreateUser")]
         //public async Task<int> Create([FromBody] UserViewModel user)
@@ -40,10 +57,13 @@ namespace RentACar.Controllers
         //}
         #region Organization
         [HttpPost("CreateOrganization")]
-        public async Task<int> CreateOrganization([FromBody] OrganizationViewModel organization)
+        public async Task<IActionResult> CreateOrganization([FromBody] OrganizationViewModel organization)
         {
-            return await _userMap.CreateOrganization(organization);
+            var organizationId = await _userMap.CreateOrganization(organization);
+
+            return Ok(new { OrganizationId = organizationId });
         }
+
 
         [HttpGet("GetOrganization/{id}")]
         public async Task<OrganizationViewModel> GetOrganizationById(int id)
@@ -80,7 +100,7 @@ namespace RentACar.Controllers
         }
 
         #region Role
-
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("CreateRole")]
         public async Task<IActionResult> CreateRole([FromBody] RoleViewModel role)
         {
@@ -109,7 +129,32 @@ namespace RentACar.Controllers
         }
     }
 }
-        #endregion
+
+public enum UserType
+{
+    User = 1,
+    Admin = 2,
+    SuperAdmin = 3
+}
+
+
+#endregion
+
+
+//        #region Category
+//        [HttpPost("CreateCategory")]
+
+//        public async Task<IActionResult> CreateCategory([FromBody] Categoryviewmodel category)
+//        {
+//            var iscreated = await _userMap.CreateCategory(category);
+//            return Ok(iscreated);
+//        }
+//    }
+//}
+
+
+
+//#endregion
 
 
 //[Authorize(Roles = "Superadmin")]
@@ -165,8 +210,6 @@ namespace RentACar.Controllers
 //}
 
 
-#endregion
-
 //[HttpPut("UpdateOrganization/{id}")]
 //public async Task<bool> UpdateOrganization(int id, [FromBody] OrganizationViewModel organization)
 //{
@@ -181,4 +224,4 @@ namespace RentACar.Controllers
 //}
 //    }
 
-
+#endregion

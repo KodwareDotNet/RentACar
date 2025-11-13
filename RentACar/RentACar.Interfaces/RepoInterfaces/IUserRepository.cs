@@ -28,6 +28,7 @@ namespace RentACar.Interfaces.RepoInterfaces
         Task<User?> Login(string email, string password);
         Task<User> GetUserByUsername(string username);
         Task<int> CreateRole(Role role);
+        //Task<int> CreateCategory(Category category);
         Task<IEnumerable<Role>> GetAllRoles();
         Task<int> UpdateRole(Role role);
         Task<int> DeleteRole(int roleId);

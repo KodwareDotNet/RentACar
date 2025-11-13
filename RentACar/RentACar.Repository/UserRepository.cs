@@ -66,7 +66,7 @@ namespace MenuManagement.Repositories
             {
                 Name = user.Name ?? string.Empty,
                 Email = user.Email ?? string.Empty,
-                Role = user.Role ?? "User",
+                UserRole = user.Role ?? "User",
                 PasswordHash = user.PasswordHash ?? string.Empty,
                 GoogleId = user.GoogleId
             };
@@ -123,25 +123,34 @@ namespace MenuManagement.Repositories
                 commandType: CommandType.StoredProcedure
             ).ConfigureAwait(false);
         }
+
         public async Task<int> CreateOrganization(Organization organization)
         {
             if (organization is null)
                 throw new ArgumentNullException(nameof(organization));
 
-            var parameters = new
-            {
-                OrganizationName = organization.Name ?? string.Empty,
-                Email = organization.Email ?? string.Empty,
-                Phone = organization.Phone ?? string.Empty,
-                Address = organization.Address ?? string.Empty
+            var parameters = new DynamicParameters();
+             {
+                parameters.Add("@OrganizationName", organization.Name ?? string.Empty);
+                parameters.Add("@Email", organization.Email ?? string.Empty);
+                parameters.Add("@Phone", organization.Phone ?? string.Empty);
+                parameters.Add("@Address", organization.Address ?? string.Empty);
+                parameters.Add("@password",  organization.password ?? string.Empty);
             };
 
-            return await ExecuteAsync(
+            parameters.Add("@outp", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+
+            await ExecuteAsync(
                 "sp_CreateOrganization",
                 parameters,
                 commandType: CommandType.StoredProcedure
             ).ConfigureAwait(false);
+
+            return parameters.Get<int>("@outp");
+
         }
+
         //        public async Task<IEnumerable<Organization>> GetAllOrganizations()
         //        {
         //            return await QueryAsync<Organization>(
@@ -308,6 +317,31 @@ namespace MenuManagement.Repositories
     }
 }
 #endregion
+//#region Category
+//        public async Task<int> CreateCategory(Category category)
+//        {
+//            if (category is null)
+//                throw new ArgumentNullException(nameof(category));
+//            var parameters = new
+//            {
+//                Categoryname = category.categoryname ?? string.Empty,
+//                categoryId = category.categoryId,
+//                description = category.description,
+//                Createdat = category.Createdat,
+//                Updatedat = category.Updatedat,
+//                isActive = category.isActive,
+//            };
+//            return await ExecuteAsync(
+//                "sp_CreateCategory",
+//                parameters,
+//                commandType: CommandType.StoredProcedure
+//            );
+//        }
+//    }
+//}
+
+
+//#endregion
 
 
 //public async Task<int> CreateRole(Role role)

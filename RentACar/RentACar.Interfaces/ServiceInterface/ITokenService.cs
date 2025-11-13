@@ -12,8 +12,9 @@ namespace RentACar.Interfaces.ServiceInterface
         /// <summary>
         /// Generates a JWT access token for the given user.
         /// </summary>
+        //string CreateToken(User user, out DateTime expiresAt);
         string CreateToken(User user, out DateTime expiresAt);
-        string GenerateToken(User user, out DateTime expiresAt);
+        //string GenerateToken(User user, out DateTime expiresAt);
 
         /// <summary>
         /// Generates a secure random refresh token.

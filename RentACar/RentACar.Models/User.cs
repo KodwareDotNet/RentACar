@@ -20,6 +20,9 @@ namespace RentACar.Models
         public DateTime ExpiresAt { get; set; }
         public string RefreshToken { get; set; } = string.Empty;
         public string? Permission { get; set; }
+        public string UserRole { get; set; }
+        public UserType UserType { get; set; }
+        public int RoleId { get; set; }
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public List<string> CategoryPermissions { get; set; } = new List<string>();

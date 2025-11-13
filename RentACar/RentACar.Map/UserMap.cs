@@ -78,7 +78,8 @@ namespace RentACar.Map
                 Name = organization.Name,
                 Email = organization.Email,
                 Phone = organization.Phone,
-                Address = organization.Address
+                Address = organization.Address,
+                password =organization.password
             };
 
             return await _userService.CreateOrganization(model);
@@ -99,6 +100,7 @@ namespace RentACar.Map
                 Email = org.Email,
                 Phone = org.Phone,
                 Address = org.Address,
+                password=org.password,
                 CreatedDate = org.CreatedDate
             });
         }
@@ -175,12 +177,32 @@ namespace RentACar.Map
             return await _userService.UpdateRole(model);
         }
 
-       public async Task<bool> DeleteRole(int id)
-{
-    return await _userService.DeleteRole(id);
-}
+        public async Task<bool> DeleteRole(int id)
+        {
+            return await _userService.DeleteRole(id);
+        }
     }
 }
+
+//        #region Category
+//        public async Task<int> CreateCategory(Categoryviewmodel category)
+//        {
+//            var model = new Category
+//            {
+//                categoryname = category.categoryname,
+//                categoryId = category.categoryId,
+//                description = category.Description,
+//                Createdat = category.Createdat,
+//                Updatedat = category.Updatedat,
+//                isActive = category.isactive,
+
+//            };
+//            return await _userService.CreateCategory(model);
+
+//        }
+//    }
+//}
+
 #endregion
 //        public async Task<int> CreateRole(RoleViewModel role)
 //        {
@@ -235,6 +257,5 @@ namespace RentACar.Map
 //}
 //    }
 //}
-
 
 

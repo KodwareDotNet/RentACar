@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Formats.Asn1;
 using System.Threading.Tasks;
 using MenuManagement.Repositories;
 using RentACar.Interfaces.RepoInterfaces;
@@ -71,6 +72,40 @@ namespace RentACar.Services
 
         //    }
         //}
+        public async Task<User> CreateUser(UserCreateDto dto)
+        {
+            var user = new User
+            {
+                Username = dto.Username,
+                Name = dto.Username,
+                Email = dto.Email,
+                Password = dto.Password,
+                Role = dto.Role,
+                OrganizationId = dto.OrganizationId
+            };
+
+            await _userRepo.CreateUser(user);
+
+            // Map Role to UserType
+            user.UserType = dto.Role switch
+            {
+                "1" => UserType.User,
+                "2" => UserType.Admin,
+                "3" => UserType.SuperAdmin,
+                _ => UserType.User
+            };
+
+            user.Role = user.UserType.ToString();
+
+            // ✅ Correct token generation
+            DateTime tokenExpiry;
+            user.Token = _tokenService.CreateToken(user, out tokenExpiry);
+            user.TokenExpiresAt = tokenExpiry;
+
+            return user;
+        }
+
+
 
         public async Task<int> CreateOrganization(Organization organization)
         {
@@ -118,8 +153,17 @@ namespace RentACar.Services
             var user = await _userRepo.Login(email, password);
             if (user == null) return null;
 
+
+            user.UserType = user.RoleId switch
+            {
+                1 => UserType.User,
+                2 => UserType.Admin,
+                3 => UserType.SuperAdmin,
+                _ => UserType.User
+            };
+            user.Role = user.UserType.ToString();
             // generate JWT token
-            user.Token = _tokenService.GenerateToken(user, out DateTime expiresAt);
+            user.Token = _tokenService.CreateToken(user, out DateTime expiresAt);
             user.TokenExpiresAt = expiresAt;
 
             return user;
@@ -176,13 +220,16 @@ namespace RentACar.Services
             var result = await _userRepo.DeleteRole(id);
             return result > 0;
         }
-
     }
-
-
-
 }
+        //#region Category
+//        public async Task<bool> CreateCategory(Category category)
+//        {
+//            var result = await _userRepo.CreateCategory(category);
+//            return result > 0;
+//            }
+//    }
+//}
 
 
-
-
+//#endregion

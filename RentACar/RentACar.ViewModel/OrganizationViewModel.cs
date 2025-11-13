@@ -11,10 +11,11 @@ namespace RentACar.ViewModel
         public int Id { get; set; }
         public string Name { get; set; }  // Ye add karo
         public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Address { get; set; }
+        public string? Phone { get; set; }
+        public string?Address { get; set; }
+        public string password { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public string Role { get; set; }
+        public string? Role { get; set; }
         public int OrganizationId { get; set; }
     }
 }
