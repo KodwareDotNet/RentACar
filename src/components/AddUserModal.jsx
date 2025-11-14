@@ -50,7 +50,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                 const res = await addUserService.addUser(userData);
                 console.log("user added Successfully", res)
                 confirmAdding(userData);
-                openModal();
+                
                 alert("userAdded");
                 setUserData({
                     username: "",
@@ -59,9 +59,10 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                     organizationId: "",
                     role: "",
                 });
+                openModal(false);
             } catch (err) {
                 alert("error Adding User", err.message);
-                openModal();
+                
                 setUserData({
                     username: "",
                     email: "",
@@ -69,6 +70,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                     organizationId: "",
                     role: "",
                 });
+                openModal(false);
             }
         }
     };
@@ -107,7 +109,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                     Add New User
                 </Typography>
                 <IconButton
-                    onClick={openModal}
+                    onClick={() => openModal(false)}
                     sx={{
                         color: "#666",
                         "&:hover": {

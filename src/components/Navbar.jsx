@@ -27,7 +27,7 @@ function Navbar() {
   const [showAddUserModal, setshowAddUserModal] = useState(false);
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
-  const [showAddOrganizationModal, setShowAddOrganizationModal]=useState(false);
+  const [showAddOrganizationModal, setShowAddOrganizationModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleDrawerToggle = () => {
@@ -52,9 +52,13 @@ function Navbar() {
 
   }
 
-  const toggleAddUserModal = () => {
-    setshowAddUserModal((prev) => !prev);
-  };
+ const toggleAddUserModal = (value) => {
+  if (value === undefined) {
+    setshowAddUserModal(prev => !prev);
+  } else {
+    setshowAddUserModal(value);  // <-- explicit open/close
+  }
+};
 
   const toggleAddCarModal = () => {
     setShowAddCarModal((prev) => !prev);
@@ -64,12 +68,12 @@ function Navbar() {
     setShowAddRoleModal((prev) => !prev);
   };
 
-  const toggleAddOrganizationModal =() => {
+  const toggleAddOrganizationModal = () => {
 
-    setShowAddOrganizationModal((prev)=> !prev);
+    setShowAddOrganizationModal((prev) => !prev);
   }
 
-  const handleCustomerSubmit = (customerData) => {
+  const handleCustomerSubmit = () => {
     // console.log("Customer data:", customerData);
     setshowAddUserModal(false);
     // Add your API call or data handling here
@@ -85,10 +89,10 @@ function Navbar() {
     setShowAddRoleModal(false);
   };
 
-  const handleAddOrganizationSubmit = (organizationData) =>{
-    console.log("Organization Added:",organizationData );
+  const handleAddOrganizationSubmit = (organizationData) => {
+    console.log("Organization Added:", organizationData);
     // setShowAddOrganizationModal(false);
-    
+
 
   }
 
@@ -103,31 +107,34 @@ function Navbar() {
 
   const userType = localStorage.getItem("UserType");
 
-  
+
   const navItems = [
     { label: 'Home', path: '/home', className: 'home-link' },
     { label: 'Vehicles', path: '/models', className: 'models-link' },
     { label: 'Add Car', onClick: toggleAddCarModal },
-    { label: 'Add organization', onClick: toggleAddOrganizationModal},
+    { label: 'Add organization', onClick: toggleAddOrganizationModal },
     { label: 'Add User', onClick: toggleAddUserModal },
     { label: 'Add Role', onClick: toggleAddRoleModal },
     { label: 'User List', path: '/usersList' },
-    { label: 'Role List', path: 'rolesList'}
+    { label: 'Role List', path: 'rolesList' }
   ];
 
 
   const filterdNavItems = navItems.filter(item => {
-    if(item.label === "Add User" && userType === "1")
-    {
+
+    if (item.label === "Add User" && userType === "1") {
       return false;
     }
-    else if(item.label === "Add organization" && userType === "1")
-    {
-    return false;
-  }
-  else{
-    return true;
-  }
+    else if (item.label === "Add organization" && userType === "2") {
+      return false;
+    }
+    else if (userType === "3" && (item.label === "Add organization" || item.label === "Add User" || 
+      item.label === "Add Role" || item.label === "Add Car" || item.label === "User List" || item.label === "Role List")) {
+      return false;
+    }
+    else {
+      return true;
+    }
   });
 
 
@@ -171,7 +178,7 @@ function Navbar() {
           width: '100%',
           maxWidth: { xs: '100%', sm: '250px' },
           px: { xs: 2, sm: 4 },
-          mt: { xs: 2, sm: 15 , md: 12, lg: 20, xl:6 },
+          mt: { xs: 2, sm: 15, md: 12, lg: 20, xl: 6 },
         }}
       >
         {filterdNavItems.map((item) => (
@@ -230,7 +237,7 @@ function Navbar() {
                   color: '#010103',
                   fontFamily: '"Rubik", sans-serif',
                   transition: 'all 0.3s',
-                  
+
                 },
                 '&:hover .MuiTypography-root': {
                   color: '#ff4d30',
@@ -402,7 +409,7 @@ function Navbar() {
         openModal={toggleAddRoleModal}
         confirmAdding={handleAddRoleSubmit}
       />
-       <AddOrganizationModal
+      <AddOrganizationModal
         modal={showAddOrganizationModal}
         openModal={toggleAddOrganizationModal}
         confirmAdding={handleAddOrganizationSubmit}
