@@ -12,6 +12,8 @@ namespace RentACar.ViewModel
         public string Password { get; set; } = string.Empty;
         public long OrganizationId { get; set; }
         public string Email { get; set; }
-        public string Role { get; set; } = "1"; // "1" = User, "2" = Admin, "3" = SuperAdmin
+        public string Role { get; set; }
+        public UserType? Usertype { get; set; }
+
     }
 }

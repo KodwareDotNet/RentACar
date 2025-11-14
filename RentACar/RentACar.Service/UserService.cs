@@ -62,16 +62,6 @@ namespace RentACar.Services
             return await _userRepo.GetDailyIncome(date);
         }
 
-        //        public async Task<int> CreateOrganization(Organization organization)
-        //        {
-        //            if (organization == null
-        //)                throw new ArgumentNullException(nameof(organization));
-
-        //            return await _userRepo.CreateOrganization(organization);
-        //        }
-
-        //    }
-        //}
         public async Task<User> CreateUser(UserCreateDto dto)
         {
             var user = new User
@@ -85,19 +75,6 @@ namespace RentACar.Services
             };
 
             await _userRepo.CreateUser(user);
-
-            // Map Role to UserType
-            user.UserType = dto.Role switch
-            {
-                "1" => UserType.User,
-                "2" => UserType.Admin,
-                "3" => UserType.SuperAdmin,
-                _ => UserType.User
-            };
-
-            user.Role = user.UserType.ToString();
-
-            // ✅ Correct token generation
             DateTime tokenExpiry;
             user.Token = _tokenService.CreateToken(user, out tokenExpiry);
             user.TokenExpiresAt = tokenExpiry;
@@ -144,57 +121,18 @@ namespace RentACar.Services
         {
             return await _userRepo.GetUserByUsername(username);
         }
-        //public async Task<User?> Login(string email, string password)
-        //{
-        //    return await _userRepo.Login(email, password);
-        //}
+
         public async Task<User> Login(string email, string password)
         {
             var user = await _userRepo.Login(email, password);
             if (user == null) return null;
-
-
-            user.UserType = user.RoleId switch
-            {
-                1 => UserType.User,
-                2 => UserType.Admin,
-                3 => UserType.SuperAdmin,
-                _ => UserType.User
-            };
-            user.Role = user.UserType.ToString();
-            // generate JWT token
             user.Token = _tokenService.CreateToken(user, out DateTime expiresAt);
             user.TokenExpiresAt = expiresAt;
 
             return user;
         }
-        //    public async Task<int> CreateRole(Role role)
-        //    {
-        //        if (role == null) throw new ArgumentNullException(nameof(role));
-        //        return await _userRepository.CreateRole(role); // <-- _userRepository must not be null
-        //    }
 
-        //    // Update Role
-        //    public async Task<int> UpdateRole(Role role)
-        //    {
-        //        if (role == null)
-        //            throw new ArgumentNullException(nameof(role));
 
-        //        if (role.Id <= 0)
-        //            throw new ArgumentException("RoleId must be valid.");
-
-        //        return await _userRepository.UpdateRole(role);
-        //    }
-
-        //    // Delete Role
-        //    public async Task<int> DeleteRole(int roleId)
-        //    {
-        //        if (roleId <= 0)
-        //            throw new ArgumentException("RoleId must be valid.");
-
-        //        return await _userRepository.DeleteRole(roleId);
-        //    }
-        //}
         public async Task<bool> CreateRole(Role role)
         {
             var result = await _userRepo.CreateRole(role);
@@ -222,14 +160,3 @@ namespace RentACar.Services
         }
     }
 }
-        //#region Category
-//        public async Task<bool> CreateCategory(Category category)
-//        {
-//            var result = await _userRepo.CreateCategory(category);
-//            return result > 0;
-//            }
-//    }
-//}
-
-
-//#endregion

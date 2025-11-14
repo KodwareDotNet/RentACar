@@ -19,6 +19,7 @@ namespace RentACar.ViewModel
         public string? GoogleId { get; set; }
         public string Token { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; }
+        public UserType UserType { get; set; }
         public string RefreshToken { get; set; } = string.Empty;
         public string? Permission { get; set; }
     }

@@ -135,8 +135,10 @@ namespace MenuManagement.Repositories
                 parameters.Add("@Email", organization.Email ?? string.Empty);
                 parameters.Add("@Phone", organization.Phone ?? string.Empty);
                 parameters.Add("@Address", organization.Address ?? string.Empty);
-                parameters.Add("@password",  organization.password ?? string.Empty);
-            };
+                parameters.Add("@password", organization.password ?? string.Empty);
+                parameters.Add("@UserType", organization.UserType);
+            }
+            ;
 
             parameters.Add("@outp", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
@@ -221,6 +223,7 @@ namespace MenuManagement.Repositories
                 @OrganizationId = user.OrganizationId,
                 @UserRole = user.Role,
                 @Email = user.Email,
+                @Usertype=user.UserType
             };
 
             return await ExecuteAsync(
@@ -270,6 +273,7 @@ namespace MenuManagement.Repositories
                 "sp_CreateRole",
                 parameters,
                 commandType: CommandType.StoredProcedure
+
             );
         }
 

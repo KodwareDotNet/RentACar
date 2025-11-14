@@ -131,6 +131,7 @@ namespace RentACar.Service
                 new Claim("CategoryPermissions", JsonSerializer.Serialize(user.CategoryPermissions ?? new List<string>()))
             };
 
+
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 

@@ -13,9 +13,10 @@ namespace RentACar.ViewModel
         public string Email { get; set; }
         public string? Phone { get; set; }
         public string?Address { get; set; }
-        public string password { get; set; }
+        public string? password { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public string? Role { get; set; }
         public int OrganizationId { get; set; }
+        public UserType? UserType { get; set; }
     }
 }

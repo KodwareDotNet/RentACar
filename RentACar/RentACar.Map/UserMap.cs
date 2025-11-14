@@ -24,6 +24,10 @@ namespace RentACar.Map
             var users = await _userService.GetByEmailOrGoogleIdAsync(name, null); // You can adjust for real GetAll logic
             var list = new List<UserViewModel>();
 
+            var userType = Enum.TryParse<UserType>(users.UserRole, ignoreCase: true, out var result)
+                  ? result
+                  : UserType.User;
+
             if (users != null)
             {
                 list.Add(new UserViewModel
@@ -31,7 +35,8 @@ namespace RentACar.Map
                     Id = users.Id,
                     Name = users.Name,
                     Email = users.Email,
-                    Role = users.Role
+                    UserType = userType,
+                    Role = users.UserRole
                 });
             }
 
@@ -45,7 +50,8 @@ namespace RentACar.Map
                 Name = user.Name,
                 Email = user.Email,
                 PasswordHash = user.Password,
-                Role = user.Role ?? "User"
+                //Role = user.Role ?? "User"   // here
+             
             };
 
             return await _userService.CreateUserAsync(domain);
@@ -79,7 +85,8 @@ namespace RentACar.Map
                 Email = organization.Email,
                 Phone = organization.Phone,
                 Address = organization.Address,
-                password =organization.password
+                password =organization.password,
+                UserType= organization.UserType
             };
 
             return await _userService.CreateOrganization(model);
@@ -131,6 +138,7 @@ namespace RentACar.Map
                 OrganizationId = dto.OrganizationId,
                 Role = "User", // default role for this endpoint
                 Email = dto.Email,
+                UserType = dto.Usertype
             };
             return await _userService.CreateUser(user);
         }
@@ -184,78 +192,8 @@ namespace RentACar.Map
     }
 }
 
-//        #region Category
-//        public async Task<int> CreateCategory(Categoryviewmodel category)
-//        {
-//            var model = new Category
-//            {
-//                categoryname = category.categoryname,
-//                categoryId = category.categoryId,
-//                description = category.Description,
-//                Createdat = category.Createdat,
-//                Updatedat = category.Updatedat,
-//                isActive = category.isactive,
-
-//            };
-//            return await _userService.CreateCategory(model);
-
-//        }
-//    }
-//}
 
 #endregion
-//        public async Task<int> CreateRole(RoleViewModel role)
-//        {
-//            var model = new Role
-//            {
-//                Name = role.Name,
-//                OrganizationId = role.OrganizationId
-//            };
-//            return await _userService.CreateRole(model);
-//        }
 
-//        public async Task<int> UpdateRole(RoleViewModel role)
-//        {
-//            var model = new Role
-//            {
-//                Id = role.Id,
-//                Name = role.Name,
-//                OrganizationId = role.OrganizationId
-//            };
-//            return await _userService.UpdateRole(model);
-//        }
-
-//        public async Task<int> DeleteRole(int roleId)
-//        {
-//            return await _userService.DeleteRole(roleId);
-//        }
-
-
-//    }
-//}
-
-
-
-
-
-//public async Task<bool> UpdateOrganization(OrganizationViewModel organization)
-//{
-//    return await _userService.UpdateOrganization(new Organization
-//    {
-//        Id = organization.Id,
-//        Name = organization.Name,
-//        Email = organization.Email,
-//        Phone = organization.Phone,
-//        Address = organization.Address
-//    });
-//}
-
-
-//public async Task<bool> DeleteOrganization(int id)
-//{
-//    return await _userService.DeleteOrganizationAsync(id);
-//}
-//    }
-//}
 
 

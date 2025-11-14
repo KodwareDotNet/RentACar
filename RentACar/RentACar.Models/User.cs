@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RentACar.ViewModel;
 
 namespace RentACar.Models
 {
@@ -21,7 +22,7 @@ namespace RentACar.Models
         public string RefreshToken { get; set; } = string.Empty;
         public string? Permission { get; set; }
         public string UserRole { get; set; }
-        public UserType UserType { get; set; }
+        public UserType? UserType { get; set; }
         public int RoleId { get; set; }
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;

@@ -12,7 +12,6 @@ namespace RentACar.ViewModel
         public int RoleId { get; set; }
         public string RoleName { get; set; } = string.Empty;
         public int OrganizationId { get; set; }
-
         public string? OrganizationName { get; set; } // for GetAll join
     }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RentACar.ViewModel;
 
 namespace RentACar.Models
 {
@@ -17,5 +18,6 @@ namespace RentACar.Models
         public DateTime CreatedDate { get; set; }
         public string Name { get; set; }
         public int OrganizationId { get; set; }
+        public UserType? UserType { get; set; }
     }
 }

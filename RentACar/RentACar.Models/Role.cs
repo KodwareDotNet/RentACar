@@ -14,17 +14,6 @@ namespace RentACar.Models
         public string? OrganizationName { get; set; } // for join result
         public DateTime CreatedDate { get; set; }
     }
-}
+    }
 
-//    public class Category
-//    {
-//        public string categoryname { get; set; }
-//        public int categoryId { get; set; }
-//        public string description { get; set; }
-//        public int Createdat { get; set; }
-//        public int Updatedat { get; set; }
-//        public bool isActive { get; set; }
-//    }
-
-//}
 

@@ -34,6 +34,7 @@ namespace RentACar.Map
         Task<bool> CreateRole(RoleViewModel role);
         //Task<int> CreateCategory(Categoryviewmodel category);
         Task<IEnumerable<RoleViewModel>> GetAllRoles();
+      
         Task<bool> UpdateRole(RoleViewModel role);
         Task<bool> DeleteRole(int id);
 
