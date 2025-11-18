@@ -19,7 +19,7 @@ import AddUserModal from './AddUserModal';
 import AddCarModal from './AddCarModal';
 import AddRoleModal from './AddRoleModal';
 import AddOrganizationModal from './AddOrganizationModal';
-
+import AddPermissionModal from './AddPermissionModal';
 
 function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -28,6 +28,7 @@ function Navbar() {
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
   const [showAddOrganizationModal, setShowAddOrganizationModal] = useState(false);
+  const [showAddPermissionModal, setShowAddPermissionModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleDrawerToggle = () => {
@@ -52,13 +53,13 @@ function Navbar() {
 
   }
 
- const toggleAddUserModal = (value) => {
-  if (value === undefined) {
-    setshowAddUserModal(prev => !prev);
-  } else {
-    setshowAddUserModal(value);  // <-- explicit open/close
-  }
-};
+  const toggleAddUserModal = (value) => {
+    if (value === undefined) {
+      setshowAddUserModal(prev => !prev);
+    } else {
+      setshowAddUserModal(value);  // <-- explicit open/close
+    }
+  };
 
   const toggleAddCarModal = () => {
     setShowAddCarModal((prev) => !prev);
@@ -69,9 +70,12 @@ function Navbar() {
   };
 
   const toggleAddOrganizationModal = () => {
-
     setShowAddOrganizationModal((prev) => !prev);
-  }
+  };
+
+   const toggleAddPermissionModal = () => {
+    setShowAddPermissionModal((prev) => !prev);
+  };
 
   const handleCustomerSubmit = () => {
     // console.log("Customer data:", customerData);
@@ -91,9 +95,12 @@ function Navbar() {
 
   const handleAddOrganizationSubmit = (organizationData) => {
     console.log("Organization Added:", organizationData);
-    // setShowAddOrganizationModal(false);
+    setShowAddOrganizationModal(false);
+  }
 
-
+  const handleAddPermissionSubmit =(permissionData) => {
+console.log("Permission Added:", permissionData);
+    setShowAddPermissionModal(false);
   }
 
   useEffect(() => {
@@ -107,7 +114,6 @@ function Navbar() {
 
   const userType = localStorage.getItem("UserType");
 
-
   const navItems = [
     { label: 'Home', path: '/home', className: 'home-link' },
     { label: 'Vehicles', path: '/models', className: 'models-link' },
@@ -116,7 +122,8 @@ function Navbar() {
     { label: 'Add User', onClick: toggleAddUserModal },
     { label: 'Add Role', onClick: toggleAddRoleModal },
     { label: 'User List', path: '/usersList' },
-    { label: 'Role List', path: 'rolesList' }
+    { label: 'Role List', path: 'rolesList' },
+    { label: 'Assign Permission',onClick: toggleAddPermissionModal  },
   ];
 
 
@@ -128,7 +135,7 @@ function Navbar() {
     else if (item.label === "Add organization" && userType === "2") {
       return false;
     }
-    else if (userType === "3" && (item.label === "Add organization" || item.label === "Add User" || 
+    else if (userType === "3" && (item.label === "Add organization" || item.label === "Add User" ||
       item.label === "Add Role" || item.label === "Add Car" || item.label === "User List" || item.label === "Role List")) {
       return false;
     }
@@ -178,7 +185,7 @@ function Navbar() {
           width: '100%',
           maxWidth: { xs: '100%', sm: '250px' },
           px: { xs: 2, sm: 4 },
-          mt: { xs: 2, sm: 15, md: 12, lg: 20, xl: 6 },
+          mt: { xs: 2, sm: 35, md: 36, lg: 40, xl: 50 },
         }}
       >
         {filterdNavItems.map((item) => (
@@ -413,6 +420,11 @@ function Navbar() {
         modal={showAddOrganizationModal}
         openModal={toggleAddOrganizationModal}
         confirmAdding={handleAddOrganizationSubmit}
+      />
+      <AddPermissionModal
+        modal={showAddPermissionModal}
+        openModal={toggleAddPermissionModal}
+        confirmAdding={handleAddPermissionSubmit}
       />
     </>
   );

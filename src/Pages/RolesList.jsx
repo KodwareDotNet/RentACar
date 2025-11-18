@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -13,31 +13,27 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import addRoleService from '../api/services/AddRole/addRoleService';
+
+
 
 function RolesList() {
-  const Roles = [
-    {
-      id: 1,
-      name: 'Administration',
-      
-    },
-    {
-      id: 2,
-      name: 'Super Admin',
-    },
-    {
-      id: 3,
-      name: 'Admin',
-    },
-    {
-      id: 4,
-      name: 'Organizer',
-    },
-    {
-      id: 5,
-      name: 'User',
-    }
-  ];
+
+  const [rolesList, setRolesList]= useState([]);
+
+  const Roles = async () => {
+    try {
+      const res = await addRoleService.getRoles();
+      setRolesList (res.data || []);
+}
+catch(err){
+  console.error("failed ",err)
+}
+  }
+
+ useEffect(() => {
+    Roles();  
+  }, []);
 
   const handleEdit = (userId) => {
     console.log('Edit user:', userId);
@@ -100,7 +96,7 @@ function RolesList() {
               >
                 Roles Name
               </TableCell>
-            
+
               <TableCell
                 align="center"
                 sx={{
@@ -116,7 +112,7 @@ function RolesList() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {Roles.map((roles) => (
+            {rolesList.map((roles) => (
               <TableRow
                 key={roles.id}
                 sx={{
@@ -140,7 +136,7 @@ function RolesList() {
                       gap: '1.5rem',
                     }}
                   >
-                    
+
                     <Typography
                       sx={{
                         fontSize: { xs: '1.4rem', md: '1.6rem' },
@@ -149,11 +145,11 @@ function RolesList() {
                         fontFamily: '"Rubik", sans-serif',
                       }}
                     >
-                      {roles.name}
+                      {roles.roleName}
                     </Typography>
                   </Box>
                 </TableCell>
-            
+
                 <TableCell
                   align="center"
                   sx={{

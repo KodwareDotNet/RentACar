@@ -21,6 +21,17 @@ const addRoleService = {
     catch (err) {
       throw err.response?.data || { message: "Failed " };
     }
+  },
+
+  getRoles: async () =>{
+   try{
+    const res = await api.get("user/GetRolesByOrganization");
+    return res;
+   }
+   catch (err) {
+    throw err.response?.data || { message: "Failed "}
+   }
   }
+
 };
 export default addRoleService;

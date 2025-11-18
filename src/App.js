@@ -25,11 +25,11 @@ function App() {
         <Route index path="/" element={<LoginPage />} />
         <Route index path="/loginPage" element={<LoginPage />} />
         <Route path="/home" element={<Home />} />
-        <Route path="about" element={<About />} />
+        {/* <Route path="about" element={<About />} /> */}
         <Route path="models" element={<Models />} />
-        <Route path="testimonials" element={<TestimonialsPage />} />
+        {/* <Route path="testimonials" element={<TestimonialsPage />} />
         <Route path="team" element={<Team />} />
-        <Route path="contact" element={<Contact />} />
+        <Route path="contact" element={<Contact />} /> */}
         <Route path="usersList" element={<UsersList />} />
         <Route path="rolesList" element={<RolesList />} />
       </Routes>

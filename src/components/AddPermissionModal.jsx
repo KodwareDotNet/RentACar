@@ -16,19 +16,19 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import addRoleService from '../api/services/AddRole/addRoleService';
 
-function AddRoleModal({ modal, openModal, confirmAdding }) {
+function AddPermissionModal({ modal, openModal, confirmAdding }) {
     const navigate = useNavigate();
 
     const [userData, setUserData] = useState({
+        permissionName: "",
         roleName: "",
-        organizationId: "",
     });
     const [errors, setErrors] = useState({});
-    const [organizations, setOrganizations] = useState([]);
+    const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-    const [organizationName, setOrganizationName] = useState("");
+    const [roleName, setRoleName] = useState("");
 
     // Fetch user role and organization when modal opens
     useEffect(() => {
@@ -45,10 +45,10 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
         try {
             // Get user info from localStorage
             const userRole = localStorage.getItem('role');
-            const orgId = localStorage.getItem('organizationId');
+            const roleId = localStorage.getItem('roleId');
 
             console.log('User Role from localStorage:', userRole);
-            console.log('Organization ID from localStorage:', orgId);
+            console.log('Organization ID from localStorage:', roleId);
 
             // Check if user is Super Admin
             // Adjust this condition based on what your backend returns for Super Admin
@@ -56,22 +56,22 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
             setIsSuperAdmin(isSuperAdminUser);
 
             // Fetch organizations
-            await fetchOrganizations();
+            await fetchRoles();
 
-            if (!isSuperAdminUser && orgId) {
+            if (!isSuperAdminUser && roleId) {
                 // For non-Super Admin users, find and set the organization name
-                const response = await addRoleService.getOrganization();
-                const userOrg = response.data.find(org => org.id === parseInt(orgId));
+                const response = await addRoleService.getRoles();
+                const roleName = response.data.find(role => role.id === parseInt(roleId));
 
-                if (userOrg) {
-                    setOrganizationName(userOrg.name);
+                if (roleName) {
+                    setRoleName(response.data.roleName);
                     setUserData(prev => ({
                         ...prev,
-                        organizationId: orgId
+                        roleId: roleId
                     }));
                 } else {
-                    console.warn('Organization not found for ID:', orgId);
-                    setOrganizationName("Organization not found");
+                    console.warn('Role not found for ID:', roleId);
+                    setRoleName("Role not found");
                 }
             }
         } catch (err) {
@@ -85,15 +85,15 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
         }
     };
 
-    const fetchOrganizations = async () => {
+    const fetchRoles = async () => {
         try {
-            const response = await addRoleService.getOrganization();
-            setOrganizations(response.data || []);
+            const response = await addRoleService.getRoles();
+            setRoles(response.data || []);
         } catch (err) {
-            console.error("Failed to fetch organizations:", err);
+            console.error("Failed to fetch Roles:", err);
             setErrors(prev => ({
                 ...prev,
-                fetch: "Failed to load organizations"
+                fetch: "Failed to load roles"
             }));
         }
     };
@@ -114,11 +114,11 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!userData.roleName.trim()) {
-            newErrors.roleName = "Role Name is required";
+        if (!userData.permissionName.trim()) {
+            newErrors.permissionName = "Permission Name is required";
         }
-        if (!userData.organizationId) {
-            newErrors.organizationId = "Organization is required";
+        if (!userData.roleName) {
+            newErrors.roleName = "role is required";
         }
 
         setErrors(newErrors);
@@ -132,7 +132,7 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
         try {
             const response = await addRoleService.addRole({
                 roleName: userData.roleName,
-                organizationId: parseInt(userData.organizationId),
+                roleId: parseInt(userData.roleId),
             });
 
             console.log("Role added successfully:", response);
@@ -147,7 +147,7 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
         } catch (err) {
             console.error("Unable to add role:", err);
             setErrors({
-                submit: err.message || "Failed to add role. Please try again."
+                submit: err.message || "Failed to add permission. Please try again."
             });
         } finally {
             setSubmitting(false);
@@ -184,7 +184,7 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                         fontFamily: '"Rubik", sans-serif',
                     }}
                 >
-                    Add Role
+                    Add Permissions
                 </Typography>
                 <IconButton
                     onClick={openModal}
@@ -211,7 +211,7 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                             fontFamily: '"Rubik", sans-serif',
                         }}
                     >
-                        Role Information
+                        Permission Information
                     </Typography>
 
                     {errors.fetch && (
@@ -227,17 +227,17 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                     )}
 
                     <Grid container spacing={2.5}>
-                        {/* Role Name */}
+                        {/* Permission Name */}
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label="Role Name"
+                                label="Permission Name"
                                 required
-                                value={userData.roleName}
-                                onChange={(e) => handleChange("roleName", e.target.value)}
-                                error={!!errors.roleName}
-                                helperText={errors.roleName}
-                                placeholder="Enter Role name"
+                                value={userData.permissionName}
+                                onChange={(e) => handleChange("permissionName", e.target.value)}
+                                error={!!errors.permissionName}
+                                helperText={errors.permissionName}
+                                placeholder="Enter Permission name"
                                 disabled={submitting}
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
@@ -261,12 +261,12 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                                 <TextField
                                     fullWidth
                                     select
-                                    label="Organization"
+                                    label="Role Name"
                                     required
-                                    value={userData.organizationId}
-                                    onChange={(e) => handleChange("organizationId", e.target.value)}
-                                    error={!!errors.organizationId}
-                                    helperText={errors.organizationId}
+                                    value={userData.roleName}
+                                    onChange={(e) => handleChange("roleName", e.target.value)}
+                                    error={!!errors.roleName}
+                                    helperText={errors.roleName}
                                     disabled={loading || submitting}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
@@ -287,12 +287,12 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                                             <CircularProgress size={20} />
                                             <Typography sx={{ ml: 1 }}>Loading...</Typography>
                                         </MenuItem>
-                                    ) : organizations.length === 0 ? (
-                                        <MenuItem disabled>No organizations available</MenuItem>
+                                    ) : roles.length === 0 ? (
+                                        <MenuItem disabled>No roles available</MenuItem>
                                     ) : (
-                                        organizations.map((org) => (
-                                            <MenuItem key={org.id} value={org.id}>
-                                                {org.name}
+                                        roles.map((role) => (
+                                            <MenuItem key={role.roleId} value={role.roleId}>
+                                                {role.roleName}
                                             </MenuItem>
                                         ))
                                     )}
@@ -338,7 +338,7 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                                             Adding...
                                         </>
                                     ) : (
-                                        "Add Role"
+                                        "Add Permission"
                                     )}
                                 </Button>
                             </Box>
@@ -351,4 +351,4 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
 
 }
 
-export default AddRoleModal;
+export default AddPermissionModal;
