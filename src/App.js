@@ -10,6 +10,7 @@ import Contact from "./Pages/Contact";
 import LoginPage from "./Pages/LoginPage";
 import UsersList from "./Pages/UsersList";
 import RolesList from "./Pages/RolesList";
+import OrganizationList from "./Pages/OrganizationList";
 
 function App() {
   const location = useLocation();
@@ -32,6 +33,7 @@ function App() {
         <Route path="contact" element={<Contact />} /> */}
         <Route path="usersList" element={<UsersList />} />
         <Route path="rolesList" element={<RolesList />} />
+        <Route path="organizationList" element={<OrganizationList />} />
       </Routes>
     </>
   );

@@ -8,7 +8,6 @@ import {
     IconButton,
     Box,
     Typography,
-    Grid
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import addUserService from "../api/services/AddUser/addUserService";
@@ -20,11 +19,8 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
         password: "",
         organizationId: "",
         role: "",
-
     });
     const [errors, setErrors] = useState({});
-
-
 
     const handleChange = (field, value) => {
         setUserData({ ...userData, [field]: value });
@@ -36,9 +32,12 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
     const validateForm = () => {
         const newErrors = {};
         if (!userData.username.trim()) newErrors.username = "User name is required";
-        if (!userData.email.trim()) newErrors.email = "Email is required";
+        if (!userData.email.trim()) {
+            newErrors.email = "Email is required";
+        } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
+            newErrors.email = "Email is invalid";
+        }
         if (!userData.password.trim()) newErrors.password = "Password is required";
-
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -48,10 +47,10 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
         if (validateForm()) {
             try {
                 const res = await addUserService.addUser(userData);
-                console.log("user added Successfully", res)
+                console.log("user added Successfully", res);
                 confirmAdding(userData);
                 
-                alert("userAdded");
+                alert("User Added");
                 setUserData({
                     username: "",
                     email: "",
@@ -61,7 +60,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                 });
                 openModal(false);
             } catch (err) {
-                alert("error Adding User", err.message);
+                alert("Error Adding User: " + err.message);
                 
                 setUserData({
                     username: "",
@@ -75,6 +74,20 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
         }
     };
 
+    // Shared TextField styles
+    const textFieldStyles = {
+        "& .MuiOutlinedInput-root": {
+            "&:hover fieldset": {
+                borderColor: "#ff4d30",
+            },
+            "&.Mui-focused fieldset": {
+                borderColor: "#ff4d30",
+            },
+        },
+        "& .MuiInputLabel-root.Mui-focused": {
+            color: "#ff4d30",
+        },
+    };
 
     return (
         <Dialog
@@ -130,181 +143,128 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                         sx={{
                             fontWeight: 600,
                             color: "#010103",
-                            marginBottom: "20px",
+                            marginBottom: "24px",
                             fontFamily: '"Rubik", sans-serif',
                         }}
                     >
                         User Information
                     </Typography>
 
-                    <Grid container spacing={2.5}>
-                        {/* User Name */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="User Name"
-                                required
-                                value={userData.username}
-                                onChange={(e) => handleChange("username", e.target.value)}
-                                error={!!errors.username}
-                                helperText={errors.username}
-                                placeholder="Enter User name"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
+                    {/* Row 1: User Name & Email */}
+                    <Box sx={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                        <TextField
+                            fullWidth
+                            label="User Name"
+                            required
+                            value={userData.username}
+                            onChange={(e) => handleChange("username", e.target.value)}
+                            error={!!errors.username}
+                            helperText={errors.username}
+                            placeholder="Enter User name"
+                            sx={textFieldStyles}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Email"
+                            type="email"
+                            required
+                            value={userData.email}
+                            onChange={(e) => handleChange("email", e.target.value)}
+                            error={!!errors.email}
+                            helperText={errors.email}
+                            placeholder="example@email.com"
+                            sx={textFieldStyles}
+                        />
+                    </Box>
 
-                        {/* Email */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Email"
-                                type="email"
-                                value={userData.email}
-                                onChange={(e) => handleChange("email", e.target.value)}
-                                placeholder="example@email.com"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
+                    {/* Row 2: Password & Organization ID */}
+                    <Box sx={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                        <TextField
+                            fullWidth
+                            label="Password"
+                            type="password"
+                            required
+                            value={userData.password}
+                            onChange={(e) => handleChange("password", e.target.value)}
+                            error={!!errors.password}
+                            helperText={errors.password}
+                            placeholder="****"
+                            sx={textFieldStyles}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Organization ID"
+                            type="number"
+                            value={userData.organizationId}
+                            onChange={(e) => handleChange("organizationId", e.target.value)}
+                            placeholder="Organization ID"
+                            sx={textFieldStyles}
+                        />
+                    </Box>
 
-                        {/* PassWord */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Password"
-                                type="password"
-                                value={userData.password}
-                                onChange={(e) => handleChange("password", e.target.value)}
-                                placeholder="****"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
+                    {/* Row 3: Role (half width for consistency) */}
+                    <Box sx={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                        <TextField
+                            fullWidth
+                            label="Role"
+                            value={userData.role}
+                            onChange={(e) => handleChange("role", e.target.value)}
+                            placeholder="Role"
+                            sx={{ ...textFieldStyles, maxWidth: "calc(50% - 8px)" }}
+                        />
+                    </Box>
 
-
-
-                        </Grid>
-
-                        {/* organizationId */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="organizationId"
-                                type="number"
-                                value={userData.organizationId}
-                                onChange={(e) => handleChange("organizationId", e.target.value)}
-                                placeholder="organizationId"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-
-
-
-                        </Grid>
-
-                        {/* Role */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Role"
-                                
-                                value={userData.role}
-                                onChange={(e) => handleChange("role", e.target.value)}
-                                placeholder="Role"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
-
-                        {/* Submit Button */}
-
-                        <Grid item xs={12}>
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-
-                                }}
-                            >
-                                <Button
-                                    variant="contained"
-                                    onClick={handleSubmit}
-                                    sx={{
-                                        backgroundColor: "#ff4d30",
-                                        color: "white",
-                                        padding: "12px 32px",
-                                        fontSize: "16px",
-                                        fontWeight: 600,
-                                        fontFamily: '"Rubik", sans-serif',
-                                        textTransform: "none",
-                                        boxShadow: "0 10px 15px 0 rgba(255, 83, 48, 0.35)",
-                                        "&:hover": {
-                                            backgroundColor: "#e63c20",
-                                            boxShadow: "0 10px 15px 0 rgba(255, 83, 48, 0.5)",
-                                        },
-                                    }}
-                                >
-                                    Add User
-                                </Button>
-                            </Box>
-                        </Grid>
-
-                    </Grid>
+                    {/* Action Buttons */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            gap: 2,
+                            marginTop: "32px",
+                            paddingTop: "24px",
+                            borderTop: "1px solid #e0e0e0",
+                        }}
+                    >
+                        <Button
+                            variant="outlined"
+                            onClick={() => openModal(false)}
+                            sx={{
+                                padding: "10px 24px",
+                                fontSize: "15px",
+                                fontWeight: 500,
+                                fontFamily: '"Rubik", sans-serif',
+                                textTransform: "none",
+                                color: "#666",
+                                borderColor: "#e0e0e0",
+                                "&:hover": {
+                                    borderColor: "#ff4d30",
+                                    backgroundColor: "rgba(255, 77, 48, 0.05)",
+                                },
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleSubmit}
+                            sx={{
+                                backgroundColor: "#ff4d30",
+                                color: "white",
+                                padding: "10px 32px",
+                                fontSize: "15px",
+                                fontWeight: 600,
+                                fontFamily: '"Rubik", sans-serif',
+                                textTransform: "none",
+                                boxShadow: "0 4px 12px 0 rgba(255, 83, 48, 0.35)",
+                                "&:hover": {
+                                    backgroundColor: "#e63c20",
+                                    boxShadow: "0 6px 16px 0 rgba(255, 83, 48, 0.5)",
+                                },
+                            }}
+                        >
+                            Add User
+                        </Button>
+                    </Box>
                 </Box>
             </DialogContent>
         </Dialog>

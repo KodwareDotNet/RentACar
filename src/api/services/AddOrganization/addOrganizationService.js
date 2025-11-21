@@ -11,6 +11,16 @@ const addOrganizationService ={
     catch(err){
         throw err.response?.data || { message: "Failed " };
     }
-    }
+    },
+     getOrganization: async () => {
+        try {
+    
+          const res = await api.get("User/GetAllOrganizations");
+          return res;
+        }
+        catch (err) {
+          throw err.response?.data || { message: "Failed " };
+        }
+      }
 };
 export default addOrganizationService;

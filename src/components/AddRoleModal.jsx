@@ -8,7 +8,6 @@ import {
     IconButton,
     Box,
     Typography,
-    Grid,
     MenuItem,
     CircularProgress
 } from "@mui/material";
@@ -40,8 +39,6 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
     const checkUserRole = async () => {
         setLoading(true);
 
-
-
         try {
             // Get user info from localStorage
             const userRole = localStorage.getItem('role');
@@ -51,7 +48,6 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
             console.log('Organization ID from localStorage:', orgId);
 
             // Check if user is Super Admin
-            // Adjust this condition based on what your backend returns for Super Admin
             const isSuperAdminUser = userRole === 'SuperAdmin' || userRole === 'Super Admin' || userRole === 'Admin';
             setIsSuperAdmin(isSuperAdminUser);
 
@@ -134,14 +130,13 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                 roleName: userData.roleName,
                 organizationId: parseInt(userData.organizationId),
             });
-
+            openModal();
             console.log("Role added successfully:", response);
 
             if (confirmAdding) {
                 confirmAdding(response.data);
             }
 
-            openModal();
             navigate("/rolesList");
 
         } catch (err) {
@@ -153,6 +148,21 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
             setSubmitting(false);
             navigate("/home");
         }
+    };
+
+    // Shared TextField styles
+    const textFieldStyles = {
+        "& .MuiOutlinedInput-root": {
+            "&:hover fieldset": {
+                borderColor: "#ff4d30",
+            },
+            "&.Mui-focused fieldset": {
+                borderColor: "#ff4d30",
+            },
+        },
+        "& .MuiInputLabel-root.Mui-focused": {
+            color: "#ff4d30",
+        },
     };
 
     return (
@@ -207,7 +217,7 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                         sx={{
                             fontWeight: 600,
                             color: "#010103",
-                            marginBottom: "20px",
+                            marginBottom: "24px",
                             fontFamily: '"Rubik", sans-serif',
                         }}
                     >
@@ -226,129 +236,133 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                         </Typography>
                     )}
 
-                    <Grid container spacing={2.5}>
+                    {/* Fields Row */}
+                    <Box sx={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
                         {/* Role Name */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Role Name"
-                                required
-                                value={userData.roleName}
-                                onChange={(e) => handleChange("roleName", e.target.value)}
-                                error={!!errors.roleName}
-                                helperText={errors.roleName}
-                                placeholder="Enter Role name"
-                                disabled={submitting}
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
+                        <TextField
+                            fullWidth
+                            label="Role Name"
+                            required
+                            value={userData.roleName}
+                            onChange={(e) => handleChange("roleName", e.target.value)}
+                            error={!!errors.roleName}
+                            helperText={errors.roleName}
+                            placeholder="Enter Role name"
+                            disabled={submitting}
+                            sx={textFieldStyles}
+                        />
 
                         {/* Organization - Conditional Rendering */}
                         {isSuperAdmin && (
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    select
-                                    label="Organization"
-                                    required
-                                    value={userData.organizationId}
-                                    onChange={(e) => handleChange("organizationId", e.target.value)}
-                                    error={!!errors.organizationId}
-                                    helperText={errors.organizationId}
-                                    disabled={loading || submitting}
-                                    sx={{
-                                        "& .MuiOutlinedInput-root": {
-                                            "&:hover fieldset": {
-                                                borderColor: "#ff4d30",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                borderColor: "#ff4d30",
-                                            },
-                                        },
-                                        "& .MuiInputLabel-root.Mui-focused": {
-                                            color: "#ff4d30",
-                                        },
-                                    }}
-                                >
-                                    {loading ? (
-                                        <MenuItem disabled>
-                                            <CircularProgress size={20} />
-                                            <Typography sx={{ ml: 1 }}>Loading...</Typography>
-                                        </MenuItem>
-                                    ) : organizations.length === 0 ? (
-                                        <MenuItem disabled>No organizations available</MenuItem>
-                                    ) : (
-                                        organizations.map((org) => (
-                                            <MenuItem key={org.id} value={org.id}>
-                                                {org.name}
-                                            </MenuItem>
-                                        ))
-                                    )}
-                                </TextField>
-                            </Grid>
-                        )}
-
-
-                        {/* Submit Button */}
-                        <Grid item xs={12}>
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                    alignItems: "flex-end",
-                                }}
+                            <TextField
+                                fullWidth
+                                select
+                                label="Organization"
+                                required
+                                value={userData.organizationId}
+                                onChange={(e) => handleChange("organizationId", e.target.value)}
+                                error={!!errors.organizationId}
+                                helperText={errors.organizationId}
+                                disabled={loading || submitting}
+                                sx={textFieldStyles}
                             >
-                                <Button
-                                    variant="contained"
-                                    onClick={handleSubmit}
-                                    disabled={submitting || loading}
-                                    sx={{
-                                        backgroundColor: "#ff4d30",
-                                        color: "white",
-                                        padding: "12px 32px",
-                                        fontSize: "16px",
-                                        fontWeight: 600,
-                                        fontFamily: '"Rubik", sans-serif',
-                                        textTransform: "none",
-                                        boxShadow: "0 10px 15px 0 rgba(255, 83, 48, 0.35)",
-                                        "&:hover": {
-                                            backgroundColor: "#e63c20",
-                                            boxShadow: "0 10px 15px 0 rgba(255, 83, 48, 0.5)",
-                                        },
-                                        "&:disabled": {
-                                            backgroundColor: "#ccc",
-                                        },
-                                    }}
-                                >
-                                    {submitting ? (
-                                        <>
-                                            <CircularProgress size={20} sx={{ mr: 1, color: "white" }} />
-                                            Adding...
-                                        </>
-                                    ) : (
-                                        "Add Role"
-                                    )}
-                                </Button>
-                            </Box>
-                        </Grid>
-                    </Grid>
+                                {loading ? (
+                                    <MenuItem disabled>
+                                        <CircularProgress size={20} />
+                                        <Typography sx={{ ml: 1 }}>Loading...</Typography>
+                                    </MenuItem>
+                                ) : organizations.length === 0 ? (
+                                    <MenuItem disabled>No organizations available</MenuItem>
+                                ) : (
+                                    organizations.map((org) => (
+                                        <MenuItem key={org.id} value={org.id}>
+                                            {org.name}
+                                        </MenuItem>
+                                    ))
+                                )}
+                            </TextField>
+                        )}
+                    </Box>
+
+                    {/* Non-Super Admin Organization Display */}
+                    {!isSuperAdmin && organizationName && (
+                        <Box sx={{ marginBottom: "16px" }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                Organization
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                {organizationName}
+                            </Typography>
+                        </Box>
+                    )}
+
+                    {/* Action Buttons */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            gap: 2,
+                            marginTop: "32px",
+                            paddingTop: "24px",
+                            borderTop: "1px solid #e0e0e0",
+                        }}
+                    >
+                        <Button
+                            variant="outlined"
+                            onClick={openModal}
+                            disabled={submitting}
+                            sx={{
+                                padding: "10px 24px",
+                                fontSize: "15px",
+                                fontWeight: 500,
+                                fontFamily: '"Rubik", sans-serif',
+                                textTransform: "none",
+                                color: "#666",
+                                borderColor: "#e0e0e0",
+                                "&:hover": {
+                                    borderColor: "#ff4d30",
+                                    backgroundColor: "rgba(255, 77, 48, 0.05)",
+                                },
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleSubmit}
+                            disabled={submitting || loading}
+                            sx={{
+                                backgroundColor: "#ff4d30",
+                                color: "white",
+                                padding: "10px 32px",
+                                fontSize: "15px",
+                                fontWeight: 600,
+                                fontFamily: '"Rubik", sans-serif',
+                                textTransform: "none",
+                                boxShadow: "0 4px 12px 0 rgba(255, 83, 48, 0.35)",
+                                "&:hover": {
+                                    backgroundColor: "#e63c20",
+                                    boxShadow: "0 6px 16px 0 rgba(255, 83, 48, 0.5)",
+                                },
+                                "&:disabled": {
+                                    backgroundColor: "#ccc",
+                                },
+                            }}
+                        >
+                            {submitting ? (
+                                <>
+                                    <CircularProgress size={20} sx={{ mr: 1, color: "white" }} />
+                                    Adding...
+                                </>
+                            ) : (
+                                "Add Role"
+                            )}
+                        </Button>
+                    </Box>
                 </Box>
             </DialogContent>
         </Dialog>
-    ); 
-
+    );
 }
 
 export default AddRoleModal;

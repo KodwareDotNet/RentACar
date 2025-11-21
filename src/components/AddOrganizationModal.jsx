@@ -8,7 +8,6 @@ import {
     IconButton,
     Box,
     Typography,
-    Grid
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import addOrganizationService from "../api/services/AddOrganization/addOrganizationService";
@@ -20,11 +19,8 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
         password: "",
         phone: "",
         address: "",
-
     });
     const [errors, setErrors] = useState({});
-
-
 
     const handleChange = (field, value) => {
         setOrganizationData({ ...organizationData, [field]: value });
@@ -35,8 +31,12 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!organizationData.name.trim()) newErrors.name = "Full name is required";
-        if (!organizationData.email.trim()) newErrors.email = "Email is required";
+        if (!organizationData.name.trim()) newErrors.name = "Organization name is required";
+        if (!organizationData.email.trim()) {
+            newErrors.email = "Email is required";
+        } else if (!/\S+@\S+\.\S+/.test(organizationData.email)) {
+            newErrors.email = "Email is invalid";
+        }
         if (!organizationData.password.trim()) newErrors.password = "Password is required";
 
         setErrors(newErrors);
@@ -47,12 +47,13 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
         if (validateForm()) {
             try {
                 const res = await addOrganizationService.addOrganization(organizationData);
-                console.log("Oranization added ", res);
+                console.log("Organization added ", res);
                 if (res) {
+                    openModal();
                     alert("Added");
                 }
                 confirmAdding(organizationData);
-                openModal();
+                
                 setOrganizationData({
                     name: "",
                     email: "",
@@ -60,11 +61,11 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
                     phone: "",
                     address: "",
                 });
-            }
-            catch (err) {
+            } catch (err) {
                 console.error("error", err);
-                alert("Error Adding");
                 openModal();
+                alert("Error Adding");
+                
                 setOrganizationData({
                     name: "",
                     email: "",
@@ -76,6 +77,20 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
         }
     };
 
+    // Shared TextField styles
+    const textFieldStyles = {
+        "& .MuiOutlinedInput-root": {
+            "&:hover fieldset": {
+                borderColor: "#ff4d30",
+            },
+            "&.Mui-focused fieldset": {
+                borderColor: "#ff4d30",
+            },
+        },
+        "& .MuiInputLabel-root.Mui-focused": {
+            color: "#ff4d30",
+        },
+    };
 
     return (
         <Dialog
@@ -131,180 +146,129 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
                         sx={{
                             fontWeight: 600,
                             color: "#010103",
-                            marginBottom: "20px",
+                            marginBottom: "24px",
                             fontFamily: '"Rubik", sans-serif',
                         }}
                     >
                         Organization Information
                     </Typography>
 
-                    <Grid container spacing={2.5}>
-                        {/* Organization Name */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Organization Name"
-                                required
-                                value={organizationData.name}
-                                onChange={(e) => handleChange("name", e.target.value)}
-                                error={!!errors.name}
-                                helperText={errors.name}
-                                placeholder="Enter  name"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
+                    {/* Row 1: Organization Name & Email */}
+                    <Box sx={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                        <TextField
+                            fullWidth
+                            label="Organization Name"
+                            required
+                            value={organizationData.name}
+                            onChange={(e) => handleChange("name", e.target.value)}
+                            error={!!errors.name}
+                            helperText={errors.name}
+                            placeholder="Enter name"
+                            sx={textFieldStyles}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Email"
+                            type="email"
+                            required
+                            value={organizationData.email}
+                            onChange={(e) => handleChange("email", e.target.value)}
+                            error={!!errors.email}
+                            helperText={errors.email}
+                            placeholder="example@email.com"
+                            sx={textFieldStyles}
+                        />
+                    </Box>
 
-                        {/* Email */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Email"
-                                type="email"
-                                value={organizationData.email}
-                                onChange={(e) => handleChange("email", e.target.value)}
-                                placeholder="example@email.com"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
+                    {/* Row 2: Password & Phone */}
+                    <Box sx={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                        <TextField
+                            fullWidth
+                            label="Password"
+                            required
+                            type="password"
+                            value={organizationData.password}
+                            onChange={(e) => handleChange("password", e.target.value)}
+                            error={!!errors.password}
+                            helperText={errors.password}
+                            placeholder="Enter password"
+                            sx={textFieldStyles}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Phone"
+                            type="tel"
+                            value={organizationData.phone}
+                            onChange={(e) => handleChange("phone", e.target.value)}
+                            placeholder="Enter phone"
+                            sx={textFieldStyles}
+                        />
+                    </Box>
 
-                        {/* password */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Password"
-                                required
-                                type="password"
-                                value={organizationData.password}
-                                onChange={(e) => handleChange("password", e.target.value)}
-                                error={!!errors.password}
-                                helperText={errors.password}
-                                placeholder="Enter password"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
+                    {/* Row 3: Address (takes half width to maintain consistency) */}
+                    <Box sx={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                        <TextField
+                            fullWidth
+                            label="Address"
+                            type="text"
+                            value={organizationData.address}
+                            onChange={(e) => handleChange("address", e.target.value)}
+                            placeholder="Enter address"
+                            sx={{ ...textFieldStyles, maxWidth: "calc(50% - 8px)" }}
+                        />
+                    </Box>
 
-                        {/* phone */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="phone"
-                                required
-                                type="tel"
-                                value={organizationData.phone}
-                                onChange={(e) => handleChange("phone", e.target.value)}
-                                placeholder="Enter phone"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
-
-                        {/* Address */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Address"
-                                required
-                                type="text"
-                                value={organizationData.address}
-                                onChange={(e) => handleChange("address", e.target.value)}
-                                placeholder="Enter address"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        "&:hover fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "#ff4d30",
-                                        },
-                                    },
-                                    "& .MuiInputLabel-root.Mui-focused": {
-                                        color: "#ff4d30",
-                                    },
-                                }}
-                            />
-                        </Grid>
-
-                        {/* Submit Button */}
-
-                        <Grid item xs={12}>
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-
-                                }}
-                            >
-                                <Button
-                                    variant="contained"
-                                    onClick={handleSubmit}
-                                    sx={{
-                                        backgroundColor: "#ff4d30",
-                                        color: "white",
-                                        padding: "12px 32px",
-                                        fontSize: "16px",
-                                        fontWeight: 600,
-                                        fontFamily: '"Rubik", sans-serif',
-                                        textTransform: "none",
-                                        boxShadow: "0 10px 15px 0 rgba(255, 83, 48, 0.35)",
-                                        "&:hover": {
-                                            backgroundColor: "#e63c20",
-                                            boxShadow: "0 10px 15px 0 rgba(255, 83, 48, 0.5)",
-                                        },
-                                    }}
-                                >
-                                    Add Organization
-                                </Button>
-                            </Box>
-                        </Grid>
-
-                    </Grid>
+                    {/* Action Buttons */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            gap: 2,
+                            marginTop: "32px",
+                            paddingTop: "24px",
+                            borderTop: "1px solid #e0e0e0",
+                        }}
+                    >
+                        <Button
+                            variant="outlined"
+                            onClick={openModal}
+                            sx={{
+                                padding: "10px 24px",
+                                fontSize: "15px",
+                                fontWeight: 500,
+                                fontFamily: '"Rubik", sans-serif',
+                                textTransform: "none",
+                                color: "#666",
+                                borderColor: "#e0e0e0",
+                                "&:hover": {
+                                    borderColor: "#ff4d30",
+                                    backgroundColor: "rgba(255, 77, 48, 0.05)",
+                                },
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleSubmit}
+                            sx={{
+                                backgroundColor: "#ff4d30",
+                                color: "white",
+                                padding: "10px 32px",
+                                fontSize: "15px",
+                                fontWeight: 600,
+                                fontFamily: '"Rubik", sans-serif',
+                                textTransform: "none",
+                                boxShadow: "0 4px 12px 0 rgba(255, 83, 48, 0.35)",
+                                "&:hover": {
+                                    backgroundColor: "#e63c20",
+                                    boxShadow: "0 6px 16px 0 rgba(255, 83, 48, 0.5)",
+                                },
+                            }}
+                        >
+                            Add Organization
+                        </Button>
+                    </Box>
                 </Box>
             </DialogContent>
         </Dialog>

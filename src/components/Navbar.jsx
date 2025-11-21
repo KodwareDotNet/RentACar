@@ -121,9 +121,11 @@ console.log("Permission Added:", permissionData);
     { label: 'Add organization', onClick: toggleAddOrganizationModal },
     { label: 'Add User', onClick: toggleAddUserModal },
     { label: 'Add Role', onClick: toggleAddRoleModal },
+    { label: 'Organization List', path :'organizationList'},
     { label: 'User List', path: '/usersList' },
     { label: 'Role List', path: 'rolesList' },
     { label: 'Assign Permission',onClick: toggleAddPermissionModal  },
+
   ];
 
 
@@ -208,8 +210,8 @@ console.log("Permission Added:", permissionData);
                 primary={item.label}
                 sx={{
                   '& .MuiTypography-root': {
-                    fontSize: '2.3rem',
-                    fontWeight: 500,
+                    fontSize: '2rem',
+                    fontWeight: 400,
                     color: '#010103',
                     fontFamily: '"Rubik", sans-serif',
                     transition: 'all 0.3s',
