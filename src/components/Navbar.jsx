@@ -187,7 +187,7 @@ console.log("Permission Added:", permissionData);
           width: '100%',
           maxWidth: { xs: '100%', sm: '250px' },
           px: { xs: 2, sm: 4 },
-          mt: { xs: 2, sm: 35, md: 36, lg: 40, xl: 50 },
+          mt: { xs: 2, sm: 70, md: 67, lg: 50, xl: 50 },
         }}
       >
         {filterdNavItems.map((item) => (

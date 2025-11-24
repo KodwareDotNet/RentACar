@@ -9,7 +9,7 @@ function HeroPages({ name }) {
           <div className="hero-pages__text">
             <h3>{name}</h3>
             <p>
-              <Link to="/">Home</Link> / {name}
+              <Link to="/home">Home</Link> / {name}
             </p>
           </div>
         </div>
