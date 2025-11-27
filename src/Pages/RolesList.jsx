@@ -10,39 +10,64 @@ import {
   TableRow,
   Paper,
   IconButton,
+  Button,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import addRoleService from '../api/services/AddRole/addRoleService';
-
-
+import AddRoleModal from '../components/AddRoleModal';
 
 function RolesList() {
-
-  const [rolesList, setRolesList]= useState([]);
+  const [rolesList, setRolesList] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
 
   const Roles = async () => {
     try {
       const res = await addRoleService.getRoles();
-      setRolesList (res.data || []);
-}
-catch(err){
-  console.error("failed ",err)
-}
-  }
-
- useEffect(() => {
-    Roles();  
-  }, []);
-
-  const handleEdit = (userId) => {
-    console.log('Edit user:', userId);
-    // Add your edit logic here
+      setRolesList(res.data || []);
+    } catch (err) {
+      console.error("failed ", err);
+    }
   };
 
-  const handleDelete = (userId) => {
-    console.log('Delete user:', userId);
+  useEffect(() => {
+    Roles();
+  }, []);
+
+  const handleEdit = (roleId) => {
+    console.log('Edit role with ID:', roleId);
+    const roleToEdit = rolesList.find(role => role.roleId === roleId);
+    console.log('Complete role data to edit:', JSON.stringify(roleToEdit, null, 2));
+    
+    if (roleToEdit) {
+      setSelectedRole(roleToEdit);
+      setModalOpen(true);
+    } else {
+      console.error('Role not found in list');
+    }
+  };
+
+  const handleDelete = (roleId) => {
+    console.log('Delete role:', roleId);
     // Add your delete logic here
+  };
+
+  const handleAddRole = () => {
+    setSelectedRole(null);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedRole(null);
+  };
+
+  const handleConfirmAdding = (newRole) => {
+    console.log('Role operation completed, refreshing list...');
+    // Refresh the roles list after adding/editing
+    Roles();
   };
 
   return (
@@ -53,18 +78,48 @@ catch(err){
         margin: '0 auto',
       }}
     >
-      <Typography
+      <Box
         sx={{
-          fontSize: { xs: '2.5rem', md: '3rem' },
-          fontWeight: 600,
-          color: '#010103',
-          fontFamily: '"Rubik", sans-serif',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           marginBottom: '3rem',
           marginTop: '5rem',
         }}
       >
-        Roles List
-      </Typography>
+        <Typography
+          sx={{
+            fontSize: { xs: '2.5rem', md: '3rem' },
+            fontWeight: 600,
+            color: '#010103',
+            fontFamily: '"Rubik", sans-serif',
+          }}
+        >
+          Roles List
+        </Typography>
+
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAddRole}
+          sx={{
+            backgroundColor: '#ff4d30',
+            color: 'white',
+            padding: '10px 24px',
+            fontSize: '15px',
+            fontWeight: 600,
+            fontFamily: '"Rubik", sans-serif',
+            textTransform: 'none',
+            boxShadow: '0 4px 12px 0 rgba(255, 83, 48, 0.35)',
+            '&:hover': {
+              backgroundColor: '#e63c20',
+              boxShadow: '0 6px 16px 0 rgba(255, 83, 48, 0.5)',
+            },
+          }}
+        >
+          Add Role
+        </Button>
+      </Box>
 
       <TableContainer
         component={Paper}
@@ -114,7 +169,7 @@ catch(err){
           <TableBody>
             {rolesList.map((roles) => (
               <TableRow
-                key={roles.id}
+                key={roles.roleId}
                 sx={{
                   '&:hover': {
                     backgroundColor: '#fafafa',
@@ -136,7 +191,6 @@ catch(err){
                       gap: '1.5rem',
                     }}
                   >
-
                     <Typography
                       sx={{
                         fontSize: { xs: '1.4rem', md: '1.6rem' },
@@ -164,7 +218,7 @@ catch(err){
                     }}
                   >
                     <IconButton
-                      onClick={() => handleEdit(roles.id)}
+                      onClick={() => handleEdit(roles.roleId)}
                       sx={{
                         color: '#2196f3',
                         transition: 'all 0.3s',
@@ -196,6 +250,14 @@ catch(err){
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Add/Edit Role Modal */}
+      <AddRoleModal
+        modal={modalOpen}
+        openModal={handleCloseModal}
+        confirmAdding={handleConfirmAdding}
+        roleData={selectedRole}
+      />
     </Box>
   );
 }

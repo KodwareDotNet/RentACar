@@ -9,22 +9,31 @@ import {
     Box,
     Typography,
     MenuItem,
-    CircularProgress
+    CircularProgress,
+    Checkbox,
+    FormControlLabel,
+    FormGroup,
+    FormHelperText
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import addRoleService from '../api/services/AddRole/addRoleService';
 
-function AddRoleModal({ modal, openModal, confirmAdding }) {
+function AddRoleModal({ modal, openModal, confirmAdding, roleData }) {
     const navigate = useNavigate();
+    const isEditMode = !!roleData;
 
     const [userData, setUserData] = useState({
         roleName: "",
         organizationId: "",
+        roleId: "",
     });
     const [errors, setErrors] = useState({});
     const [organizations, setOrganizations] = useState([]);
+    const [permissions, setPermissions] = useState([]);
+    const [selectedPermissions, setSelectedPermissions] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [loadingPermissions, setLoadingPermissions] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [organizationName, setOrganizationName] = useState("");
@@ -33,8 +42,49 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
     useEffect(() => {
         if (modal) {
             checkUserRole();
+            fetchPermissionsAndSetSelected();
+        } else {
+            // Reset form when modal closes
+            resetForm();
         }
     }, [modal]);
+
+    // Separate useEffect to populate form when roleData changes
+    useEffect(() => {
+        if (isEditMode && roleData && modal && permissions.length > 0) {
+            console.log('Setting edit mode data:', roleData);
+
+            setUserData({
+                roleName: roleData.roleName || "",
+                organizationId: roleData.organizationId?.toString() || "",
+                roleId: roleData.roleId,
+                rolePermissions: roleData.rolePermissions?.map(p => p.permissionId) || []
+            });
+
+            // Handle different possible permission structures
+            let permissionIds = [];
+
+            if (roleData.rolePermissions && Array.isArray(roleData.rolePermissions)) {
+                permissionIds = roleData.rolePermissions.map(p => p.permissionId);
+                console.log('Permissions from rolePermissions:', permissionIds);
+            } else if (roleData.permissions && Array.isArray(roleData.permissions)) {
+                permissionIds = roleData.permissions.map(p => p.permissionId || p.id);
+                console.log('Permissions from permissions:', permissionIds);
+            }
+
+            setSelectedPermissions(permissionIds);
+            console.log('Selected permissions set to:', permissionIds);
+        }
+    }, [roleData, modal, isEditMode, permissions]);
+
+    const resetForm = () => {
+        setUserData({
+            roleName: "",
+            organizationId: "",
+        });
+        setSelectedPermissions([]);
+        setErrors({});
+    };
 
     const checkUserRole = async () => {
         setLoading(true);
@@ -94,6 +144,22 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
         }
     };
 
+    const fetchPermissionsAndSetSelected = async () => {
+        setLoadingPermissions(true);
+        try {
+            const response = await addRoleService.getPermissions();
+            setPermissions(response.data || []);
+        } catch (err) {
+            console.error("Failed to fetch permissions:", err);
+            setErrors(prev => ({
+                ...prev,
+                fetch: "Failed to load permissions"
+            }));
+        } finally {
+            setLoadingPermissions(false);
+        }
+    };
+
     const handleChange = (field, value) => {
         setUserData(prev => ({
             ...prev,
@@ -108,6 +174,24 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
         }
     };
 
+    const handlePermissionChange = (permissionId) => {
+        setSelectedPermissions(prev => {
+            if (prev.includes(permissionId)) {
+                return prev.filter(id => id !== permissionId);
+            } else {
+                return [...prev, permissionId];
+            }
+        });
+        // Clear permission error when user selects a permission
+        if (errors.permissions) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors.permissions;
+                return newErrors;
+            });
+        }
+    };
+
     const validateForm = () => {
         const newErrors = {};
         if (!userData.roleName.trim()) {
@@ -115,6 +199,9 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
         }
         if (!userData.organizationId) {
             newErrors.organizationId = "Organization is required";
+        }
+        if (selectedPermissions.length === 0) {
+            newErrors.permissions = "At least one permission must be selected";
         }
 
         setErrors(newErrors);
@@ -126,27 +213,41 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
 
         setSubmitting(true);
         try {
-            const response = await addRoleService.addRole({
+            const payload = {
+                roleId: isEditMode ? roleData.roleId : 0,
                 roleName: userData.roleName,
                 organizationId: parseInt(userData.organizationId),
-            });
+                rolePermissions: selectedPermissions.map(id => ({ permissionId: id }))
+            };
+
+            if (isEditMode) {
+                payload.id = roleData.roleId;   // <-- correct key and value
+            }
+
+            // Add the role ID to payload for edit mode
+            if (isEditMode && roleData?.id) {
+                payload.id = roleData.id;
+                console.log("Updating role with payload:", payload);
+            } else {
+                console.log("Creating role with payload:", payload);
+            }
+
+            const response = await addRoleService.addRole(payload);
+            console.log(`Role ${isEditMode ? 'updated' : 'added'} successfully:`, response);
+
             openModal();
-            console.log("Role added successfully:", response);
 
             if (confirmAdding) {
                 confirmAdding(response.data);
             }
 
-            navigate("/rolesList");
-
         } catch (err) {
-            console.error("Unable to add role:", err);
+            console.error(`Unable to ${isEditMode ? 'update' : 'add'} role:`, err);
             setErrors({
-                submit: err.message || "Failed to add role. Please try again."
+                submit: err.response?.data?.message || err.message || `Failed to ${isEditMode ? 'update' : 'add'} role. Please try again.`
             });
         } finally {
             setSubmitting(false);
-            navigate("/home");
         }
     };
 
@@ -194,7 +295,7 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                         fontFamily: '"Rubik", sans-serif',
                     }}
                 >
-                    Add Role
+                    {isEditMode ? 'Edit Role' : 'Add Role'}
                 </Typography>
                 <IconButton
                     onClick={openModal}
@@ -296,6 +397,72 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                         </Box>
                     )}
 
+                    {/* Permissions Section */}
+                    <Box sx={{ marginTop: "24px", marginBottom: "16px" }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontWeight: 600,
+                                color: "#010103",
+                                marginBottom: "16px",
+                                fontFamily: '"Rubik", sans-serif',
+                            }}
+                        >
+                            Permissions
+                        </Typography>
+
+                        {loadingPermissions ? (
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <CircularProgress size={20} />
+                                <Typography>Loading permissions...</Typography>
+                            </Box>
+                        ) : permissions.length === 0 ? (
+                            <Typography color="text.secondary">No permissions available</Typography>
+                        ) : (
+                            <FormGroup>
+                                {permissions.map((permission) => (
+                                    <FormControlLabel
+                                        key={permission.id}
+                                        control={
+                                            <Checkbox
+                                                checked={selectedPermissions.includes(permission.id)}
+                                                onChange={() => handlePermissionChange(permission.id)}
+                                                disabled={submitting}
+                                                sx={{
+                                                    color: "#666",
+                                                    "&.Mui-checked": {
+                                                        color: "#ff4d30",
+                                                    },
+                                                    "&:hover": {
+                                                        backgroundColor: "rgba(255, 77, 48, 0.05)",
+                                                    },
+                                                }}
+                                            />
+                                        }
+                                        label={
+                                            <Typography
+                                                sx={{
+                                                    fontFamily: '"Rubik", sans-serif',
+                                                    fontSize: "15px",
+                                                    color: "#010103",
+                                                }}
+                                            >
+                                                {permission.value}
+                                            </Typography>
+                                        }
+                                        sx={{ marginBottom: "8px" }}
+                                    />
+                                ))}
+                            </FormGroup>
+                        )}
+
+                        {errors.permissions && (
+                            <FormHelperText error sx={{ marginTop: "8px" }}>
+                                {errors.permissions}
+                            </FormHelperText>
+                        )}
+                    </Box>
+
                     {/* Action Buttons */}
                     <Box
                         sx={{
@@ -352,10 +519,10 @@ function AddRoleModal({ modal, openModal, confirmAdding }) {
                             {submitting ? (
                                 <>
                                     <CircularProgress size={20} sx={{ mr: 1, color: "white" }} />
-                                    Adding...
+                                    {isEditMode ? 'Updating...' : 'Adding...'}
                                 </>
                             ) : (
-                                "Add Role"
+                                isEditMode ? 'Update Role' : 'Add Role'
                             )}
                         </Button>
                     </Box>

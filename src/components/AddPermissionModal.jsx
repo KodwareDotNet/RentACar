@@ -9,7 +9,11 @@ import {
     Box,
     Typography,
     MenuItem,
-    CircularProgress
+    CircularProgress,
+    FormControlLabel,
+    Checkbox,
+    FormGroup,
+    FormHelperText
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
@@ -19,11 +23,12 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
     const navigate = useNavigate();
 
     const [userData, setUserData] = useState({
-        permissionName: "",
+        selectedPermissions: [],
         roleName: "",
     });
     const [errors, setErrors] = useState({});
     const [roles, setRoles] = useState([]);
+    const [permissions, setPermissions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
@@ -51,8 +56,9 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
             const isSuperAdminUser = userRole === 'SuperAdmin' || userRole === 'Super Admin' || userRole === 'Admin';
             setIsSuperAdmin(isSuperAdminUser);
 
-            // Fetch roles
+            // Fetch roles and permissions
             await fetchRoles();
+            await fetchPermissions();
 
             if (!isSuperAdminUser && roleId) {
                 // For non-Super Admin users, find and set the role name
@@ -94,6 +100,29 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
         }
     };
 
+    const fetchPermissions = async () => {
+        try {
+            // Fetch permissions directly from GetAllPermissions endpoint
+            const response = await addRoleService.getPermissions();
+            const permissionsData = response.data || [];
+
+            // Map the backend response to component format
+            // Backend returns: { id, displayName, value, group }
+            const formattedPermissions = permissionsData.map(permission => ({
+                permissionId: permission.id,
+                permissionName: permission.displayName,
+                value: permission.value,
+                group: permission.group
+            }));
+
+            setPermissions(formattedPermissions);
+            console.log('Fetched permissions:', formattedPermissions);
+        } catch (err) {
+            console.error("Failed to fetch Permissions:", err);
+
+        }
+    };
+
     const handleChange = (field, value) => {
         setUserData(prev => ({
             ...prev,
@@ -108,10 +137,33 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
         }
     };
 
+    const handlePermissionToggle = (permissionId) => {
+        setUserData(prev => {
+            const isSelected = prev.selectedPermissions.includes(permissionId);
+            const newPermissions = isSelected
+                ? prev.selectedPermissions.filter(id => id !== permissionId)
+                : [...prev.selectedPermissions, permissionId];
+
+            return {
+                ...prev,
+                selectedPermissions: newPermissions
+            };
+        });
+
+        // Clear permission error if user selects at least one
+        if (errors.selectedPermissions) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors.selectedPermissions;
+                return newErrors;
+            });
+        }
+    };
+
     const validateForm = () => {
         const newErrors = {};
-        if (!userData.permissionName.trim()) {
-            newErrors.permissionName = "Permission Name is required";
+        if (userData.selectedPermissions.length === 0) {
+            newErrors.selectedPermissions = "Please select at least one permission";
         }
         if (!userData.roleName) {
             newErrors.roleName = "Role is required";
@@ -126,26 +178,38 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
 
         setSubmitting(true);
         try {
-            const response = await addRoleService.addPermission({
-                permissionName: userData.permissionName,
+            // Format the payload according to your backend structure
+            const payload = {
                 roleName: userData.roleName,
-            });
-            openModal();
-            console.log("Permission added successfully:", response);
+                selectedPermissions: userData.selectedPermissions.map(permissionId => ({
+                    permissionId: permissionId
+                }))
+            };
+
+            console.log('Submitting payload:', payload);
+
+            const response = await addRoleService.addPermission(payload);
+            console.log("Permissions added successfully:", response);
 
             if (confirmAdding) {
                 confirmAdding(response.data);
             }
 
+            openModal();
+            setUserData({
+                selectedPermissions: [],
+                roleName: "",
+            });
             navigate("/rolesList");
 
         } catch (err) {
-            console.error("Unable to add permission:", err);
-            alert("Unable to add");
-            openModal();
+            console.error("Unable to add permissions:", err);
+            setErrors(prev => ({
+                ...prev,
+                submit: err.response?.data?.message || "Unable to add permissions. Please try again."
+            }));
         } finally {
             setSubmitting(false);
-            navigate("/home");
         }
     };
 
@@ -193,7 +257,7 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
                         fontFamily: '"Rubik", sans-serif',
                     }}
                 >
-                    Add Permission
+                    Add Permissions
                 </Typography>
                 <IconButton
                     onClick={openModal}
@@ -205,6 +269,7 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
                         },
                     }}
                 >
+
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
@@ -235,23 +300,8 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
                         </Typography>
                     )}
 
-                    {/* Fields Row */}
-                    <Box sx={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
-                        {/* Permission Name */}
-                        <TextField
-                            fullWidth
-                            label="Permission Name"
-                            required
-                            value={userData.permissionName}
-                            onChange={(e) => handleChange("permissionName", e.target.value)}
-                            error={!!errors.permissionName}
-                            helperText={errors.permissionName}
-                            placeholder="Enter Permission name"
-                            disabled={submitting}
-                            sx={textFieldStyles}
-                        />
-
-                        {/* Role - Conditional Rendering */}
+                    {/* Role Selection */}
+                    <Box sx={{ marginBottom: "24px" }}>
                         {isSuperAdmin ? (
                             <TextField
                                 fullWidth
@@ -288,6 +338,88 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
                                 disabled
                                 sx={textFieldStyles}
                             />
+                        )}
+                    </Box>
+
+                    {/* Permissions Selection */}
+                    <Box sx={{ marginBottom: "16px" }}>
+                        <Typography
+                            variant="subtitle1"
+                            sx={{
+                                fontWeight: 600,
+                                color: "#010103",
+                                marginBottom: "12px",
+                                fontFamily: '"Rubik", sans-serif',
+                            }}
+                        >
+                            Select Permissions <span style={{ color: "#ff4d30" }}>*</span>
+                        </Typography>
+
+                        {loading ? (
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <CircularProgress size={20} />
+                                <Typography>Loading permissions...</Typography>
+                            </Box>
+                        ) : permissions.length === 0 ? (
+                            <Typography color="textSecondary">No permissions available</Typography>
+                        ) : (
+                            <FormGroup>
+                                <Box
+                                    sx={{
+                                        border: "1px solid #e0e0e0",
+                                        borderRadius: "8px",
+                                        padding: "16px",
+                                        maxHeight: "300px",
+                                        overflowY: "auto",
+                                        backgroundColor: "#fafafa",
+                                    }}
+                                >
+                                    {permissions.map((permission) => (
+                                        <FormControlLabel
+                                            key={permission.permissionId}
+                                            control={
+                                                <Checkbox
+                                                    checked={userData.selectedPermissions.includes(permission.permissionId)}
+                                                    onChange={() => handlePermissionToggle(permission.permissionId)}
+                                                    disabled={submitting}
+                                                    sx={{
+                                                        color: "#ff4d30",
+                                                        "&.Mui-checked": {
+                                                            color: "#ff4d30",
+                                                        },
+                                                    }}
+                                                />
+                                            }
+                                            label={permission.permissionName}
+                                            sx={{
+                                                marginBottom: "8px",
+                                                "& .MuiFormControlLabel-label": {
+                                                    fontFamily: '"Rubik", sans-serif',
+                                                },
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
+                            </FormGroup>
+                        )}
+
+                        {errors.selectedPermissions && (
+                            <FormHelperText error sx={{ marginTop: "8px" }}>
+                                {errors.selectedPermissions}
+                            </FormHelperText>
+                        )}
+
+                        {userData.selectedPermissions.length > 0 && (
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    marginTop: "8px",
+                                    color: "#666",
+                                    display: "block",
+                                }}
+                            >
+                                {userData.selectedPermissions.length} permission(s) selected
+                            </Typography>
                         )}
                     </Box>
 
@@ -350,7 +482,7 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
                                     Adding...
                                 </>
                             ) : (
-                                "Add Permission"
+                                "Add Permissions"
                             )}
                         </Button>
                     </Box>

@@ -31,6 +31,15 @@ const addRoleService = {
    catch (err) {
     throw err.response?.data || { message: "Failed "}
    }
+  },
+  getPermissions: async () =>{
+   try{
+    const res = await api.get("user/GetAllPermissions");
+    return res;
+   }
+   catch (err) {
+    throw err.response?.data || { message: "Failed "}
+   }
   }
 
 };
