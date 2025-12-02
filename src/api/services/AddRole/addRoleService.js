@@ -40,6 +40,15 @@ const addRoleService = {
    catch (err) {
     throw err.response?.data || { message: "Failed "}
    }
+  },
+  deleteRole: async (id) =>{
+    try{
+      const  res = await api.delete("users/deleteRolwe");
+      return res;
+    }
+    catch(err){
+      throw err.response?.data || {message: "Failed to delete"}
+    }
   }
 
 };

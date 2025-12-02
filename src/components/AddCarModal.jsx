@@ -3,20 +3,21 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Button, IconButton, Box, Typography } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
+import addCarsService from "../api/services/AddCars/addCarsService";
 
 function AddCarModal({ modal, openModal, onAddCar }) {
     const [carData, setCarData] = useState({
-        name: "",
+        carName: "",
         brand: "",
         model: "",
         year: "",
-        price: "",
+        pricePerDay: "",
         transmission: "",
         fuel: "",
         seats: "",
         doors: "",
         color: "",
-        licensePlate: "",
+        numberPlate: "",
         mileage: "",
         vin: "",
         bodyType: "",
@@ -24,6 +25,7 @@ function AddCarModal({ modal, openModal, onAddCar }) {
         description: ""
     });
     const [uploadedImages, setUploadedImages] = useState([]);
+    const [errors, setErrors] = useState({});
 
     const handleImageUpload = (event) => {
         const files = Array.from(event.target.files);
@@ -43,12 +45,109 @@ function AddCarModal({ modal, openModal, onAddCar }) {
         });
     };
 
-    const handleSubmit = () => {
-        if (uploadedImages.length === 0) {
-            alert("Please upload at least one car image");
-            return;
+    const handleInputChange = (field, value) => {
+        setCarData(prev => ({ ...prev, [field]: value }));
+
+        // Remove error for this field if it exists
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            if (value.trim() !== "" && newErrors[field]) {
+                delete newErrors[field];
+            }
+            return newErrors;
+        });
+
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!carData.carName.trim()) newErrors.carName = "Car name is required";
+        if (!carData.brand.trim()) newErrors.brand = "Brand is required";
+        if (!carData.model.trim()) newErrors.model = "Model is required";
+        if (!carData.year.trim()) newErrors.year = "Year is required";
+        if (!carData.pricePerDay.trim()) newErrors.pricePerDay = "Price per day is required";
+        if (!carData.transmission.trim()) newErrors.transmission = "Transmission type is required";
+        if (!carData.fuel.trim()) newErrors.fuel = "Fuel type is required";
+        if (!carData.seats.trim()) newErrors.seats = "Seats field is required";
+        if (!carData.doors.trim()) newErrors.doors = "Number of doors is required";
+        if (!carData.color.trim()) newErrors.color = "Color is required";
+        if (!carData.numberPlate.trim()) newErrors.numberPlate = "Number plate is required";
+        if (!carData.mileage.trim()) newErrors.mileage = "Mileage is required";
+        if (!carData.vin.trim()) newErrors.vin = "VIN is required";
+        if (!carData.bodyType.trim()) newErrors.bodyType = "Body type is required";
+        if (!carData.engineSize.trim()) newErrors.engineSize = "Engine size is required";
+        if (!carData.description.trim()) newErrors.description = "Description is required";
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
+
+
+    const handleSubmit = async () => {
+
+        // if (!validateForm()) return;
+
+        // if (uploadedImages.length === 0) {
+        //     alert("Please upload at least one car image");
+        //     return;
+        // }
+        const formData = new FormData();
+
+        for (let key in carData) {
+            formData.append(key, carData[key]);
         }
-        onAddCar({ ...carData, images: uploadedImages });
+
+        // uploadedImages.forEach((img) => {
+        //     formData.append("images", img);
+        // });
+        try {
+            const response = await addCarsService.addCars(formData);
+            alert("car Added");
+            openModal();
+            setCarData({
+                carName: "",
+                brand: "",
+                model: "",
+                year: "",
+                pricePerDay: "",
+                transmission: "",
+                fuel: "",
+                seats: "",
+                doors: "",
+                color: "",
+                numberPlate: "",
+                mileage: "",
+                vin: "",
+                bodyType: "",
+                engineSize: "",
+                description: ""
+            });
+        }
+        catch (err) {
+            alert("failed to add car");
+            openModal();
+            setCarData({
+                carName: "",
+                brand: "",
+                model: "",
+                year: "",
+                pricePerDay: "",
+                transmission: "",
+                fuel: "",
+                seats: "",
+                doors: "",
+                color: "",
+                numberPlate: "",
+                mileage: "",
+                vin: "",
+                bodyType: "",
+                engineSize: "",
+                description: ""
+            });
+        }
     };
 
     React.useEffect(() => {
@@ -62,7 +161,7 @@ function AddCarModal({ modal, openModal, onAddCar }) {
             {/* Modal Overlay */}
             <div
                 className={`modal-overlay ${modal ? "active-modal" : ""}`}
-                
+
             ></div>
 
             {/* Modal Content */}
@@ -84,25 +183,31 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                             <span>
                                 <label>Car Name <b>*</b></label>
                                 <input
-                                    value={carData.name}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, name: e.target.value })
-                                    }
+                                    value={carData.carName}
+                                    onChange={(e) => handleInputChange("carName", e.target.value)}
                                     type="text"
                                     placeholder="e.g., A1, Golf 6, Camry"
                                 />
+                                {errors.carName && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.carName}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>Brand <b>*</b></label>
                                 <input
                                     value={carData.brand}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, brand: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("brand", e.target.value)}
                                     type="text"
                                     placeholder="e.g., Audi, VW, Toyota"
                                 />
+                                {errors.brand && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.brand}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -112,26 +217,32 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                 <label>Model <b>*</b></label>
                                 <input
                                     value={carData.model}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, model: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("model", e.target.value)}
                                     type="text"
-                                    placeholder="e.g., Sport, Premium, Base"
+                                    placeholder="e.g., 2023,2024"
                                 />
+                                {errors.model && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.model}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>Year <b>*</b></label>
                                 <input
                                     value={carData.year}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, year: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("year", e.target.value)}
                                     type="number"
                                     placeholder="e.g., 2024"
                                     min="1990"
                                     max="2025"
                                 />
+                                {errors.year && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.year}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -140,23 +251,24 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                             <span>
                                 <label>Price (per day) <b>*</b></label>
                                 <input
-                                    value={carData.price}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, price: e.target.value })
-                                    }
+                                    value={carData.pricePerDay}
+                                    onChange={(e) => handleInputChange("pricePerDay", e.target.value)}
                                     type="number"
                                     placeholder="e.g., 45"
                                     min="0"
                                 />
+                                {errors.pricePerDay && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.pricePerDay}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>Transmission <b>*</b></label>
                                 <select
                                     value={carData.transmission}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, transmission: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("transmission", e.target.value)}
                                     style={{
                                         width: '100%',
                                         padding: '1.2rem 1.5rem',
@@ -169,6 +281,11 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                     <option value="Manual">Manual</option>
                                     <option value="Automatic">Automatic</option>
                                 </select>
+                                {errors.transmission && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.transmission}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -178,9 +295,7 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                 <label>Fuel Type <b>*</b></label>
                                 <select
                                     value={carData.fuel}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, fuel: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("fuel", e.target.value)}
                                     style={{
                                         width: '100%',
                                         padding: '1.2rem 1.5rem',
@@ -195,15 +310,18 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                     <option value="Electric">Electric</option>
                                     <option value="Hybrid">Hybrid</option>
                                 </select>
+                                {errors.fuel && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.fuel}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>Body Type <b>*</b></label>
                                 <select
                                     value={carData.bodyType}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, bodyType: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("bodyType", e.target.value)}
                                     style={{
                                         width: '100%',
                                         padding: '1.2rem 1.5rem',
@@ -220,6 +338,11 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                     <option value="Convertible">Convertible</option>
                                     <option value="Wagon">Wagon</option>
                                 </select>
+                                {errors.bodyType && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.bodyType}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -229,28 +352,34 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                 <label>Seats <b>*</b></label>
                                 <input
                                     value={carData.seats}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, seats: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("seats", e.target.value)}
                                     type="number"
                                     placeholder="e.g., 5"
                                     min="2"
                                     max="8"
                                 />
+                                {errors.seats && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.seats}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>Doors <b>*</b></label>
                                 <input
                                     value={carData.doors}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, doors: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("doors", e.target.value)}
                                     type="number"
                                     placeholder="e.g., 4"
                                     min="2"
                                     max="5"
                                 />
+                                {errors.doors && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.doors}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -260,24 +389,30 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                 <label>Color <b>*</b></label>
                                 <input
                                     value={carData.color}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, color: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("color", e.target.value)}
                                     type="text"
                                     placeholder="e.g., White, Black, Silver"
                                 />
+                                {errors.color && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.color}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
-                                <label>License Plate <b>*</b></label>
+                                <label>Number Plate <b>*</b></label>
                                 <input
-                                    value={carData.licensePlate}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, licensePlate: e.target.value })
-                                    }
+                                    value={carData.numberPlate}
+                                    onChange={(e) => handleInputChange("numberPlate", e.target.value)}
                                     type="text"
                                     placeholder="e.g., ABC-1234"
                                 />
+                                {errors.numberPlate && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.numberPlate}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -287,25 +422,31 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                 <label>Mileage (km)</label>
                                 <input
                                     value={carData.mileage}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, mileage: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("mileage", e.target.value)}
                                     type="number"
                                     placeholder="e.g., 50000"
                                     min="0"
                                 />
+                                {errors.mileage && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.mileage}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>Engine Size (L)</label>
                                 <input
                                     value={carData.engineSize}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, engineSize: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("engineSize", e.target.value)}
                                     type="text"
                                     placeholder="e.g., 2.0L, 3.5L"
                                 />
+                                {errors.engineSize && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.engineSize}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -315,13 +456,16 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                 <label>VIN (Vehicle Identification Number)</label>
                                 <input
                                     value={carData.vin}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, vin: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("vin", e.target.value)}
                                     type="text"
                                     placeholder="17-character VIN"
                                     maxLength="17"
                                 />
+                                {errors.vin && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.vin}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -331,9 +475,7 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                 <label>Description</label>
                                 <textarea
                                     value={carData.description}
-                                    onChange={(e) =>
-                                        setCarData({ ...carData, description: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("description", e.target.value)}
                                     placeholder="Additional features and details about the car"
                                     rows="4"
                                     style={{
@@ -346,6 +488,11 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                         resize: 'vertical'
                                     }}
                                 />
+                                {errors.description && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.description}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 

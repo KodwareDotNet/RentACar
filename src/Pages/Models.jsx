@@ -9,10 +9,22 @@ import CarImg6 from "../images/cars-big/passat-box.png";
 import CarCard from "../components/CarCard";
 import BookACarModal from "../components/BookACarModal";
 import { useState } from "react";
+import addCarsService from "../api/services/AddCars/addCarsService";
 
 
 function Models() {
 
+  const [carsList, setCarsList] =([]);
+
+  const carsApi = async () => {
+   try{
+    const res =  await addCarsService.getCars();
+    setCarsList(res.data ||[]);
+   }
+   catch(ex){
+       alert("failed", ex);
+     }
+    }
 
 
   const cars = [
@@ -86,11 +98,6 @@ function Models() {
     setShowModal((prev) => !prev);
   };
 
-  const handleConfirm = () => {
-    console.log("Booking confirmed for car ID:", selectedCarDetail);
-    setShowModal(false);
-  };
-
 
   return (
     <>
@@ -108,7 +115,7 @@ function Models() {
           modal={showModal}
           openModal={toggleModal}
           cardetail={selectedCarDetail}
-          confirmBooking={handleConfirm}
+          
         />
         <Footer />
       </section>

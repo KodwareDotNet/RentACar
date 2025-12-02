@@ -49,31 +49,44 @@ function AddRoleModal({ modal, openModal, confirmAdding, roleData }) {
         }
     }, [modal]);
 
-    // Separate useEffect to populate form when roleData changes
+    // Populate form data and check permissions when in edit mode
     useEffect(() => {
         if (isEditMode && roleData && modal && permissions.length > 0) {
-            console.log('Setting edit mode data:', roleData);
+            console.log('=== EDIT MODE: Setting role data ===');
+            console.log('Role Data:', roleData);
+            console.log('Available Permissions:', permissions);
 
+            // Set basic role data
             setUserData({
                 roleName: roleData.roleName || "",
                 organizationId: roleData.organizationId?.toString() || "",
                 roleId: roleData.roleId,
-                rolePermissions: roleData.rolePermissions?.map(p => p.permissionId) || []
             });
 
-            // Handle different possible permission structures
-            let permissionIds = [];
+            // Extract permission IDs from roleData.selectedPermissions
+            let permissionIdsToCheck = [];
 
-            if (roleData.rolePermissions && Array.isArray(roleData.rolePermissions)) {
-                permissionIds = roleData.rolePermissions.map(p => p.permissionId);
-                console.log('Permissions from rolePermissions:', permissionIds);
-            } else if (roleData.permissions && Array.isArray(roleData.permissions)) {
-                permissionIds = roleData.permissions.map(p => p.permissionId || p.id);
-                console.log('Permissions from permissions:', permissionIds);
+            if (roleData.selectedPermissions && Array.isArray(roleData.selectedPermissions)) {
+                // Extract permissionId from selectedPermissions array
+                permissionIdsToCheck = roleData.selectedPermissions.map(p => p.permissionId);
+                console.log('Permission IDs from roleData.selectedPermissions:', permissionIdsToCheck);
             }
 
-            setSelectedPermissions(permissionIds);
-            console.log('Selected permissions set to:', permissionIds);
+            // Filter to ensure the permission IDs exist in the fetched permissions list
+            const validPermissionIds = permissionIdsToCheck.filter(permId =>
+                permissions.some(p => p.id === permId)
+            );
+
+            console.log('Valid Permission IDs to check:', validPermissionIds);
+            console.log('Permissions that will be checked:',
+                permissions.filter(p => validPermissionIds.includes(p.id)).map(p => ({
+                    id: p.id,
+                    name: p.value
+                }))
+            );
+
+            setSelectedPermissions(validPermissionIds);
+            console.log('=== Selected permissions set ===');
         }
     }, [roleData, modal, isEditMode, permissions]);
 
@@ -148,6 +161,7 @@ function AddRoleModal({ modal, openModal, confirmAdding, roleData }) {
         setLoadingPermissions(true);
         try {
             const response = await addRoleService.getPermissions();
+            console.log('Fetched all permissions:', response.data);
             setPermissions(response.data || []);
         } catch (err) {
             console.error("Failed to fetch permissions:", err);
@@ -175,12 +189,13 @@ function AddRoleModal({ modal, openModal, confirmAdding, roleData }) {
     };
 
     const handlePermissionChange = (permissionId) => {
+        console.log('Permission checkbox clicked:', permissionId);
         setSelectedPermissions(prev => {
-            if (prev.includes(permissionId)) {
-                return prev.filter(id => id !== permissionId);
-            } else {
-                return [...prev, permissionId];
-            }
+            const newSelection = prev.includes(permissionId)
+                ? prev.filter(id => id !== permissionId)
+                : [...prev, permissionId];
+            console.log('Updated selected permissions:', newSelection);
+            return newSelection;
         });
         // Clear permission error when user selects a permission
         if (errors.permissions) {
@@ -212,25 +227,27 @@ function AddRoleModal({ modal, openModal, confirmAdding, roleData }) {
         if (!validateForm()) return;
 
         setSubmitting(true);
+        
         try {
             const payload = {
                 roleId: isEditMode ? roleData.roleId : 0,
                 roleName: userData.roleName,
                 organizationId: parseInt(userData.organizationId),
-                rolePermissions: selectedPermissions.map(id => ({ permissionId: id }))
+                selectedPermissions: selectedPermissions.map(id => {
+                    const perm = permissions.find(p => p.id === id);
+                    return {
+                        permissionId: perm.id,
+                        permissionName: perm.value,
+                        permissionValue: perm.displayName,
+                    };
+                })
             };
 
             if (isEditMode) {
-                payload.id = roleData.roleId;   // <-- correct key and value
+                payload.id = roleData.roleId;
             }
 
-            // Add the role ID to payload for edit mode
-            if (isEditMode && roleData?.id) {
-                payload.id = roleData.id;
-                console.log("Updating role with payload:", payload);
-            } else {
-                console.log("Creating role with payload:", payload);
-            }
+            console.log(`${isEditMode ? 'Updating' : 'Creating'} role with payload:`, payload);
 
             const response = await addRoleService.addRole(payload);
             console.log(`Role ${isEditMode ? 'updated' : 'added'} successfully:`, response);
@@ -420,39 +437,42 @@ function AddRoleModal({ modal, openModal, confirmAdding, roleData }) {
                             <Typography color="text.secondary">No permissions available</Typography>
                         ) : (
                             <FormGroup>
-                                {permissions.map((permission) => (
-                                    <FormControlLabel
-                                        key={permission.id}
-                                        control={
-                                            <Checkbox
-                                                checked={selectedPermissions.includes(permission.id)}
-                                                onChange={() => handlePermissionChange(permission.id)}
-                                                disabled={submitting}
-                                                sx={{
-                                                    color: "#666",
-                                                    "&.Mui-checked": {
-                                                        color: "#ff4d30",
-                                                    },
-                                                    "&:hover": {
-                                                        backgroundColor: "rgba(255, 77, 48, 0.05)",
-                                                    },
-                                                }}
-                                            />
-                                        }
-                                        label={
-                                            <Typography
-                                                sx={{
-                                                    fontFamily: '"Rubik", sans-serif',
-                                                    fontSize: "15px",
-                                                    color: "#010103",
-                                                }}
-                                            >
-                                                {permission.value}
-                                            </Typography>
-                                        }
-                                        sx={{ marginBottom: "8px" }}
-                                    />
-                                ))}
+                                {permissions.map((permission) => {
+                                    const isChecked = selectedPermissions.includes(permission.id);
+                                    return (
+                                        <FormControlLabel
+                                            key={permission.id}
+                                            control={
+                                                <Checkbox
+                                                    checked={isChecked}
+                                                    onChange={() => handlePermissionChange(permission.id)}
+                                                    disabled={submitting}
+                                                    sx={{
+                                                        color: "#666",
+                                                        "&.Mui-checked": {
+                                                            color: "#ff4d30",
+                                                        },
+                                                        "&:hover": {
+                                                            backgroundColor: "rgba(255, 77, 48, 0.05)",
+                                                        },
+                                                    }}
+                                                />
+                                            }
+                                            label={
+                                                <Typography
+                                                    sx={{
+                                                        fontFamily: '"Rubik", sans-serif',
+                                                        fontSize: "15px",
+                                                        color: "#010103",
+                                                    }}
+                                                >
+                                                    {permission.value}
+                                                </Typography>
+                                            }
+                                            sx={{ marginBottom: "8px" }}
+                                        />
+                                    );
+                                })}
                             </FormGroup>
                         )}
 

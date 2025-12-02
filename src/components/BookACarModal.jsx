@@ -3,8 +3,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Button, IconButton, Box, Typography } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
+import addCarsService from "../api/services/AddCars/addCarsService";
 
-function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
+function BookACarModal({ modal, openModal, cardetail }) {
     const [userData, setUserData] = useState({
         name: "",
         fatherName: "",
@@ -19,6 +20,7 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
         carId: "",
     });
     const [uploadedImages, setUploadedImages] = useState([]);
+    const [errors, setErrors] = useState({});
 
     const handleImageUpload = (event) => {
         const files = Array.from(event.target.files);
@@ -50,6 +52,69 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
             uploadedImages.forEach(image => URL.revokeObjectURL(image.preview));
         };
     }, [uploadedImages]);
+
+    const handleInputChange = (field, value) => {
+        setUserData(prev => ({ ...prev, [field]: value }));
+
+        // Remove error for this field if it exists
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            if (value.trim() !== "" && newErrors[field]) {
+                delete newErrors[field];
+            }
+            return newErrors;
+        });
+    };
+
+
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!userData.name.trim()) newErrors.name = "Name is required";
+        if (!userData.fatherName.trim()) newErrors.fatherName = "Father Name is required";
+        if (!userData.cnic.trim()) newErrors.cnic = "CNIC is required";
+        if (!userData.licenseNumber.trim()) newErrors.licenseNumber = "License Number is required";
+        if (!userData.phone.trim()) newErrors.phone = "Phone number is required";
+        if (!String(userData.age).trim()) newErrors.age = "Age is required";
+        if (!userData.address.trim()) newErrors.address = "Address is required";
+        if (!userData.city.trim()) newErrors.city = "City is required";
+        if (!String(userData.pickupDate).trim()) newErrors.pickupDate = "Pickup Date is required";
+        if (!String(userData.dropoffDate).trim()) newErrors.dropoffDate = "Dropoff Date is required";
+        if (!String(userData.carId).trim()) newErrors.carId = "Car selection is required";
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
+
+    const handleSubmit = async () => {
+        if (!validateForm()) return;
+
+        try {
+            const formData = new FormData();
+
+            Object.keys(userData).forEach(key => {
+                formData.append(key, userData[key]);
+            });
+
+            uploadedImages.forEach((img, index) => {
+                formData.append("images", img.file);
+            });
+
+            const res = await addCarsService.bookCar(formData);
+            if (res && res.status === 200) {
+                alert("car booked successfully");
+
+            }
+            openModal();
+        }
+        catch (err) {
+            alert("booking failed", err);
+            openModal();
+        }
+    }
 
     return (
         <>
@@ -121,24 +186,30 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
                                 <label>Full Name <b>*</b></label>
                                 <input
                                     value={userData.name}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, name: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("name", e.target.value)}
                                     type="text"
                                     placeholder="Enter your full name"
                                 />
+                                {errors.name && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.name}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>Father Name <b>*</b></label>
                                 <input
                                     value={userData.fatherName}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, fatherName: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("fatherName", e.target.value)}
                                     type="text"
                                     placeholder="Enter your father's name"
                                 />
+                                {errors.fatherName && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.fatherName}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -148,25 +219,31 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
                                 <label>CNIC <b>*</b></label>
                                 <input
                                     value={userData.cnic}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, cnic: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("cnic", e.target.value)}
                                     type="text"
                                     placeholder="XXXXX-XXXXXXX-X"
                                     maxLength="15"
                                 />
+                                {errors.cnic && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.cnic}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>License Number <b>*</b></label>
                                 <input
                                     value={userData.licenseNumber}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, licenseNumber: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("licenseNumber", e.target.value)}
                                     type="text"
                                     placeholder="Enter your license number"
                                 />
+                                {errors.licenseNumber && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.licenseNumber}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -176,26 +253,32 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
                                 <label>Phone <b>*</b></label>
                                 <input
                                     value={userData.phone}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, phone: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("phone", e.target.value)}
                                     type="tel"
                                     placeholder="Enter your phone number"
                                 />
+                                {errors.phone && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.phone}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>Age <b>*</b></label>
                                 <input
                                     value={userData.age}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, age: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("age", e.target.value)}
                                     type="number"
                                     placeholder="18"
                                     min="18"
                                     max="100"
                                 />
+                                {errors.age && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.age}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -205,24 +288,30 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
                                 <label>Address <b>*</b></label>
                                 <input
                                     value={userData.address}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, address: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("address", e.target.value)}
                                     type="text"
                                     placeholder="Enter your street address"
                                 />
+                                {errors.address && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.address}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>City <b>*</b></label>
                                 <input
                                     value={userData.city}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, city: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("city", e.target.value)}
                                     type="text"
                                     placeholder="Enter your city"
                                 />
+                                {errors.city && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.city}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
 
@@ -232,22 +321,28 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
                                 <label>Pickup Date <b>*</b></label>
                                 <input
                                     value={userData.pickupDate}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, pickupDate: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("pickupDate", e.target.value)}
                                     type="date"
                                 />
+                                {errors.pickupDate && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.pickupDate}
+                                    </Typography>
+                                )}
                             </span>
 
                             <span>
                                 <label>Dropoff Date <b>*</b></label>
                                 <input
                                     value={userData.dropoffDate}
-                                    onChange={(e) =>
-                                        setUserData({ ...userData, dropoffDate: e.target.value })
-                                    }
+                                    onChange={(e) => handleInputChange("dropoffDate", e.target.value)}
                                     type="date"
                                 />
+                                {errors.dropoffDate && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.dropoffDate}
+                                    </Typography>
+                                )}
                             </span>
                         </div>
                         {/* Image Upload Section */}
@@ -274,7 +369,7 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
                                     />
                                 </Button>
                                 <Typography variant="caption" display="block" sx={{ mt: 1, color: '#777' }}>
-                                    You can upload multiple images 
+                                    You can upload multiple images
                                 </Typography>
                             </Box>
 
@@ -332,7 +427,7 @@ function BookACarModal({ modal, openModal, confirmBooking, cardetail }) {
                         <div className="reserve-button">
                             <button
                                 type="button"
-                                onClick={() => confirmBooking({ ...userData, images: uploadedImages })}
+                                onClick={handleSubmit}
                             >
                                 Book Now
                             </button>

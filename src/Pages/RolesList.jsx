@@ -49,9 +49,15 @@ function RolesList() {
     }
   };
 
-  const handleDelete = (roleId) => {
-    console.log('Delete role:', roleId);
-    // Add your delete logic here
+  const handleDelete = async (id) => {
+    try{
+      await addRoleService.deleteRole(id);
+      await Roles();
+      alert ("Role deleted SuccessFully");
+    }
+    catch(err){
+      alert(err.message || "Failed to delete");
+    }
   };
 
   const handleAddRole = () => {
