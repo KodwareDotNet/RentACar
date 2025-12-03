@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { Button, IconButton, Box, Typography } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
 import addCarsService from "../api/services/AddCars/addCarsService";
 
-function AddCarModal({ modal, openModal, onAddCar }) {
+function AddCarModal({ modal, openModal, carToEdit, onAddCar }) {
     const [carData, setCarData] = useState({
         carName: "",
         brand: "",
@@ -26,6 +26,56 @@ function AddCarModal({ modal, openModal, onAddCar }) {
     });
     const [uploadedImages, setUploadedImages] = useState([]);
     const [errors, setErrors] = useState({});
+    const isEditMode = !!carToEdit;
+
+    // Prefill form when carToEdit changes
+  useEffect(() => {
+    if (carToEdit) {
+        setCarData({
+            carName: carToEdit.carName || "",
+            brand: carToEdit.brand || "",
+            model: carToEdit.model || "",
+            year: String(carToEdit.year || ""),
+            pricePerDay: String(carToEdit.pricePerDay || ""),
+            transmission: carToEdit.transmission || "",
+            fuel: carToEdit.fuel || "",
+            seats: String(carToEdit.seats || ""),
+            doors: String(carToEdit.doors || ""),
+            color: carToEdit.color || "",
+            numberPlate: carToEdit.numberPlate || "",
+            mileage: String(carToEdit.mileage || ""),
+            vin: carToEdit.vin || "",
+            bodyType: carToEdit.bodyType || "",
+            engineSize: String(carToEdit.engineSize || ""),
+            description: carToEdit.description || ""
+        });
+    } else {
+        resetForm();
+    }
+}, [carToEdit]);
+
+    const resetForm = () => {
+        setCarData({
+            carName: "",
+            brand: "",
+            model: "",
+            year: "",
+            pricePerDay: "",
+            transmission: "",
+            fuel: "",
+            seats: "",
+            doors: "",
+            color: "",
+            numberPlate: "",
+            mileage: "",
+            vin: "",
+            bodyType: "",
+            engineSize: "",
+            description: ""
+        });
+        setUploadedImages([]);
+        setErrors({});
+    };
 
     const handleImageUpload = (event) => {
         const files = Array.from(event.target.files);
@@ -56,7 +106,6 @@ function AddCarModal({ modal, openModal, onAddCar }) {
             }
             return newErrors;
         });
-
     };
 
     const validateForm = () => {
@@ -80,77 +129,51 @@ function AddCarModal({ modal, openModal, onAddCar }) {
         if (!carData.description.trim()) newErrors.description = "Description is required";
 
         setErrors(newErrors);
-
         return Object.keys(newErrors).length === 0;
     };
 
-
-
     const handleSubmit = async () => {
+        if (!validateForm()) return;
 
-        // if (!validateForm()) return;
-
-        // if (uploadedImages.length === 0) {
-        //     alert("Please upload at least one car image");
-        //     return;
-        // }
         const formData = new FormData();
 
         for (let key in carData) {
             formData.append(key, carData[key]);
         }
 
-        // uploadedImages.forEach((img) => {
-        //     formData.append("images", img);
-        // });
+        // Append images if any
+        uploadedImages.forEach((image, index) => {
+            formData.append('images', image.file);
+        });
+
         try {
-            const response = await addCarsService.addCars(formData);
-            alert("car Added");
+            let response;
+
+            if (isEditMode) {
+                // ADD CAR ID FOR BACKEND
+                formData.append("id", carToEdit.id);
+                response = await addCarsService.addCars(formData);
+                alert("Car Updated Successfully");
+            } else {
+                response = await addCarsService.addCars(formData);
+                alert("Car Added Successfully");
+            }
+
+            // Call parent callback to refresh list
+            if (onAddCar) {
+                onAddCar();
+            }
+
+            // Close modal and reset
             openModal();
-            setCarData({
-                carName: "",
-                brand: "",
-                model: "",
-                year: "",
-                pricePerDay: "",
-                transmission: "",
-                fuel: "",
-                seats: "",
-                doors: "",
-                color: "",
-                numberPlate: "",
-                mileage: "",
-                vin: "",
-                bodyType: "",
-                engineSize: "",
-                description: ""
-            });
-        }
-        catch (err) {
-            alert("failed to add car");
-            openModal();
-            setCarData({
-                carName: "",
-                brand: "",
-                model: "",
-                year: "",
-                pricePerDay: "",
-                transmission: "",
-                fuel: "",
-                seats: "",
-                doors: "",
-                color: "",
-                numberPlate: "",
-                mileage: "",
-                vin: "",
-                bodyType: "",
-                engineSize: "",
-                description: ""
-            });
+            resetForm();
+
+        } catch (err) {
+            alert(isEditMode ? "Failed to update car" : "Failed to add car");
         }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         return () => {
             uploadedImages.forEach(image => URL.revokeObjectURL(image.preview));
         };
@@ -161,13 +184,12 @@ function AddCarModal({ modal, openModal, onAddCar }) {
             {/* Modal Overlay */}
             <div
                 className={`modal-overlay ${modal ? "active-modal" : ""}`}
-
             ></div>
 
             {/* Modal Content */}
             <div className={`booking-modal ${modal ? "active-modal" : ""}`}>
                 <div className="booking-modal__title">
-                    <h2>Add New Car</h2>
+                    <h2>{isEditMode ? "Edit Car" : "Add New Car"}</h2>
                     <CloseIcon
                         onClick={openModal}
                         style={{ cursor: "pointer", fontSize: "2.5rem" }}
@@ -498,7 +520,7 @@ function AddCarModal({ modal, openModal, onAddCar }) {
 
                         {/* Image Upload Section */}
                         <div className="info-form__1col" style={{ marginTop: '2rem' }}>
-                            <label>Upload Car Images <b>*</b></label>
+                            <label>Upload Car Images {!isEditMode && <b>*</b>}</label>
                             <Box sx={{ mt: 2 }}>
                                 <Button
                                     variant="contained"
@@ -520,7 +542,7 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                     />
                                 </Button>
                                 <Typography variant="caption" display="block" sx={{ mt: 1, color: '#777' }}>
-                                    Upload multiple images of the car (required)
+                                    {isEditMode ? "Upload new images to replace existing ones (optional)" : "Upload multiple images of the car (required)"}
                                 </Typography>
                             </Box>
 
@@ -581,7 +603,7 @@ function AddCarModal({ modal, openModal, onAddCar }) {
                                 type="button"
                                 onClick={handleSubmit}
                             >
-                                Add Car
+                                {isEditMode ? "Update Car" : "Add Car"}
                             </button>
                         </div>
                     </form>

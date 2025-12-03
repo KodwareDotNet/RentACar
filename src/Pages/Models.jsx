@@ -8,24 +8,60 @@ import CarImg5 from "../images/cars-big/benz-box.png";
 import CarImg6 from "../images/cars-big/passat-box.png";
 import CarCard from "../components/CarCard";
 import BookACarModal from "../components/BookACarModal";
-import { useState } from "react";
+import AddCarModal from "../components/AddCarModal";
+import { useEffect, useState } from "react";
 import addCarsService from "../api/services/AddCars/addCarsService";
 
-
 function Models() {
-
-  const [carsList, setCarsList] =([]);
+  const [carsList, setCarsList] = useState([]);
+  const [showBookModal, setShowBookModal] = useState(false);
+  const [showAddCarModal, setShowAddCarModal] = useState(false);
+  const [selectedCarDetail, setSelectedCarDetail] = useState(null);
 
   const carsApi = async () => {
-   try{
-    const res =  await addCarsService.getCars();
-    setCarsList(res.data ||[]);
-   }
-   catch(ex){
-       alert("failed", ex);
-     }
+    try {
+      const res = await addCarsService.getCars();
+      setCarsList(res.data || []);
+    } catch (ex) {
+      alert("failed", ex);
     }
+  };
 
+  const handleUpdate = (car) => {
+    setSelectedCarDetail(car); // send full car object to modal
+    setShowAddCarModal(true); // open AddCarModal for editing
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this car?")) return;
+
+    try {
+      await addCarsService.deleteCars(id);
+      alert("Car deleted successfully!");
+      // Refresh list after delete
+      carsApi();
+    } catch (err) {
+      alert("Failed to delete car");
+    }
+  };
+
+  const toggleBookModal = (cardetail) => {
+    setSelectedCarDetail(cardetail);
+    setShowBookModal((prev) => !prev);
+  };
+
+  const toggleAddCarModal = () => {
+    setShowAddCarModal((prev) => !prev);
+    if (showAddCarModal) {
+      // Reset selected car when closing
+      setSelectedCarDetail(null);
+    }
+  };
+
+  const handleCarAdded = () => {
+    carsApi(); // Refresh the car list
+    setSelectedCarDetail(null);
+  };
 
   const cars = [
     {
@@ -36,7 +72,6 @@ function Models() {
       price: 45,
       transmission: "Manual",
       fuel: "Diesel",
-
     },
     {
       id: 2,
@@ -46,58 +81,12 @@ function Models() {
       price: 37,
       transmission: "Manual",
       fuel: "Diesel",
-
-    },
-    {
-      id: 3,
-      name: "Toyota",
-      brand: "Camry",
-      img: CarImg3,
-      price: 30,
-      transmission: "Manual",
-      fuel: "Diesel",
-
-    },
-    {
-      id: 4,
-      name: "BMW 320",
-      brand: "ModernLine",
-      img: CarImg4,
-      price: 35,
-      transmission: "Manual",
-      fuel: "Diesel",
-
-    },
-    {
-      id: 5,
-      name: "Mercedes",
-      brand: "Benz GLK",
-      img: CarImg5,
-      price: 50,
-      transmission: "Manual",
-      fuel: "Diesel",
-
-    },
-    {
-      id: 6,
-      name: "VW Passat",
-      brand: "CC",
-      img: CarImg6,
-      price: 25,
-      transmission: "Manual",
-      fuel: "Diesel",
-
     },
   ];
 
-  const [showModal, setShowModal] = useState(false);
-  const [selectedCarDetail, setSelectedCarDetail] = useState(null);
-
-  const toggleModal = (cardetail) => {
-    setSelectedCarDetail(cardetail);
-    setShowModal((prev) => !prev);
-  };
-
+  useEffect(() => {
+    carsApi();
+  }, []);
 
   return (
     <>
@@ -105,18 +94,33 @@ function Models() {
         <HeroPages name="Vehicles" />
         <div className="container">
           <div className="models-div">
-            {cars.map((car) => (
-              <CarCard key={car.id} car={car} onBook={() => toggleModal(car)} />
+            {carsList.map((car) => (
+              <CarCard
+                key={car.id}
+                car={car}
+                onBook={() => toggleBookModal(car)}
+                onUpdate={() => handleUpdate(car)}
+                onDelete={() => handleDelete(car.id)}
+              />
             ))}
           </div>
-         
         </div>
+
+        {/* Book Car Modal */}
         <BookACarModal
-          modal={showModal}
-          openModal={toggleModal}
+          modal={showBookModal}
+          openModal={toggleBookModal}
           cardetail={selectedCarDetail}
-          
         />
+
+        {/* Add/Edit Car Modal */}
+        <AddCarModal
+          modal={showAddCarModal}
+          openModal={toggleAddCarModal}
+          carToEdit={selectedCarDetail}
+          onAddCar={handleCarAdded}
+        />
+
         <Footer />
       </section>
     </>
