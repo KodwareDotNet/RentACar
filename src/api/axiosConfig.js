@@ -2,6 +2,7 @@ import axios from "axios";
 
 // CRA/Webpack ke liye environment variable
 const API_URL = process.env.REACT_APP_API_BASE_URL;
+const BASE_URL = API_URL?.replace('/api', '') || 'http://192.168.18.17:5192'; // For images
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -43,3 +44,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+export { API_URL, BASE_URL };

@@ -2,13 +2,13 @@
 import React from "react";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import { BASE_URL } from "../api/axiosConfig";
 
 const CarCard = ({ car, onBook, onUpdate, onDelete }) => {
     return (
         <div className="models-div__box">
             <div className="models-div__box__img">
-                <img src={car.img} alt={car.name} />
+                <img src={`${BASE_URL}${car.imageUrl}`} alt={car.name} />
                 <div className="models-div__box__descr">
                     <div className="models-div__box__descr__name-price">
                         <div className="models-div__box__descr__name-price__name">

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
+import { createContext, useContext } from 'react';
+import { useNavigate } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
 import { Button, IconButton, Box, Typography } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
 import addCarsService from "../api/services/AddCars/addCarsService";
+import { BASE_URL } from "../api/axiosConfig";
+import Models from "../Pages/Models";
 
-function AddCarModal({ modal, openModal, carToEdit, onAddCar }) {
+function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList }) {
     const [carData, setCarData] = useState({
         carName: "",
         brand: "",
@@ -27,32 +31,47 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar }) {
     const [uploadedImages, setUploadedImages] = useState([]);
     const [errors, setErrors] = useState({});
     const isEditMode = !!carToEdit;
+    const navigate = useNavigate();
 
     // Prefill form when carToEdit changes
-  useEffect(() => {
-    if (carToEdit) {
-        setCarData({
-            carName: carToEdit.carName || "",
-            brand: carToEdit.brand || "",
-            model: carToEdit.model || "",
-            year: String(carToEdit.year || ""),
-            pricePerDay: String(carToEdit.pricePerDay || ""),
-            transmission: carToEdit.transmission || "",
-            fuel: carToEdit.fuel || "",
-            seats: String(carToEdit.seats || ""),
-            doors: String(carToEdit.doors || ""),
-            color: carToEdit.color || "",
-            numberPlate: carToEdit.numberPlate || "",
-            mileage: String(carToEdit.mileage || ""),
-            vin: carToEdit.vin || "",
-            bodyType: carToEdit.bodyType || "",
-            engineSize: String(carToEdit.engineSize || ""),
-            description: carToEdit.description || ""
-        });
-    } else {
-        resetForm();
-    }
-}, [carToEdit]);
+    useEffect(() => {
+        if (carToEdit) {
+            setCarData({
+                carName: carToEdit.carName || "",
+                brand: carToEdit.brand || "",
+                model: carToEdit.model || "",
+                year: String(carToEdit.year || ""),
+                pricePerDay: String(carToEdit.pricePerDay || ""),
+                transmission: carToEdit.transmission || "",
+                fuel: carToEdit.fuel || "",
+                seats: String(carToEdit.seats || ""),
+                doors: String(carToEdit.doors || ""),
+                color: carToEdit.color || "",
+                numberPlate: carToEdit.numberPlate || "",
+                mileage: String(carToEdit.mileage || ""),
+                vin: carToEdit.vin || "",
+                bodyType: carToEdit.bodyType || "",
+                engineSize: String(carToEdit.engineSize || ""),
+                description: carToEdit.description || ""
+            });
+            // Handle existing images
+            if (carToEdit.imageUrl) {
+                const fullImageUrl = carToEdit.imageUrl.startsWith('http')
+                    ? carToEdit.imageUrl
+                    : `${BASE_URL}${carToEdit.imageUrl}`;
+
+                setUploadedImages([{
+                    preview: fullImageUrl,
+                    isExisting: true,
+                    imageId: carToEdit.imageUrl
+                }]);
+            } else {
+                setUploadedImages([]);
+            }
+        } else {
+            resetForm();
+        }
+    }, [carToEdit]);
 
     const resetForm = () => {
         setCarData({
@@ -89,7 +108,9 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar }) {
     const handleRemoveImage = (index) => {
         setUploadedImages(prev => {
             const newImages = [...prev];
-            URL.revokeObjectURL(newImages[index].preview);
+            if (newImages[index].preview) {
+                URL.revokeObjectURL(newImages[index].preview);
+            }
             newImages.splice(index, 1);
             return newImages;
         });
@@ -135,49 +156,77 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar }) {
     const handleSubmit = async () => {
         if (!validateForm()) return;
 
-        const formData = new FormData();
-
-        for (let key in carData) {
-            formData.append(key, carData[key]);
-        }
-
-        // Append images if any
-        uploadedImages.forEach((image, index) => {
-            formData.append('images', image.file);
-        });
-
         try {
-            let response;
+            const formData = new FormData();
 
             if (isEditMode) {
-                // ADD CAR ID FOR BACKEND
+                // Edit mode
                 formData.append("id", carToEdit.id);
-                response = await addCarsService.addCars(formData);
+
+                // Append all car data fields
+                for (let key in carData) {
+                    formData.append(key, carData[key]);
+                }
+
+                // Handle images for edit mode
+                if (uploadedImages.length > 0) {
+                    const newImage = uploadedImages.find(img => img.file);
+                    if (newImage && newImage.file) {
+                        formData.append("Image", newImage.file);
+                    } else if (carToEdit.imageUrl) {
+                        formData.append("ImageUrl", carToEdit.imageUrl);
+                    }
+                }
+
+                await addCarsService.addCars(formData);
                 alert("Car Updated Successfully");
+
             } else {
-                response = await addCarsService.addCars(formData);
-                alert("Car Added Successfully");
-            }
+                // Add mode
+                for (let key in carData) {
+                    formData.append(key, carData[key]);
+                }
 
-            // Call parent callback to refresh list
-            if (onAddCar) {
-                onAddCar();
-            }
+                // Append all new images only
+                uploadedImages.forEach((image) => {
+                    if (image.file) {
+                        formData.append("Image", image.file);
+                    }
+                });
 
-            // Close modal and reset
-            openModal();
+                const res = await addCarsService.addCars(formData);
+                if (res.data === true || res.status === 200 || res.data.success) {
+                    alert("Car Added Successfully");
+
+                    // Reset form and close modal
+
+                } else {
+                    throw new Error("Failed to add car");
+                }
+            }
             resetForm();
+            openModal(); // Close modal
+            refreshCarsList();
+            // Optional: Navigate to models page after successful operation
+            navigate("/models");
 
         } catch (err) {
-            alert(isEditMode ? "Failed to update car" : "Failed to add car");
+            console.error(isEditMode ? "Update error:" : "Add error:", err);
+            alert(`${isEditMode ? 'Update' : 'Add'} failed: ` +
+                (err.response?.data?.message || err.message || "Unknown error"));
         }
     };
 
     useEffect(() => {
         return () => {
-            uploadedImages.forEach(image => URL.revokeObjectURL(image.preview));
+            // Clean up object URLs to prevent memory leaks
+            uploadedImages.forEach(image => {
+                if (image.preview) {
+                    URL.revokeObjectURL(image.preview);
+                }
+            });
         };
-    }, [uploadedImages]);
+    }, []);
 
     return (
         <>
@@ -199,7 +248,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar }) {
                 {/* Car Details Section */}
                 <div className="booking-modal__person-info">
                     <h4>Car Information</h4>
-                    <form className="info-form">
+                    <form className="info-form" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
                         {/* Row 1: Car Name & Brand */}
                         <div className="info-form__2col">
                             <span>
@@ -461,7 +510,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar }) {
                                 <input
                                     value={carData.engineSize}
                                     onChange={(e) => handleInputChange("engineSize", e.target.value)}
-                                    type="text"
+                                    type="number"
                                     placeholder="e.g., 2.0L, 3.5L"
                                 />
                                 {errors.engineSize && (

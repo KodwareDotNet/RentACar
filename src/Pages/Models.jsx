@@ -1,35 +1,64 @@
 import Footer from "../components/Footer";
 import HeroPages from "../components/HeroPages";
-import CarImg1 from "../images/cars-big/audi-box.png";
-import CarImg2 from "../images/cars-big/golf6-box.png";
-import CarImg3 from "../images/cars-big/toyota-box.png";
-import CarImg4 from "../images/cars-big/bmw-box.png";
-import CarImg5 from "../images/cars-big/benz-box.png";
-import CarImg6 from "../images/cars-big/passat-box.png";
 import CarCard from "../components/CarCard";
 import BookACarModal from "../components/BookACarModal";
 import AddCarModal from "../components/AddCarModal";
 import { useEffect, useState } from "react";
 import addCarsService from "../api/services/AddCars/addCarsService";
+import { BASE_URL } from "../api/axiosConfig";
+import { useLocation, useNavigate } from "react-router-dom";
 
-function Models() {
+export function Models() {
   const [carsList, setCarsList] = useState([]);
   const [showBookModal, setShowBookModal] = useState(false);
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [selectedCarDetail, setSelectedCarDetail] = useState(null);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("modal") === "true") {
+      setSelectedCarDetail(null); // ensure add mode
+      setShowAddCarModal(true);
+    }
+  }, [location.search]);
+
   const carsApi = async () => {
     try {
       const res = await addCarsService.getCars();
-      setCarsList(res.data || []);
+      console.log("carsApi called");
+      console.log("Cars API Response:", res);
+
+      const carsWithImages = (res.data || []).map((item) => {
+        let imageUrl = null;
+
+        if (item.imageUrl) {
+
+          imageUrl = `${BASE_URL}${item.imageUrl}`; // construct full URL
+        }
+
+        return {
+          ...item,
+          image: imageUrl,
+          createdAt: item.createdAt || new Date().toISOString(),
+        };
+      });
+
+
+      setCarsList(carsWithImages);
     } catch (ex) {
+
       alert("failed", ex);
     }
   };
 
+
   const handleUpdate = (car) => {
-    setSelectedCarDetail(car); // send full car object to modal
-    setShowAddCarModal(true); // open AddCarModal for editing
+    setSelectedCarDetail(car);
+    setShowAddCarModal(true);
+    carsApi();
   };
 
   const handleDelete = async (id) => {
@@ -38,7 +67,6 @@ function Models() {
     try {
       await addCarsService.deleteCars(id);
       alert("Car deleted successfully!");
-      // Refresh list after delete
       carsApi();
     } catch (err) {
       alert("Failed to delete car");
@@ -53,36 +81,16 @@ function Models() {
   const toggleAddCarModal = () => {
     setShowAddCarModal((prev) => !prev);
     if (showAddCarModal) {
-      // Reset selected car when closing
       setSelectedCarDetail(null);
     }
+
   };
 
   const handleCarAdded = () => {
-    carsApi(); // Refresh the car list
     setSelectedCarDetail(null);
+    setShowAddCarModal(false);
+    // carsApi();
   };
-
-  const cars = [
-    {
-      id: 1,
-      name: "Audi A1",
-      brand: "Audi",
-      img: CarImg1,
-      price: 45,
-      transmission: "Manual",
-      fuel: "Diesel",
-    },
-    {
-      id: 2,
-      name: "Golf 6",
-      brand: "VW",
-      img: CarImg2,
-      price: 37,
-      transmission: "Manual",
-      fuel: "Diesel",
-    },
-  ];
 
   useEffect(() => {
     carsApi();
@@ -106,19 +114,18 @@ function Models() {
           </div>
         </div>
 
-        {/* Book Car Modal */}
         <BookACarModal
           modal={showBookModal}
           openModal={toggleBookModal}
           cardetail={selectedCarDetail}
         />
 
-        {/* Add/Edit Car Modal */}
         <AddCarModal
           modal={showAddCarModal}
           openModal={toggleAddCarModal}
           carToEdit={selectedCarDetail}
           onAddCar={handleCarAdded}
+          refreshCarsList={carsApi}  // IMPORTANT
         />
 
         <Footer />

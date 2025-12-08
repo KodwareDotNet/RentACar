@@ -73,7 +73,7 @@ function Navbar() {
     setShowAddOrganizationModal((prev) => !prev);
   };
 
-   const toggleAddPermissionModal = () => {
+  const toggleAddPermissionModal = () => {
     setShowAddPermissionModal((prev) => !prev);
   };
 
@@ -98,8 +98,8 @@ function Navbar() {
     setShowAddOrganizationModal(false);
   }
 
-  const handleAddPermissionSubmit =(permissionData) => {
-console.log("Permission Added:", permissionData);
+  const handleAddPermissionSubmit = (permissionData) => {
+    console.log("Permission Added:", permissionData);
     setShowAddPermissionModal(false);
   }
 
@@ -117,14 +117,15 @@ console.log("Permission Added:", permissionData);
   const navItems = [
     { label: 'Home', path: '/home', className: 'home-link' },
     { label: 'Vehicles', path: '/models', className: 'models-link' },
-    { label: 'Add Car', onClick: toggleAddCarModal },
+    { label: 'Add Car', path: '/models?modal=true', className: 'models-link' },
+    // { label: 'Add Car', onClick: toggleAddCarModal },
     { label: 'Add organization', onClick: toggleAddOrganizationModal },
     { label: 'Add User', onClick: toggleAddUserModal },
     { label: 'Add Role', onClick: toggleAddRoleModal },
-    { label: 'Organization List', path :'organizationList'},
+    { label: 'Organization List', path: 'organizationList' },
     { label: 'User List', path: '/usersList' },
     { label: 'Role List', path: 'rolesList' },
-    { label: 'Assign Permission',onClick: toggleAddPermissionModal  },
+    { label: 'Assign Permission', onClick: toggleAddPermissionModal },
 
   ];
 
