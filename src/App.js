@@ -1,16 +1,13 @@
 import "../src/dist/styles.css";
-import About from "./Pages/About";
 import Home from "./Pages/Home";
 import Navbar from "../src/components/Navbar";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Models from "./Pages/Models";
-import TestimonialsPage from "./Pages/TestimonialsPage";
-import Team from "./Pages/Team";
-import Contact from "./Pages/Contact";
 import LoginPage from "./Pages/LoginPage";
 import UsersList from "./Pages/UsersList";
 import RolesList from "./Pages/RolesList";
 import OrganizationList from "./Pages/OrganizationList";
+import BookedCarsPage from "./Pages/BookedCars";
 
 function App() {
   const location = useLocation();
@@ -34,6 +31,7 @@ function App() {
         <Route path="usersList" element={<UsersList />} />
         <Route path="rolesList" element={<RolesList />} />
         <Route path="organizationList" element={<OrganizationList />} />
+        <Route path="bookedCarsPage" element={<BookedCarsPage />} />
       </Routes>
     </>
   );

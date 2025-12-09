@@ -21,8 +21,8 @@ const addCarsService ={
          const res = await api.get("User/GetCars");
          return res;
         }
-        catch(ex){
-            alert("failed to ge data ", ex);
+        catch(error){
+            console.log("failed to get data ", error.response);
         }
     },
     deleteCars: async(id) =>{

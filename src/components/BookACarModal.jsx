@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import { Button, IconButton, Box, Typography } from "@mui/material";
-import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
-import addCarsService from "../api/services/AddCars/addCarsService";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import { Box, Typography, IconButton } from "@mui/material";
+import bookCarsService from "../api/services/BookCars/bookCarsService";
 import { BASE_URL } from "../api/axiosConfig";
 
-function BookACarModal({ modal, openModal, cardetail }) {
+function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = false, onUpdateSuccess }) {
     const [userData, setUserData] = useState({
         name: "",
         fatherName: "",
@@ -21,59 +21,93 @@ function BookACarModal({ modal, openModal, cardetail }) {
         carId: "",
     });
 
-    const resetForm = () => {
-     setUserData({
-        name: "",
-        fatherName: "",
-        cnic: "",
-        licenseNumber: "",
-        phone: "",
-        age: "",
-        address: "",
-        city: "",
-        pickupDate: "",
-        dropoffDate: "",
-        carId: "",
-     });
-    }
     const [uploadedImages, setUploadedImages] = useState([]);
     const [errors, setErrors] = useState({});
 
-    const handleImageUpload = (event) => {
-        const files = Array.from(event.target.files);
-        const newImages = files.map(file => ({
-            file,
-            preview: URL.createObjectURL(file)
+    const resetForm = () => {
+        setUserData({
+            name: "",
+            fatherName: "",
+            cnic: "",
+            licenseNumber: "",
+            phone: "",
+            age: "",
+            address: "",
+            city: "",
+            pickupDate: "",
+            dropoffDate: "",
+            carId: "",
+        });
+        setUploadedImages([]);
+    }
+
+    // Update carId and image when cardetail changes
+    React.useEffect(() => {
+        if (isEditMode && bookingData) {
+            // Pre-fill data from existing booking for editing
+            setUserData({
+                name: bookingData.fullName || "",
+                fatherName: bookingData.fatherName || "",
+                cnic: bookingData.cnic || "",
+                licenseNumber: bookingData.licenseNumber || "",
+                phone: bookingData.phone || "",
+                age: bookingData.age || "",
+                address: bookingData.address || "",
+                city: bookingData.city || "",
+                pickupDate: bookingData.pickupDate || "",
+                dropoffDate: bookingData.dropoffDate || "",
+                carId: bookingData.carDetail?.id || bookingData.id || "",
+            });
+
+            // Set existing images from booking
+            if (bookingData.images && bookingData.images.length > 0) {
+                const existingImages = bookingData.images.map(imageUrl => ({
+                    preview: imageUrl.startsWith('http') ? imageUrl : `${BASE_URL}${imageUrl}`,
+                    isExisting: true,
+                    imageId: imageUrl
+                }));
+                setUploadedImages(existingImages);
+            } else {
+                setUploadedImages([]);
+            }
+        } else if (cardetail) {
+            // For new booking mode
+            setUserData(prev => ({ ...prev, carId: cardetail.id }));
+
+            if (cardetail.imageUrl) {
+                const fullImageUrl = cardetail.imageUrl.startsWith('http')
+                    ? cardetail.imageUrl
+                    : `${BASE_URL}${cardetail.imageUrl}`;
+
+                setUploadedImages([{
+                    preview: fullImageUrl,
+                    isExisting: true,
+                    imageId: cardetail.imageUrl
+                }]);
+            } else {
+                setUploadedImages([]);
+            }
+        }
+    }, [cardetail, bookingData, isEditMode, modal]);
+
+    const handleFileSelect = (e) => {
+        const files = Array.from(e.target.files);
+        const newImages = files.map((file) => ({
+            preview: URL.createObjectURL(file),
+            file: file,
+            isExisting: false
         }));
-        setUploadedImages(prev => [...prev, ...newImages]);
+        setUploadedImages([...uploadedImages, ...newImages]);
     };
 
     const handleRemoveImage = (index) => {
-        setUploadedImages(prev => {
-            const newImages = [...prev];
-            URL.revokeObjectURL(newImages[index].preview);
-            newImages.splice(index, 1);
-            return newImages;
-        });
+        const newImages = uploadedImages.filter((_, i) => i !== index);
+        setUploadedImages(newImages);
     };
-
-    // Update carId when it changes
-    React.useEffect(() => {
-        if (cardetail) {
-            setUserData(prev => ({ ...prev, carId: cardetail.id }));
-        }
-    }, [cardetail]);
-
-    React.useEffect(() => {
-        return () => {
-            uploadedImages.forEach(image => URL.revokeObjectURL(image.preview));
-        };
-    }, [uploadedImages]);
 
     const handleInputChange = (field, value) => {
         setUserData(prev => ({ ...prev, [field]: value }));
 
-        // Remove error for this field if it exists
         setErrors(prev => {
             const newErrors = { ...prev };
             if (value.trim() !== "" && newErrors[field]) {
@@ -82,8 +116,6 @@ function BookACarModal({ modal, openModal, cardetail }) {
             return newErrors;
         });
     };
-
-
 
     const validateForm = () => {
         const newErrors = {};
@@ -105,28 +137,117 @@ function BookACarModal({ modal, openModal, cardetail }) {
         return Object.keys(newErrors).length === 0;
     };
 
-
-    const handleSubmit = async () => {
+    const handleUpdate = async () => {
         if (!validateForm()) return;
-debugger
+
         try {
             const formData = new FormData();
 
-        
+            // Append booking ID for update
+            formData.append('id', bookingData.id);
 
-            const res = await addCarsService.bookCar(formData);
+            // Append all text fields
+            formData.append('FullName', userData.name);
+            formData.append('fatherName', userData.fatherName);
+            formData.append('cnic', userData.cnic);
+            formData.append('licenseNumber', userData.licenseNumber);
+            formData.append('phone', userData.phone);
+            formData.append('age', userData.age);
+            formData.append('address', userData.address);
+            formData.append('city', userData.city);
+            formData.append('pickupDate', userData.pickupDate);
+            formData.append('dropoffDate', userData.dropoffDate);
+            formData.append('carId', bookingData.carDetail?.id || bookingData.id);
+            formData.append('carName', bookingData.carDetail?.carName || bookingData.carName);
+            formData.append('price', bookingData.carDetail?.pricePerDay || bookingData.price);
+
+            // Append new uploaded images (not existing ones)
+            const newImages = uploadedImages.filter(img => !img.isExisting && img.file);
+            newImages.forEach((image) => {
+                formData.append('CarImage', image.file);
+            });
+
+            // Keep track of existing images that weren't deleted
+            const existingImageIds = uploadedImages
+                .filter(img => img.isExisting)
+                .map(img => img.imageId);
+
+            if (existingImageIds.length > 0) {
+                formData.append('ExistingImages', JSON.stringify(existingImageIds));
+            }
+
+            // Call update API (you'll need to create this endpoint)
+            const res = await bookCarsService.updateBookCar(bookingData.id, formData);
+
+            if (res && res.status === 200) {
+                alert("Booking updated successfully");
+                if (onUpdateSuccess) {
+                    onUpdateSuccess(); // Refresh the bookings list
+                }
+                openModal();
+                resetForm();
+            }
+        } catch (err) {
+            console.error("Update failed:", err);
+            alert("Failed to update booking");
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (isEditMode) {
+            // If in edit mode, call update function
+            handleUpdate();
+            return;
+        }
+        if (!validateForm()) return;
+
+        try {
+            // Create FormData object
+            const formData = new FormData();
+
+
+            // Append all text fields
+            formData.append('FullName', userData.name);
+            formData.append('fatherName', userData.fatherName);
+            formData.append('cnic', userData.cnic);
+            formData.append('licenseNumber', userData.licenseNumber);
+            formData.append('phone', userData.phone);
+            formData.append('age', userData.age);
+            formData.append('address', userData.address);
+            formData.append('city', userData.city);
+            formData.append('pickupDate', userData.pickupDate);
+            formData.append('dropoffDate', userData.dropoffDate);
+            formData.append('carId', cardetail?.id);
+            formData.append('carName', cardetail?.carName);
+            formData.append('price', cardetail?.pricePerDay);
+
+            // Append new uploaded images (not existing ones)
+            uploadedImages.forEach((image, index) => {
+                if (!image.isExisting && image.file) {
+                    formData.append('CarImage', image.file);
+                }
+            });
+
+            // If you need to send existing image IDs separately
+            const existingImageIds = uploadedImages
+                .filter(img => img.isExisting)
+                .map(img => img.imageId);
+
+            if (existingImageIds.length > 0) {
+                formData.append('CarImageUrl', JSON.stringify(existingImageIds));
+            }
+
+            const res = await bookCarsService.bookCar(formData);
             if (res && res.status === 200) {
                 alert("car booked successfully");
-
             }
             openModal();
             resetForm();
         }
         catch (err) {
-            debugger
             alert("booking failed", err);
             openModal();
-             resetForm();
+            resetForm();
         }
     }
 
@@ -144,52 +265,9 @@ debugger
                     <h2>Complete Reservation</h2>
                     <CloseIcon
                         onClick={openModal}
-                        
                         style={{ cursor: "pointer", fontSize: "2.5rem" }}
                     />
                 </div>
-
-                {/* Car Info Section */}
-                {/* {cardetail && (
-                    <div className="booking-modal__car-info">
-                        <div className="booking-modal__car-info__model">
-                            <h5>
-                                Vehicle: <span>{cardetail.name} - {cardetail.brand}</span>
-                            </h5>
-                            <img
-                                src={cardetail.img}
-                                alt={cardetail.name}
-                                style={{ width: '100%', height: 'auto' }}
-                            />
-                            <h5>
-                                Price: <span>${cardetail.price}/day</span>
-                            </h5>
-                            {cardetail.transmission && cardetail.fuel && (
-                                <p style={{ fontSize: '1.4rem', color: '#777', marginTop: '1rem' }}>
-                                    {cardetail.transmission} • {cardetail.fuel}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="booking-modal__car-info__dates">
-                            <h5>Rental Details</h5>
-                            <span>
-                                <i className="fa-solid fa-calendar-days"></i>
-                                <div>
-                                    <h6>Pickup Date</h6>
-                                    <p>{userData.pickupDate || "Not selected"}</p>
-                                </div>
-                            </span>
-                            <span>
-                                <i className="fa-solid fa-calendar-days"></i>
-                                <div>
-                                    <h6>Dropoff Date</h6>
-                                    <p>{userData.dropoffDate || "Not selected"}</p>
-                                </div>
-                            </span>
-                        </div>
-                    </div>
-                )} */}
 
                 {/* Personal Info Section */}
                 <div className="booking-modal__person-info">
@@ -206,7 +284,7 @@ debugger
                                     placeholder="Enter your full name"
                                 />
                                 {errors.name && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.name}
                                     </Typography>
                                 )}
@@ -221,7 +299,7 @@ debugger
                                     placeholder="Enter your father's name"
                                 />
                                 {errors.fatherName && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.fatherName}
                                     </Typography>
                                 )}
@@ -240,7 +318,7 @@ debugger
                                     maxLength="15"
                                 />
                                 {errors.cnic && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.cnic}
                                     </Typography>
                                 )}
@@ -255,7 +333,7 @@ debugger
                                     placeholder="Enter your license number"
                                 />
                                 {errors.licenseNumber && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.licenseNumber}
                                     </Typography>
                                 )}
@@ -273,7 +351,7 @@ debugger
                                     placeholder="Enter your phone number"
                                 />
                                 {errors.phone && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.phone}
                                     </Typography>
                                 )}
@@ -290,7 +368,7 @@ debugger
                                     max="100"
                                 />
                                 {errors.age && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.age}
                                     </Typography>
                                 )}
@@ -308,7 +386,7 @@ debugger
                                     placeholder="Enter your street address"
                                 />
                                 {errors.address && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.address}
                                     </Typography>
                                 )}
@@ -323,7 +401,7 @@ debugger
                                     placeholder="Enter your city"
                                 />
                                 {errors.city && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.city}
                                     </Typography>
                                 )}
@@ -340,7 +418,7 @@ debugger
                                     type="date"
                                 />
                                 {errors.pickupDate && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.pickupDate}
                                     </Typography>
                                 )}
@@ -354,43 +432,112 @@ debugger
                                     type="date"
                                 />
                                 {errors.dropoffDate && (
-                                    <Typography color="error" sx={{ mb: 2 }}>
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
                                         {errors.dropoffDate}
                                     </Typography>
                                 )}
                             </span>
                         </div>
+
                         {/* Image Upload Section */}
-                        {/* Image Section */}
-                        {cardetail?.imageUrl && (
+                        <Box sx={{ mt: 3, mb: 2 }}>
+                            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                                Car Images
+                            </Typography>
                             <Box sx={{
                                 display: 'flex',
                                 flexWrap: 'wrap',
-                                gap: 2,
-                                mt: 2
+                                gap: 2
                             }}>
+                                {/* Display all uploaded images */}
+                                {uploadedImages.map((image, index) => (
+                                    <Box
+                                        key={index}
+                                        sx={{
+                                            position: 'relative',
+                                            width: 120,
+                                            height: 120,
+                                            borderRadius: 1,
+                                            overflow: 'hidden',
+                                            border: '2px solid #e0e0e0',
+                                            '&:hover .delete-btn': {
+                                                opacity: 1
+                                            }
+                                        }}
+                                    >
+                                        <img
+                                            src={image.preview}
+                                            alt={`Car ${index + 1}`}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover'
+                                            }}
+                                        />
+                                        <IconButton
+                                            className="delete-btn"
+                                            onClick={() => handleRemoveImage(index)}
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 4,
+                                                right: 4,
+                                                bgcolor: 'error.main',
+                                                color: 'white',
+                                                width: 28,
+                                                height: 28,
+                                                opacity: 0,
+                                                transition: 'opacity 0.3s',
+                                                '&:hover': {
+                                                    bgcolor: 'error.dark'
+                                                }
+                                            }}
+                                        >
+                                            <DeleteIcon sx={{ fontSize: 18 }} />
+                                        </IconButton>
+                                    </Box>
+                                ))}
+
+                                {/* Upload Button */}
                                 <Box
+                                    component="label"
                                     sx={{
-                                        position: 'relative',
                                         width: 120,
                                         height: 120,
+                                        border: '2px dashed #ccc',
                                         borderRadius: 1,
-                                        overflow: 'hidden',
-                                        border: '2px solid #e0e0e0'
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s',
+                                        bgcolor: '#fafafa',
+                                        '&:hover': {
+                                            borderColor: '#1976d2',
+                                            bgcolor: '#e3f2fd'
+                                        }
                                     }}
                                 >
-                                    <img
-                                        src={cardetail.imageUrl.startsWith('http') ? cardetail.imageUrl : `${BASE_URL}${cardetail.imageUrl}`}
-                                        alt={cardetail.carName}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover'
-                                        }}
+                                    <AddPhotoAlternateIcon sx={{ fontSize: 40, color: '#999', mb: 1 }} />
+                                    <Typography variant="caption" color="text.secondary">
+                                        Upload
+                                    </Typography>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={handleFileSelect}
+                                        style={{ display: 'none' }}
                                     />
                                 </Box>
                             </Box>
-                        )}
+
+                            {uploadedImages.length > 0 && (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                    {uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} selected
+                                </Typography>
+                            )}
+                        </Box>
 
                         <div className="reserve-button">
                             <button
@@ -399,7 +546,6 @@ debugger
                             >
                                 Book Now
                             </button>
-                            
                         </div>
                     </form>
                 </div>

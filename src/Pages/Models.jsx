@@ -6,7 +6,7 @@ import AddCarModal from "../components/AddCarModal";
 import { useEffect, useState } from "react";
 import addCarsService from "../api/services/AddCars/addCarsService";
 import { BASE_URL } from "../api/axiosConfig";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export function Models() {
   const [carsList, setCarsList] = useState([]);
@@ -15,7 +15,6 @@ export function Models() {
   const [selectedCarDetail, setSelectedCarDetail] = useState(null);
 
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);

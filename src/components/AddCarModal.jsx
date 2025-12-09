@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { createContext, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
 import { Button, IconButton, Box, Typography } from "@mui/material";
@@ -7,7 +6,6 @@ import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
 import addCarsService from "../api/services/AddCars/addCarsService";
 import { BASE_URL } from "../api/axiosConfig";
-import Models from "../Pages/Models";
 
 function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList }) {
     const [carData, setCarData] = useState({
@@ -217,16 +215,6 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
         }
     };
 
-    useEffect(() => {
-        return () => {
-            // Clean up object URLs to prevent memory leaks
-            uploadedImages.forEach(image => {
-                if (image.preview) {
-                    URL.revokeObjectURL(image.preview);
-                }
-            });
-        };
-    }, []);
 
     return (
         <>
