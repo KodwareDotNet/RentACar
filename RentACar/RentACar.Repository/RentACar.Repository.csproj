@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RentACar.Common\RentACar.Common.csproj" />
     <ProjectReference Include="..\RentACar.Interfaces\RentACar.Interfaces.csproj" />
     <ProjectReference Include="..\RentACar.Models\RentACar.Models.csproj" />
   </ItemGroup>

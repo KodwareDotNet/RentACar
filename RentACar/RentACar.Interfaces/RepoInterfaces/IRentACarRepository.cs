@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using RentACar.Models;
+using RentACar.ViewModel;
 
 namespace RentACar.Interfaces.RepoInterfaces
 {
@@ -18,5 +19,12 @@ namespace RentACar.Interfaces.RepoInterfaces
         Task<IEnumerable<Models.KeyValuePair>> GetAllKeyValuePair(KeyValuePairType keyValuePair, long? id);
         public Task<IEnumerable<Car>> GetAllNews();
         Task<bool> DeleteCar(long id);
+        Task<bool> BookCar(CarBooking booking);
+        Task<List<PersonWithCarDto>> GetAllBookings();
+        //Task<BookCarDto> GetBookingWithCar(int bookingId);
+        Task<bool> UpdateBooking(UpdateBookingDto booking);
+        Task<int> CancelBooking(int id);
+        //Task<int> UpdateBooking(int id, BookCarDto bookingDto);
+
     }
 }

@@ -55,5 +55,86 @@ namespace RentACar.Repository
             var response = ExecuteAsync("uspDeleteNewsAttachment", para, CommandType.StoredProcedure).Result;
             return 1;
         }
+
+        public async Task<bool> CreateCarAttachment(long carId, int attachmentId)
+        {
+            var parameters = new
+            {
+                pCarId = carId,
+                pAttachmentId = attachmentId
+            };
+            DynamicParameters para = new DynamicParameters(parameters);
+
+            var rows = await _connection.ExecuteAsync(
+                "uspCreateCarAttachment",
+                para,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return rows > 0;
+        }
+
+
+        // Delete attachment (image) for a car
+        public async Task<bool> DeleteCarAttachment(long carId, int attachmentId)
+        {
+            // 1️⃣ Get image path to delete file
+            var image = await _connection.QueryFirstOrDefaultAsync<string>(
+                "SELECT ImageUrl FROM CarAttachments WHERE Id = @Id AND CarId = @CarId",
+                new { Id = attachmentId, CarId = carId }
+            );
+
+            if (!string.IsNullOrEmpty(image))
+            {
+                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", image.TrimStart('/'));
+                if (File.Exists(fullPath))
+                    File.Delete(fullPath);
+            }
+
+            // 2️⃣ Call SP to delete attachment
+            var parameters = new
+            {
+                pCarId = carId,
+                pAttachmentId = attachmentId
+            };
+
+            DynamicParameters para = new DynamicParameters(parameters);
+
+            // ✅ ExecuteAsync returns number of rows affected, convert to bool
+            var rows = await _connection.ExecuteAsync(
+                "uspDeleteCarAttachment",
+                para,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return rows > 0;
+        }
+
+
+        // Get attachments for a car
+        public async Task<IEnumerable<string>> GetCarAttachments(long carId, int attachmentId)
+        {
+            return await _connection.QueryAsync<string>(
+                "SELECT ImageUrl FROM CarAttachments WHERE CarId = @CarId AND Id = @AttachmentId",
+                new { CarId = carId, AttachmentId = attachmentId }
+            );
+        }
     }
 }
+
+//        bool IAttachmentRepository.CreateCarAttachment(long Id, int id)
+//        {
+//            throw new NotImplementedException();
+//        }
+
+//        bool IAttachmentRepository.DeleteCarAttachment(long Id, int id)
+//        {
+//            throw new NotImplementedException();
+//        }
+
+//        bool IAttachmentRepository.GetCarAttachments(long Id, int id)
+//        {
+//            throw new NotImplementedException();
+//        }
+//    }
+//}

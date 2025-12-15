@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "IcN/i/CVhOc=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\RentACar\\RentACar.Logging\\RentACar.Logging.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\kodwa\\.nuget\\packages\\microsoft.extensions.configuration\\10.0.0\\microsoft.extensions.configuration.10.0.0.nupkg.sha512",
+    "C:\\Users\\kodwa\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\10.0.0\\microsoft.extensions.configuration.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\kodwa\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.0\\microsoft.extensions.primitives.10.0.0.nupkg.sha512",
+    "C:\\Users\\kodwa\\.nuget\\packages\\serilog\\4.3.0\\serilog.4.3.0.nupkg.sha512",
+    "C:\\Users\\kodwa\\.nuget\\packages\\serilog.sinks.async\\2.1.0\\serilog.sinks.async.2.1.0.nupkg.sha512",
+    "C:\\Users\\kodwa\\.nuget\\packages\\serilog.sinks.file\\7.0.0\\serilog.sinks.file.7.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

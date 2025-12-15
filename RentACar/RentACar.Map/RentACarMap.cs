@@ -14,16 +14,16 @@ namespace RentACar.Map
     public class RentACarMap : IRentACarMap
     {
 
-        private readonly IRentACarService newsService;
+        private readonly IRentACarService _rentService;
 
-        public RentACarMap(IRentACarService _newsService)
+        public RentACarMap(IRentACarService rentService)
         {
-            newsService = _newsService;
+            _rentService = rentService;
         }
         public async Task<bool> CreateCars(RentACarViewModel cars)
         {
             Car newss = NewsViewModelToDomain(cars);
-            return await newsService.CreateCars(newss);
+            return await _rentService.CreateCars(newss);
         }
 
         private Car NewsViewModelToDomain(RentACarViewModel news)
@@ -37,7 +37,7 @@ namespace RentACar.Map
 
         public async Task<IEnumerable<RentACarViewModel>> GetAllCars()
         {
-            IEnumerable<Car> domain = await newsService.GetAllCars();
+            IEnumerable<Car> domain = await _rentService.GetAllCars();
             List<RentACarViewModel> modelList = new List<RentACarViewModel>();
             foreach (var news in domain)
             {
@@ -56,12 +56,42 @@ namespace RentACar.Map
 
         public async Task<bool> DeleteCar(long id)
         {
-            return await newsService.DeletCar(id);
+            return await _rentService.DeletCar(id);
         }
 
         public async Task<IEnumerable<Models.KeyValuePair>> GetAllKeyValuePair(KeyValuePairType keyValuePair, long? id)
         {
-            return await newsService.GetAllKeyValuePair(keyValuePair, id);
+            return await _rentService.GetAllKeyValuePair(keyValuePair, id);
+        }
+  
+       public async Task<bool> BookCar(CarBooking booking)
+        {
+            return await _rentService.BookCar(booking);
+        }
+        // Interface
+
+
+        // Implementation
+        public async Task<List<PersonWithCarDto>> GetAllBookings()
+        {
+            return await _rentService.GetAllBookings();
+        }
+        public async Task<bool> UpdateBooking(UpdateBookingDto booking)
+        {
+            return await _rentService.UpdateBooking(booking);
+        }
+        //public async Task<BookCarDto> GetBookingWithCar(int bookingId)
+        //{
+        //    return await _rentService.GetBookingWithCar(bookingId);
+        //}
+        //public async Task<int> UpdateBooking(int id, BookCarDto bookingDto)
+        //{
+        //    return await _rentService.UpdateBooking(id, bookingDto);
+        //}
+
+        public async Task<int> CancelBooking(int id)
+        {
+            return await _rentService.CancelBooking(id);
         }
     }
 }

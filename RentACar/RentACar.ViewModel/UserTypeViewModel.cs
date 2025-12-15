@@ -19,4 +19,3 @@ namespace RentACar.ViewModel
         }
     }
 
-    

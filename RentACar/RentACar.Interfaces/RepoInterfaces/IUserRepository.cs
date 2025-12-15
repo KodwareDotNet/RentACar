@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RentACar.Models;
+using RentACar.ViewModel;
 
 namespace RentACar.Interfaces.RepoInterfaces
 {
@@ -27,12 +28,22 @@ namespace RentACar.Interfaces.RepoInterfaces
         Task<int> CreateUser(User user);
         Task<User?> Login(string email, string password);
         Task<User> GetUserByUsername(string username);
-        Task<int> CreateRole(Role role);
+        Task<DBErrorResponse> CreateRole(Role role);
+        Task<bool> AddCar(Car car);
+        Task<IEnumerable<Car>> GetCars(int orgId);
+        Task<bool> DeleteCar(int id);
+        //Task<bool> BookCar(CarBooking booking);
+        //Task<List<CarBooking>> GetAllBookings();
+        //Task<int> CancelBooking(int id);
+
+
+        Task<IEnumerable<Permissions>> GetAllPermissions(long? userId, long? organizationId, UserType userType);
         //Task<int> CreateCategory(Category category);
-        Task<IEnumerable<Role>> GetAllRoles();
+        Task<IEnumerable<Role>> GetRolesByOrganization(int organizationId);
+        
+
         Task<int> UpdateRole(Role role);
         Task<int> DeleteRole(int roleId);
-
-
+        Task<IEnumerable<Role>> GetAllRoles(string searchString, int pageNumber, long? userId, long? organizationId, long? pageSize);
     }
 }

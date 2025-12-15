@@ -14,11 +14,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RentACar.Interfaces\RentACar.Interfaces.csproj" />
+    <ProjectReference Include="..\RentACar.Logging\RentACar.Logging.csproj" />
     <ProjectReference Include="..\RentACar.Map\RentACar.Map.csproj" />
     <ProjectReference Include="..\RentACar.Models\RentACar.Models.csproj" />
     <ProjectReference Include="..\RentACar.Repository\RentACar.Repository.csproj" />
     <ProjectReference Include="..\RentACar.Service\RentACar.Service.csproj" />
     <ProjectReference Include="..\RentACar.ViewModel\RentACar.ViewModel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="NewFolder\" />
   </ItemGroup>
 
 </Project>

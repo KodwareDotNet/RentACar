@@ -2,13 +2,19 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
+using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using System.Net.Sockets;
+using System.Security;
 using Dapper;
+using Kodware.API.ViewModels;
 using MenuManagement.Repositories;
+using RentACar.Common;
 using RentACar.Interfaces.RepoInterfaces;
 using RentACar.Interfaces.ServiceInterface;
 using RentACar.Models;
+using RentACar.ViewModel;
 using static System.Net.Mime.MediaTypeNames;
 using static Dapper.SqlMapper;
 
@@ -16,8 +22,10 @@ namespace MenuManagement.Repositories
 {
     public class UserRepository : BaseRepository, IUserRepository
     {
+        private readonly IDbConnection _dbConnection;
         public UserRepository(IDbConnection connection) : base(connection)
         {
+            _dbConnection = connection;
 
         }
 
@@ -130,7 +138,7 @@ namespace MenuManagement.Repositories
                 throw new ArgumentNullException(nameof(organization));
 
             var parameters = new DynamicParameters();
-             {
+            {
                 parameters.Add("@OrganizationName", organization.Name ?? string.Empty);
                 parameters.Add("@Email", organization.Email ?? string.Empty);
                 parameters.Add("@Phone", organization.Phone ?? string.Empty);
@@ -153,16 +161,6 @@ namespace MenuManagement.Repositories
 
         }
 
-        //        public async Task<IEnumerable<Organization>> GetAllOrganizations()
-        //        {
-        //            return await QueryAsync<Organization>(
-        //                "sp_GetAllOrganizations",
-        //                commandType: CommandType.StoredProcedure
-        //            ).ConfigureAwait(false);
-        //        }
-
-        //    }
-        //}
         public async Task<IEnumerable<Organization>> GetAllOrganizations()
         {
             // _connection is the IDbConnection passed to the repository
@@ -183,17 +181,14 @@ namespace MenuManagement.Repositories
             parameters.Add("@Phone", organization.Phone ?? string.Empty);
             parameters.Add("@Address", organization.Address ?? string.Empty);
 
-            // Define output parameter
             parameters.Add("@OutP", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            // Execute stored procedure
             await _connection.ExecuteAsync(
                 "sp_UpdateOrganization",
                 parameters,
                 commandType: CommandType.StoredProcedure
             ).ConfigureAwait(false);
 
-            // Return the output parameter value
             return parameters.Get<int>("@OutP");
         }
 
@@ -223,7 +218,7 @@ namespace MenuManagement.Repositories
                 @OrganizationId = user.OrganizationId,
                 @UserRole = user.Role,
                 @Email = user.Email,
-                @Usertype=user.UserType
+                @Usertype = user.UserType
             };
 
             return await ExecuteAsync(
@@ -257,33 +252,58 @@ namespace MenuManagement.Repositories
             return user;
         }
         #region Role
-
-        public async Task<int> CreateRole(Role role)
+        public async Task<DBErrorResponse> CreateRole(Role domain)
         {
-            if (role is null)
-                throw new ArgumentNullException(nameof(role));
-
             var parameters = new
             {
-                RoleName = role.RoleName ?? string.Empty,
-                OrganizationId = role.OrganizationId
+                pRoleName = domain.RoleName,
+                pOrganizationId = domain.OrganizationId,
+                pRoleId = domain.RoleId,
             };
-
-            return await ExecuteAsync(
-                "sp_CreateRole",
-                parameters,
-                commandType: CommandType.StoredProcedure
-
-            );
+            DynamicParameters para = new DynamicParameters(parameters);
+            para.Add("@pReturnId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            para.Add("@pRequestStatus", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            var result = ExecuteAsync("sp_CreateRole", para, commandType: CommandType.StoredProcedure).Result;
+            DBErrorResponseMessage requestStatus = para.Get<DBErrorResponseMessage>("@pRequestStatus");
+            var roleId = para.Get<int>("@pReturnId");
+            if (roleId > 0)
+            {
+                _ = CreateRolePermission(new Role()
+                {
+                    RoleId = roleId,
+                    SelectedPermissions = domain.SelectedPermissions,
+                });
+                return new DBErrorResponse { RequestStatus = DBErrorResponseMessage.Success, Id = roleId };
+            }
+            return new DBErrorResponse { RequestStatus = DBErrorResponseMessage.Duplicate, Id = 0 };
         }
 
-        public async Task<IEnumerable<Role>> GetAllRoles()
+        public async Task<bool> CreateRolePermission(Role domain)
         {
-            return await _connection.QueryAsync<Role>(
-                "sp_GetAllRoles",
-                commandType: CommandType.StoredProcedure
-            );
+            DynamicParameters dynamParameters = new DynamicParameters();
+            dynamParameters.Add("@pRoleId", domain.RoleId);
+            dynamParameters.Add(name: "@pPermissionIds", value: domain.SelectedPermissions?
+                .Select(s => new { s.PermissionId }).ToList().ToDataTable()
+                .AsTableValuedParameter("UDT_IntArray"), (DbType?)SqlDbType.Structured);
+            return ExecuteAsync("uspCreateRolePermission", dynamParameters, commandType: CommandType.StoredProcedure).Result > 0;
         }
+
+        public async Task<IEnumerable<Role>> GetAllRoles(string searchString, int pageNumber, long? userId, long? organizationId, long? pageSize)
+        {
+            var parameters = new { @psearchString = searchString, pPageNumber = pageNumber, pUserId = userId, pOrganizationid = organizationId, ppageSize = pageSize };
+            (IEnumerable<Role> data1, IEnumerable<PermissionIdViewModel> data2) = await
+                QueryMultipleAsync<Role, PermissionIdViewModel>("sp_GetAllRoles", parameters);
+            IEnumerable<Role> roles = data1;
+            IEnumerable<PermissionIdViewModel> rolePermissions = data2;
+            foreach (Role role in roles)
+            {
+                role.SelectedPermissions = rolePermissions.Any() ? rolePermissions.Where(p => p.RoleId == role.RoleId).ToList()
+                    : new List<PermissionIdViewModel>();
+            }
+            return roles;
+        }
+
+
 
 
         public async Task<int> UpdateRole(Role role)
@@ -304,6 +324,17 @@ namespace MenuManagement.Repositories
                 commandType: CommandType.StoredProcedure
             );
         }
+        public async Task<IEnumerable<Permissions>> GetAllPermissions(long? userId, long? organizationId, UserType userType)
+        {
+            var parameters = new
+            {
+                pUserId = userId,
+                pOrganizationId = organizationId,
+                pUserType = userType
+            };
+            var result = await QueryAsync<Permissions>("uspGetAllPermissions", parameters);
+            return result;
+        }
 
         public async Task<int> DeleteRole(int roleId)
         {
@@ -318,132 +349,158 @@ namespace MenuManagement.Repositories
                 commandType: CommandType.StoredProcedure
             );
         }
+
+        public async Task<IEnumerable<Role>> GetRolesByOrganization(int orgId)
+        {
+            var parameters = new { OrgId = orgId };
+
+            var roleDict = new Dictionary<int, Role>();
+
+            var result = await _connection.QueryAsync<Role, PermissionIdViewModel, Role>(
+      "sp_GetRolesByOrganization",
+      (role, perm) =>
+      {
+          if (!roleDict.TryGetValue(role.RoleId, out var currentRole))
+          {
+              currentRole = role;
+              currentRole.Permission = new List<PermissionIdViewModel>();
+              roleDict.Add(currentRole.RoleId, currentRole);
+          }
+
+          if (perm != null && perm.PermissionId != 0)
+              currentRole.Permission.Add(perm);
+
+          return currentRole;
+      },
+      parameters,
+      splitOn: "PermissionId",
+      commandType: CommandType.StoredProcedure
+  );
+
+            return roleDict.Values;
+        }
+        public async Task<bool> AddCar(Car car)
+        {
+            var parameters = new
+            {
+                Id = car.Id,
+                ImageUrl = car.ImageUrl,
+                CarName = car.CarName,
+                Brand = car.Brand,
+                Model = car.Model,
+                Year = car.Year,
+                PricePerDay = car.PricePerDay,
+                Transmission = car.Transmission,
+                Fuel = car.Fuel,
+                Seats = car.Seats,
+                Doors = car.Doors,
+                Color = car.Color,
+                NumberPlate = car.NumberPlate,
+                Mileage = car.Mileage,
+                Vin = car.Vin,
+                BodyType = car.BodyType,
+                EngineSize = car.EngineSize,
+                Description = car.Description,
+                OrganizationId = car.OrganizationId
+            };
+
+            var result = await _connection.ExecuteScalarAsync<int>(
+                  "sp_AddCar",
+                  parameters,
+                commandType: CommandType.StoredProcedure
+ );
+
+            return result > 0;
+        }
+
+        public async Task<IEnumerable<Car>> GetCars(int orgId)
+        {
+            var parameters = new { OrganizationId = orgId };
+
+            var cars = await _connection.QueryAsync<Car>(
+                "sp_GetCars",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return cars;
+        }
+
+        public async Task<bool> DeleteCar(int id)
+        {
+            var car = await _connection.QueryFirstOrDefaultAsync<Car>(
+                "SELECT * FROM Cars WHERE Id = @Id",
+                new { Id = id }
+            );
+
+            if (car == null)
+                return false; // car not found
+
+            // 2️⃣ Delete image file if it exists
+            if (!string.IsNullOrEmpty(car.ImageUrl))
+            {
+                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", car.ImageUrl.TrimStart('/'));
+                if (File.Exists(fullPath))
+                    File.Delete(fullPath);
+            }
+
+            var result = await _connection.ExecuteScalarAsync<int>(
+                "sp_DeleteCar",
+                new { Id = id },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result > 0; // true if deleted
+        }
     }
 }
+    //    public async Task<bool> BookCar(CarBooking booking)
+    //    {
+    //        var parameters = new
+    //        {
+    //            booking.FullName,
+    //            booking.FatherName,
+    //            booking.CNIC,
+    //            booking.LicenseNumber,
+    //            booking.Phone,
+    //            booking.Age,
+    //            booking.Address,
+    //            booking.City,
+    //            booking.PickupDate,
+    //            booking.DropoffDate,
+    //            booking.CarId,
+    //            booking.OrganizationId,
+    //            booking.CarImageUrl
+    //        };
+
+//        var result = await _connection.ExecuteScalarAsync<int>(
+//            "sp_BookCar",
+//            parameters,
+//            commandType: CommandType.StoredProcedure
+//        );
+
+//        return result > 0;
+//    }
+//    public async Task<List<CarBooking>> GetAllBookings()
+//    {
+//        var result = await _connection.QueryAsync<CarBooking>(
+//            "sp_GetAllBookings",
+//            commandType: CommandType.StoredProcedure
+//        );
+//        return result.ToList();
+//    }
+//    public async Task<int> CancelBooking(int id)
+//    {
+//        var result = await _connection.ExecuteScalarAsync<int>(
+//            "sp_CancelBooking",
+//            new { Id = id },
+//            commandType: CommandType.StoredProcedure
+//        );
+//        return result;
+//    }
+//}
+//}
 #endregion
-//#region Category
-//        public async Task<int> CreateCategory(Category category)
-//        {
-//            if (category is null)
-//                throw new ArgumentNullException(nameof(category));
-//            var parameters = new
-//            {
-//                Categoryname = category.categoryname ?? string.Empty,
-//                categoryId = category.categoryId,
-//                description = category.description,
-//                Createdat = category.Createdat,
-//                Updatedat = category.Updatedat,
-//                isActive = category.isActive,
-//            };
-//            return await ExecuteAsync(
-//                "sp_CreateCategory",
-//                parameters,
-//                commandType: CommandType.StoredProcedure
-//            );
-//        }
-//    }
-//}
-
-
-//#endregion
-
-
-//public async Task<int> CreateRole(Role role)
-//{
-//    if (role is null)
-//        throw new ArgumentNullException(nameof(role));
-
-//    var parameters = new
-//    {
-//        RoleName = role.Name,
-//        @OrganizationId = role.OrganizationId
-//    };
-
-//    return await ExecuteAsync("sp_CreateRole", parameters, commandType: CommandType.StoredProcedure);
-//}
-
-//public async Task<int> UpdateRole(Role role)
-//{
-//    if (role is null)
-//        throw new ArgumentNullException(nameof(role));
-
-//    var parameters = new
-//    {
-//        @RoleId = role.Id,
-//        @Name = role.Name,
-//        @OrganizationId = role.OrganizationId
-//    };
-
-//    return await ExecuteAsync("sp_UpdateRole", parameters, commandType: CommandType.StoredProcedure);
-//}
-
-//public async Task<int> DeleteRole(int roleId)
-//{
-//    var parameters = new { @RoleId = roleId };
-//    return await ExecuteAsync("sp_DeleteRole", parameters, commandType: CommandType.StoredProcedure);
-//}
-
-//        public async Task<int> CreateRole(Role role)
-//        {
-//            var parameters = new
-//            {
-//                RoleName = role.RoleName ?? string.Empty,
-//                OrganizationId = role.OrganizationId
-//            };
-
-//            return await ExecuteAsync(
-//                "sp_CreateRole",
-//                parameters,
-//                commandType: CommandType.StoredProcedure
-//            );
-//        }
-
-//        //public async Task<IEnumerable<Role>> GetAllRoles()
-//        //{
-//        //    return await QueryAsync<Role>(
-//        //        "sp_GetAllRoles",
-//        //        commandType: CommandType.StoredProcedure
-//        //    );
-//        //}
-
-//        public async Task<int> UpdateRole(Role role)
-//        {
-//            var parameters = new
-//            {
-//                RoleId = role.RoleId,
-//                RoleName = role.RoleName ?? string.Empty,
-//                OrganizationId = role.OrganizationId
-//            };
-
-//            return await ExecuteAsync(
-//                "sp_UpdateRole",
-//                parameters,
-//                commandType: CommandType.StoredProcedure
-//            );
-//        }
-
-//        public async Task<int> DeleteRole(int roleId)
-//        {
-//            var parameters = new { RoleId = roleId };
-
-//            return await ExecuteAsync(
-//                "sp_DeleteRole",
-//                parameters,
-//                commandType: CommandType.StoredProcedure
-//            );
-//        }
-
-//    }
-//}
-
-
-
-
-
-//[Id][bigint] IDENTITY(1,1) NOT NULL,
-//    [Email] [nvarchar] (200) NOT NULL,
-
-//    [UserRole] [nvarchar] (50) NOT NULL,
 
 
 

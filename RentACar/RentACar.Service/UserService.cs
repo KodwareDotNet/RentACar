@@ -109,8 +109,8 @@ namespace RentACar.Services
         public async Task<int> CreateUser(User user)
         {
             if (user == null)
-                throw new ArgumentNullException(nameof(user));
 
+                throw new ArgumentNullException(nameof(user));
             // Optional: hash password here
             // user.Password = HashPassword(user.Password);
 
@@ -133,15 +133,26 @@ namespace RentACar.Services
         }
 
 
-        public async Task<bool> CreateRole(Role role)
-        {
-            var result = await _userRepo.CreateRole(role);
-            return result > 0;
-        }
 
-        public async Task<IEnumerable<Role>> GetAllRoles()
+        public async Task<DBErrorResponse> CreateRole(Role role)
         {
-            return await _userRepo.GetAllRoles();
+            DBErrorResponse dbresponse = await _userRepo.CreateRole(role);
+            if (dbresponse.RequestStatus == DBErrorResponseMessage.Duplicate)
+            {
+                return new DBErrorResponse { RequestStatus = DBErrorResponseMessage.Duplicate, Id = 0 };
+            }
+            if (dbresponse.Id > 0)
+            {
+                return new DBErrorResponse { RequestStatus = DBErrorResponseMessage.Success, Id = dbresponse.Id };
+            }
+            else
+            {
+                return new DBErrorResponse { RequestStatus = DBErrorResponseMessage.Error, Id = 0 };
+            }
+        }
+        public async Task<IEnumerable<Role>> GetAllRoles(string searchString, int pageNumber, long? userId, long? organizationId, long? pageSize)
+        {
+            return await _userRepo.GetAllRoles(searchString, pageNumber, userId, organizationId, pageSize);
         }
 
         public async Task<bool> UpdateRole(Role role)
@@ -152,11 +163,54 @@ namespace RentACar.Services
             var result = await _userRepo.UpdateRole(role);
             return result > 0;
         }
+        public async Task<IEnumerable<Permissions>> GetAllPermissions(long? userId, long? organizationId, UserType userType)
+        {
+            return await _userRepo.GetAllPermissions(userId, organizationId, userType);
+        }
 
         public async Task<bool> DeleteRole(int id)
         {
             var result = await _userRepo.DeleteRole(id);
             return result > 0;
         }
+        public async Task<IEnumerable<Role>> GetRolesByOrganization(int orgId)
+        {
+            return await _userRepo.GetRolesByOrganization(orgId);
+        }
+        public async Task<bool> AddCar(Car car)
+        {
+            if (car == null)
+                throw new ArgumentNullException(nameof(car));
+
+            return await _userRepo.AddCar(car);
+        }
+        //Task<IEnumerable<Car>> GetCars(int orgId);
+
+        public async Task<IEnumerable<Car>> GetCars(int orgId)
+        {
+            return await _userRepo.GetCars(orgId);
+        }
+        public async Task<bool> DeleteCar(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Invalid Car Id");
+
+            return await _userRepo.DeleteCar(id);
+        }
     }
 }
+
+//        public async Task<bool> BookCar(CarBooking booking)
+//        {
+//            return await _userRepo.BookCar(booking);
+//        }
+//        public async Task<List<CarBooking>> GetAllBookings()
+//        {
+//            return await _userRepo.GetAllBookings();
+//        }
+//        public async Task<int> CancelBooking(int id)
+//        {
+//            return await _userRepo.CancelBooking(id);
+//        }
+//    }
+//}

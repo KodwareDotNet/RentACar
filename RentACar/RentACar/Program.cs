@@ -42,6 +42,11 @@ builder.Services.AddScoped<IUserMap, UserMap>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserMap, UserMap>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddControllers();
+builder.Services.AddScoped<IRentACarService, RentACarService>();
+builder.Services.AddScoped<IRentACarMap, RentACarMap>();
+
+
 
 
 
@@ -139,6 +144,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseCors("AllowReactApp");
+app.UseCors("AllowAll");
+
 
 app.UseAuthorization();
 app.UseMiddleware<JwtMiddleware>();

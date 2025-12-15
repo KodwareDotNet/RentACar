@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Kodware.API.ViewModels;
 using RentACar.Interfaces.ServiceInterface;
 using RentACar.Models;
 using RentACar.ViewModel;
@@ -12,7 +13,6 @@ namespace RentACar.Map
     public class UserMap : IUserMap
     {
         private readonly IUserService _userService;
-
         public UserMap(IUserService userService)
         {
             _userService = userService;
@@ -51,7 +51,7 @@ namespace RentACar.Map
                 Email = user.Email,
                 PasswordHash = user.Password,
                 //Role = user.Role ?? "User"   // here
-             
+
             };
 
             return await _userService.CreateUserAsync(domain);
@@ -66,8 +66,6 @@ namespace RentACar.Map
                 Name = data.Name,
                 Email = data.Email,
                 Role = data.Role,
-
-
             };
             return model;
         }
@@ -85,8 +83,8 @@ namespace RentACar.Map
                 Email = organization.Email,
                 Phone = organization.Phone,
                 Address = organization.Address,
-                password =organization.password,
-                UserType= organization.UserType
+                password = organization.password,
+                UserType = organization.UserType
             };
 
             return await _userService.CreateOrganization(model);
@@ -107,7 +105,7 @@ namespace RentACar.Map
                 Email = org.Email,
                 Phone = org.Phone,
                 Address = org.Address,
-                password=org.password,
+                password = org.password,
                 CreatedDate = org.CreatedDate
             });
         }
@@ -152,26 +150,41 @@ namespace RentACar.Map
         }
         #region
 
-        public async Task<bool> CreateRole(RoleViewModel role)
+        public async Task<DBErrorResponse> CreateRole(RoleViewModel viewModel)
         {
-            var model = new Role
-            {
-                RoleName = role.RoleName,
-                OrganizationId = role.OrganizationId
-            };
-            return await _userService.CreateRole(model);
-        }
+            Role role = ViewModelToDomain(viewModel);
+            return await _userService.CreateRole(role);
 
-        public async Task<IEnumerable<RoleViewModel>> GetAllRoles()
+        }
+        public Role ViewModelToDomain(RoleViewModel officeViewModel)
         {
-            var roles = await _userService.GetAllRoles();
-            return roles.Select(r => new RoleViewModel
+            Role domain = new Role();
+            domain.RoleName = officeViewModel.RoleName;
+            domain.OrganizationId = officeViewModel.OrganizationId;
+            domain.RoleId = officeViewModel.RoleId;
+            domain.SelectedPermissions = officeViewModel.SelectedPermissions == null ? new List<PermissionIdViewModel>() : officeViewModel.SelectedPermissions;
+            return domain;
+        }
+        public async Task<List<RoleViewModel>> GetAllRoles(string searchString, int pageNumber, long? userId, long? organizationId, long? pageSize)
+        {
+            return DomainToViewModel(await _userService.GetAllRoles(searchString, pageNumber, userId, organizationId, pageSize));
+        }
+        public List<RoleViewModel> DomainToViewModel(IEnumerable<Role> domain)
+        {
+            List<RoleViewModel> model = new List<RoleViewModel>();
+            foreach (Role of in domain)
             {
-                RoleId = r.RoleId,
-                RoleName = r.RoleName,
-                OrganizationId = r.OrganizationId,
-                OrganizationName = r.OrganizationName
-            });
+                model.Add(DomainToViewModel(of));
+            }
+            return model;
+        }
+        public RoleViewModel DomainToViewModel(Role domain)
+        {
+            RoleViewModel model = new RoleViewModel();
+            model.RoleId = domain.RoleId;
+            model.RoleName = domain.RoleName;
+            model.SelectedPermissions = domain.SelectedPermissions == null ? new List<PermissionIdViewModel>() : domain.SelectedPermissions;
+            return model;
         }
 
         public async Task<bool> UpdateRole(RoleViewModel role)
@@ -184,13 +197,82 @@ namespace RentACar.Map
             };
             return await _userService.UpdateRole(model);
         }
+        public async Task<List<PermissionsViewModel>> GetAllPermissions(long? userId, long? organizationId, UserType userType)
+        {
+            return PermissionsDomainToViewModel(await _userService.GetAllPermissions(userId, organizationId, userType));
+        }
+        public List<PermissionsViewModel> PermissionsDomainToViewModel(IEnumerable<Permissions> domain)
+        {
+            List<PermissionsViewModel> model = new List<PermissionsViewModel>();
+            foreach (Permissions of in domain)
+            {
+                model.Add(PermissionsDomainToViewModel(of));
+            }
+            return model;
+        }
+        public PermissionsViewModel PermissionsDomainToViewModel(Permissions domain)
+        {
+            PermissionsViewModel model = new PermissionsViewModel();
+            model.Id = domain.Id;
+            model.DisplayName = domain.DisplayName;
+            model.Value = domain.Value;
+            model.Group = domain.Group;
+            return model;
+        }
 
         public async Task<bool> DeleteRole(int id)
         {
             return await _userService.DeleteRole(id);
         }
+        public async Task<IEnumerable<RoleViewModel>> GetRolesByOrganization(int orgId)
+        {
+            var roles = await _userService.GetRolesByOrganization(orgId);
+
+            return roles.Select(r => new RoleViewModel
+            {
+                RoleId = r.RoleId,
+                RoleName = r.RoleName,
+                OrganizationId = r.OrganizationId,
+                OrganizationName = r.OrganizationName,
+                SelectedPermissions = r.Permission?.Select(p => new PermissionIdViewModel
+                {
+                    PermissionId = p.PermissionId,
+                    ////DisplayName = p.PermissionName,
+                    //PermissionName = p.PermissionName,
+                    //PermissionValue = p.PermissionValue
+                }).ToList()
+            });
+        }
+        public async Task<bool> AddCar(Car car)
+        {
+            return await _userService.AddCar(car);
+        }
+        //Task<IEnumerable<Car>> GetCars(int orgId);
+
+        public async Task<IEnumerable<Car>> GetCars(int orgId)
+        {
+            return await _userService.GetCars(orgId);
+        }
+        public async Task<bool> DeleteCar(int id)
+        {
+            return await _userService.DeleteCar(id);
+        }
     }
 }
+//        public async Task<bool> BookCar(CarBooking booking)
+//        {
+//            return await _userService.BookCar(booking);
+//        }
+//        public async Task<List<CarBooking>> GetAllBookings()
+//        {
+//            return await _userService.GetAllBookings();
+//        }
+//        public async Task<int> CancelBooking(int id)
+//        {
+//            return await _userService.CancelBooking(id);
+//        }
+//    }
+//}
 
 
 #endregion

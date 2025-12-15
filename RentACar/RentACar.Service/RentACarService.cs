@@ -13,29 +13,29 @@ namespace RentACar.Service
 {
     public class RentACarService : IRentACarService
     {
-        private readonly IRentACarRepository carRepo;
-        private readonly IAttachmentRepository AttachmentRepository;
+        private readonly IRentACarRepository _carRepo;
+        private readonly IAttachmentRepository _AttachmentRepository;
 
-        public RentACarService(IRentACarRepository _carRepo, IAttachmentRepository attachmentRepository)
+        public RentACarService(IRentACarRepository carRepo, IAttachmentRepository attachmentRepository)
         {
-            carRepo = _carRepo;
-            AttachmentRepository = attachmentRepository;
+            _carRepo = carRepo;
+            _AttachmentRepository = attachmentRepository;
         }
 
 
         public async Task<bool> CreateCars(Car Car)
         {
-            long NewsId = await carRepo.Create(Car);
+            long NewsId = await _carRepo.Create(Car);
             foreach (var attachment in Car.attachments)
             {
                 if (attachment.Id != null)
                 {
-                    _ = AttachmentRepository.DeleteNewsAttachment(NewsId, (int)attachment.Id);
+                    _ = _AttachmentRepository.DeleteNewsAttachment(NewsId, (int)attachment.Id);
                 }
                 if (attachment.AttachmentType == AttachmentType.Image)
                 {
-                    long attachmentId = AttachmentRepository.CreateAttachment(attachment.Path, attachment.Name, attachment.AttachmentType);
-                    _ = AttachmentRepository.CreateNewsAttachment(NewsId, attachmentId);
+                    long attachmentId = _AttachmentRepository.CreateAttachment(attachment.Path, attachment.Name, attachment.AttachmentType);
+                    _ = _AttachmentRepository.CreateNewsAttachment(NewsId, attachmentId);
                 }
             }
             if (NewsId > 0)
@@ -51,7 +51,7 @@ namespace RentACar.Service
 
         public async Task<bool> DeletCar(long id)
         {
-            return await carRepo.DeleteCar(id);
+            return await _carRepo.DeleteCar(id);
 
         }
 
@@ -62,23 +62,52 @@ namespace RentACar.Service
 
         public async Task<IEnumerable<Models.KeyValuePair>> GetAllKeyValuePair(KeyValuePairType keyValuePair, long? id)
         {
-            return await carRepo.GetAllKeyValuePair(keyValuePair, id);
+            return await _carRepo.GetAllKeyValuePair(keyValuePair, id);
         }
 
         public async Task<IEnumerable<Car>> GetAllNews()
         {
-            return await carRepo.GetAllNews();
+            return await _carRepo.GetAllNews();
         }
 
         public async Task<IEnumerable<Car>> GetcarsByIdAsync(long? id)
         {
-            return await carRepo.GetcarsByIdAsync(id);
+            return await _carRepo.GetcarsByIdAsync(id);
 
         }
 
         public Task<IEnumerable<Car>> GetNewsByIdAsync(long? id)
         {
             throw new NotImplementedException();
+        }
+        public async Task<bool> BookCar(CarBooking booking)
+        {
+            return await _carRepo.BookCar(booking);
+        }
+        // Interface
+
+
+        // Implementation
+        public async Task<List<PersonWithCarDto>> GetAllBookings()
+        {
+            return await _carRepo.GetAllBookings();
+        }
+        //public async Task<BookCarDto> GetBookingWithCar(int bookingId)
+        //{
+        //    return await _carRepo.GetBookingWithCar(bookingId);
+        //}
+        //public async Task<int> UpdateBooking(int id, BookCarDto bookingDto)
+        //{
+        //    return await _carRepo.UpdateBooking(id, bookingDto);
+        //}
+        public async Task<bool> UpdateBooking(UpdateBookingDto booking)
+        {
+            return await _carRepo.UpdateBooking(booking);
+        }
+
+        public async Task<int> CancelBooking(int id)
+        {
+            return await _carRepo.CancelBooking(id);
         }
     }
 }

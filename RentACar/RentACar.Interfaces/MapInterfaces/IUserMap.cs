@@ -29,42 +29,29 @@ namespace RentACar.Map
         Task<IEnumerable<OrganizationViewModel>> GetAllOrganizations();
         Task<int> UpdateOrganization(OrganizationViewModel update);
         Task<int> DeleteOrganization(int id);
+        Task<IEnumerable<RoleViewModel>> GetRolesByOrganization(int orgId);
+
         Task<int> CreateUser(UserCreateDto dto);
         Task<User?> Login(LoginDto dto);
-        Task<bool> CreateRole(RoleViewModel role);
+        public Task<DBErrorResponse> CreateRole(RoleViewModel role);
         //Task<int> CreateCategory(Categoryviewmodel category);
-        Task<IEnumerable<RoleViewModel>> GetAllRoles();
-      
+
         Task<bool> UpdateRole(RoleViewModel role);
+        Task<List<PermissionsViewModel>> GetAllPermissions(long? userId, long? organizationId, UserType userType);
         Task<bool> DeleteRole(int id);
 
-
-
-        /// <summary>
-        /// Optional: Get a single user by email or GoogleId
-        /// </summary>
         Task<UserViewModel?> GetByEmailOrGoogleId(string email, string? googleId);
+        Task<bool> AddCar(Car car);
+        //Task<bool> BookCar(CarBooking booking);
+        //Task<List<CarBooking>> GetAllBookings();
+        //Task<int> CancelBooking(int id);
 
-        /// <summary>
-        /// Optional: Get daily income (if needed in map)
-        /// </summary>
+        Task<IEnumerable<Car>> GetCars(int orgId);
+        Task<bool> DeleteCar(int id);
+
+
         Task<decimal> GetDailyIncome(DateTime date);
+        Task<List<RoleViewModel>> GetAllRoles(string? searchString, int pageNumber, long? userId, long? organizationId, long? pageSize);
     }
 
 }
-//public interface IUserMap
-//{
-//    // User methods
-//    Task<int> Create(UserViewModel user);
-//    Task<UserViewModel> GetById(int id);
-//    Task<List<UserViewModel>> GetAll();
-//    Task<bool> Update(UserViewModel user);
-//    Task<bool> Delete(int id);
-
-//    // Organization methods
-//    Task<int> CreateOrganization(OrganizationViewModel organization);
-//    Task<OrganizationViewModel> GetOrganizationById(int id);
-//    Task<List<OrganizationViewModel>> GetAllOrganizations();
-//    Task<bool> UpdateOrganization(OrganizationViewModel organization);
-//    Task<bool> DeleteOrganization(int id);
-//}

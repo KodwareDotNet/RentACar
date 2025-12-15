@@ -57,6 +57,136 @@ namespace NewsApi.Controllers
             var result = await _rentACarMap.DeleteCar(id);
             return Ok(result);
         }
+        [HttpPost("BookCar")]
+        public async Task<IActionResult> BookCar([FromForm] BookCarDto dto)
+        {
+            string carImagePath = dto.CarImageUrl;
+
+            // Upload Car Image
+            if (dto.CarImage != null && dto.CarImage.Length > 0)
+            {
+                var rootPath = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Bookings";
+
+                // Create folder if not exists
+                if (!Directory.Exists(rootPath))
+                    Directory.CreateDirectory(rootPath);
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.CarImage.FileName);
+                var fullPath = Path.Combine(rootPath, fileName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await dto.CarImage.CopyToAsync(stream);
+                }
+
+                carImagePath = Path.Combine($"/Images/Bookings/{fileName}");
+            }
+
+            var booking = new CarBooking
+            {
+                FullName = dto.FullName,
+                FatherName = dto.FatherName,
+                CNIC = dto.CNIC,
+                LicenseNumber = dto.LicenseNumber,
+                Phone = dto.Phone,
+                Age = dto.Age,
+                Address = dto.Address,
+                City = dto.City,
+                PickupDate = dto.PickupDate,
+                DropoffDate = dto.DropoffDate,
+                CarId = dto.CarId,
+                OrganizationId = dto.OrganizationId,
+                CarImageUrl = carImagePath
+            };
+
+            var result = await _rentACarMap.BookCar(booking);
+
+            if (result)
+                return Ok(new { success = true, message = "Car booked successfully" });
+            else
+                return BadRequest(new { success = false, message = "Booking failed" });
+        }
+        // Controller
+        [HttpGet("GetAllBookings")]
+        public async Task<IActionResult> GetAllBookings()
+        {
+            var result = await _rentACarMap.GetAllBookings();
+            return Ok(result);
+        }
+        [HttpPut("UpdateBooking")]
+        public async Task<IActionResult> UpdateBooking([FromForm] UpdateBookingDto dto)
+        {
+            string carImagePath = dto.CarImageUrl;
+
+            // Agar new image upload ki hai
+            if (dto.CarImage != null && dto.CarImage.Length > 0)
+            {
+                var rootPath = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Bookings";
+
+                if (!Directory.Exists(rootPath))
+                    Directory.CreateDirectory(rootPath);
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.CarImage.FileName);
+                var fullPath = Path.Combine(rootPath, fileName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await dto.CarImage.CopyToAsync(stream);
+                }
+
+                carImagePath = $"/Images/Bookings/{fileName}";
+                dto.CarImageUrl = carImagePath;
+            }
+
+            var result = await _rentACarMap.UpdateBooking(dto);
+
+            if (result)
+                return Ok(new { success = true, message = "Booking updated successfully" });
+            else
+                return BadRequest(new { success = false, message = "Failed to update booking" });
+        }
+        //[HttpGet("GetBookingDetails/{id}")]
+        //public async Task<IActionResult> GetBookingDetails(int id)
+        //{
+        //    var result = await _rentACarMap.GetBookingWithCar(id);
+
+        //    if (result == null)
+        //        return NotFound("Booking not found");
+
+        //    return Ok(result);
+        //}
+        //[HttpPut("UpdateBooking/{id}")]
+        //public async Task<IActionResult> UpdateBooking(int id, [FromForm] BookCarDto bookingDto)
+        //{
+        //    try
+        //    {
+        //        var result = await _rentACarMap.UpdateBooking(id, bookingDto);
+        //        if (result > 0)
+        //            return Ok(new { message = "Booking updated successfully", bookingId = id });
+
+        //        return NotFound("Booking not found");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
+
+
+        [HttpDelete("CancelBooking/{id}")]
+        public async Task<IActionResult> CancelBooking(int id)
+        {
+            var result = await _rentACarMap.CancelBooking(id);
+
+            if (result == 1)
+                return Ok(new { success = true, message = "Booking cancelled successfully" });
+            else if (result == -2)
+                return BadRequest(new { success = false, message = "Booking is already cancelled" });
+            else if (result == 0)
+                return NotFound(new { success = false, message = "Booking not found" });
+            else
+                return StatusCode(500, new { success = false, message = "Error cancelling booking" });
+        }
     }
 }
 

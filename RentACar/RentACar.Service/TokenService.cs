@@ -119,17 +119,19 @@ namespace RentACar.Service
 
             // ✅ Fixed claims: Use custom "Permission" instead of ClaimTypes.Permission
             var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
-                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? string.Empty),
-                new Claim("OrganizationId", user.OrganizationId.ToString()), // ✅ ADDED THIS LINE
-                new Claim("Permission", user.Permission ?? "CanBeLogin"),
-                new Claim("UserType", ((int)user.UserType).ToString()),
-                new Claim("CategoryPermissions", JsonSerializer.Serialize(user.CategoryPermissions ?? new List<string>()))
-            };
+{
+    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+    new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
+    new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+    new Claim(ClaimTypes.Role, user.Role ?? string.Empty),  // Only once
+    new Claim("OrganizationId", user.OrganizationId.ToString()),
+    new Claim("Permission", user.Permission ?? "CanBeLogin"),
+    new Claim("UserType", ((int)user.UserType).ToString()),
+    new Claim("UserId", user.Id.ToString()),
+    new Claim("CategoryPermissions", JsonSerializer.Serialize(user.CategoryPermissions ?? new List<string>()))
+};
+
 
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));

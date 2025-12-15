@@ -1,0 +1,13 @@
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\bin\Debug\net8.0\RentACar.Logging.deps.json
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\bin\Debug\net8.0\RentACar.Logging.dll
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\bin\Debug\net8.0\RentACar.Logging.pdb
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\RentACar.Logging.csproj.AssemblyReference.cache
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\RentACar.Logging.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\RentACar.Logging.AssemblyInfoInputs.cache
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\RentACar.Logging.AssemblyInfo.cs
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\RentACar.Logging.csproj.CoreCompileInputs.cache
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\RentACar.Logging.sourcelink.json
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\RentACar.Logging.dll
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\refint\RentACar.Logging.dll
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\RentACar.Logging.pdb
+C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar.Logging\obj\Debug\net8.0\ref\RentACar.Logging.dll
