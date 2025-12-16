@@ -5,8 +5,9 @@ import BookACarModal from "../components/BookACarModal";
 import AddCarModal from "../components/AddCarModal";
 import { useEffect, useState } from "react";
 import addCarsService from "../api/services/AddCars/addCarsService";
+import bookCarsService from "../api/services/BookCars/bookCarsService";
 import { BASE_URL } from "../api/axiosConfig";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export function Models() {
   const [carsList, setCarsList] = useState([]);
@@ -15,14 +16,42 @@ export function Models() {
   const [selectedCarDetail, setSelectedCarDetail] = useState(null);
 
   const location = useLocation();
+  const navigate = useNavigate();
 
+  // Sync modal state with URL parameter
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get("modal") === "true") {
-      setSelectedCarDetail(null); // ensure add mode
+    const shouldShowModal = params.get("modal") === "true";
+
+    if (shouldShowModal && !showAddCarModal) {
+      setSelectedCarDetail(null);
       setShowAddCarModal(true);
+    } else if (!shouldShowModal && showAddCarModal) {
+      setShowAddCarModal(false);
+      setSelectedCarDetail(null);
     }
-  }, [location.search]);
+  }, [location.search]); 
+
+  const isCarAvailable = (carId, allBookings, currentDate) => {
+   
+    const carBookings = allBookings.filter(booking => booking.car.carId === carId);
+
+    if (carBookings.length === 0) {
+      return true;
+    }
+
+    const current = new Date(currentDate);
+
+    const isBooked = carBookings.some(booking => {
+      const pickup = new Date(booking.pickupDate);
+      const dropoff = new Date(booking.dropoffDate);
+
+      return current >= pickup && current <= dropoff;
+    });
+
+    // If car is booked right now, it's NOT available
+    return !isBooked;
+  }
 
   const carsApi = async () => {
     try {
@@ -30,12 +59,13 @@ export function Models() {
       console.log("carsApi called");
       console.log("Cars API Response:", res);
 
+      const bookingsRes = await bookCarsService.getBookedCars();
+      const currentDate = new Date().toISOString().split('T')[0];
       const carsWithImages = (res.data || []).map((item) => {
         let imageUrl = null;
 
         if (item.imageUrl) {
-
-          imageUrl = `${BASE_URL}${item.imageUrl}`; // construct full URL
+          imageUrl = `${BASE_URL}${item.imageUrl}`;
         }
 
         return {
@@ -45,14 +75,16 @@ export function Models() {
         };
       });
 
+      const availableCars = carsWithImages.filter(car => {
+        return isCarAvailable(car.id, bookingsRes.data, currentDate);
+      });
 
-      setCarsList(carsWithImages);
+      setCarsList(availableCars);
     } catch (ex) {
-
       alert("failed", ex);
     }
+    
   };
-
 
   const handleUpdate = (car) => {
     setSelectedCarDetail(car);
@@ -77,18 +109,30 @@ export function Models() {
     setShowBookModal((prev) => !prev);
   };
 
-  const toggleAddCarModal = () => {
-    setShowAddCarModal((prev) => !prev);
-    if (showAddCarModal) {
-      setSelectedCarDetail(null);
-    }
 
+  const toggleAddCarModal = () => {
+
+    const newModalState = !showAddCarModal;
+
+    setShowAddCarModal(newModalState);
+
+    if (newModalState) {
+      // Opening modal - add URL parameter if not already there
+      const params = new URLSearchParams(location.search);
+      if (params.get("modal") !== "true") {
+        navigate("?modal=true", { replace: true });
+      }
+    } else {
+      // Closing modal - remove URL parameter
+      setSelectedCarDetail(null);
+      navigate(location.pathname, { replace: true });
+    }
   };
 
   const handleCarAdded = () => {
     setSelectedCarDetail(null);
     setShowAddCarModal(false);
-    // carsApi();
+    navigate(location.pathname, { replace: true }); // Remove URL parameter
   };
 
   useEffect(() => {
@@ -117,6 +161,7 @@ export function Models() {
           modal={showBookModal}
           openModal={toggleBookModal}
           cardetail={selectedCarDetail}
+          carsApi={carsApi}
         />
 
         <AddCarModal
@@ -124,7 +169,7 @@ export function Models() {
           openModal={toggleAddCarModal}
           carToEdit={selectedCarDetail}
           onAddCar={handleCarAdded}
-          refreshCarsList={carsApi}  // IMPORTANT
+          refreshCarsList={carsApi}
         />
 
         <Footer />

@@ -50,13 +50,14 @@ const bookCarsService = {
             }
         }
     },
-    updateBookCar: async (id, formData) => {
+    updateBookCar: async ( formData) => {
+        
         try {
-            const res = await api.put(`Car/UpdateBookCar/${id}`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            const res = await api.post(`Car/BookCar`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
             return res;
         }
         catch (error) {

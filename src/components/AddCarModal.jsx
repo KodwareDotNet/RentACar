@@ -153,7 +153,6 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
 
     const handleSubmit = async () => {
         if (!validateForm()) return;
-
         try {
             const formData = new FormData();
 

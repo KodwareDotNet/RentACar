@@ -3,10 +3,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { Box, Typography, IconButton } from "@mui/material";
+import { Snackbar} from "@mui/material";
 import bookCarsService from "../api/services/BookCars/bookCarsService";
+import addCarsService from "../api/services/AddCars/addCarsService";
 import { BASE_URL } from "../api/axiosConfig";
 
-function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = false, onUpdateSuccess }) {
+function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = false, onUpdateSuccess, carsApi }) {
     const [userData, setUserData] = useState({
         name: "",
         fatherName: "",
@@ -23,6 +25,21 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
     const [uploadedImages, setUploadedImages] = useState([]);
     const [errors, setErrors] = useState({});
+
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success"
+    });
+
+    const showSnackbar = (message, severity = "success") => {
+        setSnackbar({ open: true, message, severity });
+    };
+
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') return;
+        setSnackbar({ ...snackbar, open: false });
+    };
 
     const resetForm = () => {
         setUserData({
@@ -44,6 +61,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
     // Update carId and image when cardetail changes
     React.useEffect(() => {
         if (isEditMode && bookingData) {
+
             // Pre-fill data from existing booking for editing
             setUserData({
                 name: bookingData.fullName || "",
@@ -54,17 +72,22 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                 age: bookingData.age || "",
                 address: bookingData.address || "",
                 city: bookingData.city || "",
-                pickupDate: bookingData.pickupDate || "",
-                dropoffDate: bookingData.dropoffDate || "",
+                pickupDate: bookingData.pickupDate?.split("T")[0] || "",
+                dropoffDate: bookingData.dropoffDate?.split("T")[0] || "",
                 carId: bookingData.carDetail?.id || bookingData.id || "",
             });
 
             // Set existing images from booking
-            if (bookingData.images && bookingData.images.length > 0) {
-                const existingImages = bookingData.images.map(imageUrl => ({
-                    preview: imageUrl.startsWith('http') ? imageUrl : `${BASE_URL}${imageUrl}`,
+            if (bookingData.attachments && bookingData.attachments.length > 0) {
+                const existingImages = bookingData.attachments.map(att => ({
+                    id: att.id,
+                    attachmentId: att.attachmentId,
+                    imageId: att.attachmentId,
+                    preview: att.filePath,
+                    file: null,
                     isExisting: true,
-                    imageId: imageUrl
+                    fileName: att.fileName,
+                    fileSize: att.fileSize
                 }));
                 setUploadedImages(existingImages);
             } else {
@@ -118,6 +141,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
     };
 
     const validateForm = () => {
+
         const newErrors = {};
 
         if (!userData.name.trim()) newErrors.name = "Name is required";
@@ -137,69 +161,139 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         return Object.keys(newErrors).length === 0;
     };
 
+
+
+    const validateUpdateForm = () => {
+
+        const newErrors = {};
+
+        if (!userData.name.trim()) newErrors.name = "Name is required";
+        if (!userData.fatherName.trim()) newErrors.fatherName = "Father Name is required";
+        if (!userData.cnic.trim()) newErrors.cnic = "CNIC is required";
+        if (!userData.licenseNumber.trim()) newErrors.licenseNumber = "License Number is required";
+        if (!userData.phone.trim()) newErrors.phone = "Phone number is required";
+        if (!String(userData.age).trim()) newErrors.age = "Age is required";
+        if (!userData.address.trim()) newErrors.address = "Address is required";
+        if (!userData.city.trim()) newErrors.city = "City is required";
+        if (!String(userData.pickupDate).trim()) newErrors.pickupDate = "Pickup Date is required";
+        if (!String(userData.dropoffDate).trim()) newErrors.dropoffDate = "Dropoff Date is required";
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleUpdate = async () => {
-        if (!validateForm()) return;
+        if (!validateUpdateForm())
+
+            return;
 
         try {
+
             const formData = new FormData();
 
             // Append booking ID for update
-            formData.append('id', bookingData.id);
+            formData.append('Id', bookingData.id);
 
             // Append all text fields
             formData.append('FullName', userData.name);
-            formData.append('fatherName', userData.fatherName);
-            formData.append('cnic', userData.cnic);
-            formData.append('licenseNumber', userData.licenseNumber);
-            formData.append('phone', userData.phone);
-            formData.append('age', userData.age);
-            formData.append('address', userData.address);
-            formData.append('city', userData.city);
-            formData.append('pickupDate', userData.pickupDate);
-            formData.append('dropoffDate', userData.dropoffDate);
-            formData.append('carId', bookingData.carDetail?.id || bookingData.id);
-            formData.append('carName', bookingData.carDetail?.carName || bookingData.carName);
-            formData.append('price', bookingData.carDetail?.pricePerDay || bookingData.price);
+            formData.append('FatherName', userData.fatherName);
+            formData.append('CNIC', userData.cnic);
+            formData.append('LicenseNumber', userData.licenseNumber);
+            formData.append('Phone', userData.phone);
+            formData.append('Age', userData.age);
+            formData.append('Address', userData.address);
+            formData.append('City', userData.city);
+            formData.append('PickupDate', userData.pickupDate);
+            formData.append('DropoffDate', userData.dropoffDate);
+            const carId = bookingData.carDetail?.car?.carId ||
+                cardetail?.carId ||
+                bookingData.id;
+            formData.append('CarId', carId);
+            formData.append('CarName', bookingData.carName);
+            formData.append('CarName', bookingData.carDetail?.carName || bookingData.carName);
+
 
             // Append new uploaded images (not existing ones)
             const newImages = uploadedImages.filter(img => !img.isExisting && img.file);
             newImages.forEach((image) => {
-                formData.append('CarImage', image.file);
+                formData.append('Attachments', image.file);
             });
 
-            // Keep track of existing images that weren't deleted
-            const existingImageIds = uploadedImages
-                .filter(img => img.isExisting)
-                .map(img => img.imageId);
 
-            if (existingImageIds.length > 0) {
-                formData.append('ExistingImages', JSON.stringify(existingImageIds));
+            const existingImageUrls = uploadedImages
+                .filter(img => img.isExisting && img.preview)
+                .map(img => {
+                    const url = img.preview;
+                    // Remove base URL if it exists
+                    if (url.startsWith('http://') || url.startsWith('https://')) {
+                        // Extract path after the domain
+                        const urlObj = new URL(url);
+                        return urlObj.pathname; // This returns "/Images/..."
+                    }
+                    return url; // Already relative path
+                });
+
+            if (existingImageUrls.length > 0) {
+                formData.append('CarImageUrl', JSON.stringify(existingImageUrls));
             }
 
+            //  if  backend expects individual entries like in create:
+            // existingImageUrls.forEach(url => {
+            //     formData.append('CarImageUrl', url);
+            // });
+
+            // Keep track of existing images that weren't deleted
+            // const existingAttachmentIds = uploadedImages
+            //     .filter(img => img.isExisting)
+            //     .map(img => img.attachmentId);
+
+            // if (existingAttachmentIds.length > 0) {
+            //     formData.append('ExistingAttachmentIds', JSON.stringify(existingAttachmentIds));
+            // }
+
+            // const allOriginalAttachmentIds = bookingData.attachments?.map(att => att.attachmentId) || [];
+            // const deletedAttachmentIds = allOriginalAttachmentIds.filter(
+            //     id => !existingAttachmentIds.includes(id)
+            // );
+
+            // if (deletedAttachmentIds.length > 0) {
+            //     formData.append('DeletedAttachmentIds', JSON.stringify(deletedAttachmentIds));
+            // }
+
             // Call update API (you'll need to create this endpoint)
-            const res = await bookCarsService.updateBookCar(bookingData.id, formData);
+            const res = await bookCarsService.updateBookCar(formData);
+
 
             if (res && res.status === 200) {
-                alert("Booking updated successfully");
+                showSnackbar("Booking updated successfully!", "success");
                 if (onUpdateSuccess) {
                     onUpdateSuccess(); // Refresh the bookings list
                 }
-                openModal();
-                resetForm();
+
             }
         } catch (err) {
             console.error("Update failed:", err);
             alert("Failed to update booking");
+
         }
+        finally {
+            setTimeout(() => {
+            openModal();
+            resetForm();
+        }, 2000);
+        }
+
     };
 
     const handleSubmit = async () => {
         if (isEditMode) {
-            // If in edit mode, call update function
             handleUpdate();
             return;
         }
-        if (!validateForm()) return;
+        if (!validateForm())
+
+            return;
 
         try {
             // Create FormData object
@@ -224,7 +318,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             // Append new uploaded images (not existing ones)
             uploadedImages.forEach((image, index) => {
                 if (!image.isExisting && image.file) {
-                    formData.append('CarImage', image.file);
+                    formData.append('Attachments', image.file);
                 }
             });
 
@@ -235,12 +329,16 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
             if (existingImageIds.length > 0) {
                 formData.append('CarImageUrl', JSON.stringify(existingImageIds));
+
             }
+
+
 
             const res = await bookCarsService.bookCar(formData);
             if (res && res.status === 200) {
                 alert("car booked successfully");
             }
+            await carsApi();
             openModal();
             resetForm();
         }
@@ -249,6 +347,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             openModal();
             resetForm();
         }
+
     }
 
     return (
@@ -363,9 +462,8 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                     value={userData.age}
                                     onChange={(e) => handleInputChange("age", e.target.value)}
                                     type="number"
-                                    placeholder="18"
-                                    min="18"
-                                    max="100"
+                                    inputMode="numeric"
+                                    placeholder="age"
                                 />
                                 {errors.age && (
                                     <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
@@ -442,24 +540,24 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                         {/* Image Upload Section */}
                         <Box sx={{ mt: 3, mb: 2 }}>
                             <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                                Car Images
+                                Car Images / Documents
                             </Typography>
                             <Box sx={{
                                 display: 'flex',
                                 flexWrap: 'wrap',
                                 gap: 2
                             }}>
-                                {/* Display all uploaded images */}
+                                {/* Display all uploaded/existing images */}
                                 {uploadedImages.map((image, index) => (
                                     <Box
-                                        key={index}
+                                        key={image.id || index}
                                         sx={{
                                             position: 'relative',
                                             width: 120,
                                             height: 120,
                                             borderRadius: 1,
                                             overflow: 'hidden',
-                                            border: '2px solid #e0e0e0',
+                                            border: image.isExisting ? '2px solid #1976d2' : '2px solid #e0e0e0',
                                             '&:hover .delete-btn': {
                                                 opacity: 1
                                             }
@@ -467,13 +565,35 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                     >
                                         <img
                                             src={image.preview}
-                                            alt={`Car ${index + 1}`}
+                                            alt={image.fileName || `Car ${index + 1}`}
                                             style={{
                                                 width: '100%',
                                                 height: '100%',
                                                 objectFit: 'cover'
                                             }}
                                         />
+
+                                        {/* Existing badge */}
+                                        {image.isExisting && (
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    bottom: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                    bgcolor: 'rgba(25, 118, 210, 0.9)',
+                                                    color: 'white',
+                                                    py: 0.5,
+                                                    px: 1,
+                                                    fontSize: '0.65rem',
+                                                    fontWeight: 600,
+                                                    textAlign: 'center'
+                                                }}
+                                            >
+                                                EXISTING
+                                            </Box>
+                                        )}
+
                                         <IconButton
                                             className="delete-btn"
                                             onClick={() => handleRemoveImage(index)}
@@ -533,9 +653,16 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                             </Box>
 
                             {uploadedImages.length > 0 && (
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                    {uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} selected
-                                </Typography>
+                                <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} selected
+                                    </Typography>
+                                    {uploadedImages.filter(img => img.isExisting).length > 0 && (
+                                        <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 600 }}>
+                                            ({uploadedImages.filter(img => img.isExisting).length} existing)
+                                        </Typography>
+                                    )}
+                                </Box>
                             )}
                         </Box>
 
@@ -544,7 +671,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                 type="button"
                                 onClick={handleSubmit}
                             >
-                                Book Now
+                                {isEditMode ? "Update Now" : "Book Now"}
                             </button>
                         </div>
                     </form>

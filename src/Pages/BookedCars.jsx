@@ -11,8 +11,9 @@ import {
 import bookCarsService from '../api/services/BookCars/bookCarsService';
 import BookACarModal from "../components/BookACarModal";
 import { BASE_URL } from "../api/axiosConfig";
+import { useNavigate } from 'react-router-dom';
 
-const BookedCarsPage = ({ onBook }) => {
+const BookedCarsPage = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
@@ -25,16 +26,18 @@ const BookedCarsPage = ({ onBook }) => {
         fetchBookings();
     }, []);
 
+    const navigate = useNavigate();
     const fetchBookings = async () => {
         setLoading(true);
         try {
+            
             const res = await bookCarsService.getBookedCars();
             if (res && res.status === 200) {
                 // Map API response to match UI fields
                 const mappedBookings = res.data.map((b) => ({
-                    id: b.id,
+                    id: b.bookingId,
                     carName: b.car?.carName || "Unknown Car",
-                    image: b.car?.imageUrl ? `${BASE_URL}${b.car.carImageUrl}` : '/placeholder.png',
+                    image: b.car?.imageUrl ? `${BASE_URL}${b.car.imageUrl}` : '/placeholder.png',
                     price: b.car?.pricePerDay || 0,
                     description: b.car?.description || '',
                     transmission: b.car?.transmission || '',
@@ -53,10 +56,19 @@ const BookedCarsPage = ({ onBook }) => {
                     age: b.age || '',
                     address: b.address || '',
                     city: b.city || '',
-                    images: b.images || b.carImages || [], // Array of image URLs
-                    carDetail: b.car
+                    attachments: b.attachments?.map(att => ({
+                    id: att.attachmentId,
+                    attachmentId: att.attachmentId,
+                    fileName: att.fileName,
+                    filePath: `${BASE_URL}${att.filePath}`,
+                    fileSize: att.fileSize,
+                    uploadDate: att.uploadDate
+                })) || [],
+                    carDetail: b
                 }));
+                
                 setBookings(mappedBookings);
+                
             }
         } catch (err) {
             console.error("Failed to fetch bookings:", err);
@@ -165,11 +177,11 @@ const BookedCarsPage = ({ onBook }) => {
 
                 <Grid container spacing={3}>
                     {bookings.length > 0 ? bookings.map((booking) => (
-                        <Grid item xs={12} key={booking.id}>
+                        <Grid item xs={12} lg={6} key={booking.id}>
                             <Card elevation={2} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, overflow: 'hidden', '&:hover': { boxShadow: 4 }, transition: 'box-shadow 0.3s' }}>
                                 <CardMedia
                                     component="img"
-                                    sx={{ width: { xs: '100%', md: 300 }, height: { xs: 200, md: 'auto' }, objectFit: 'cover' }}
+                                    sx={{ width: { xs: '100%', md: 300 }, height: { xs: 200, md: 'auto' }, objectFit: 'fill' }}
                                     image={booking.image}
                                     alt={booking.carName}
                                 />
@@ -185,33 +197,6 @@ const BookedCarsPage = ({ onBook }) => {
                                             </Box>
                                             <Chip icon={getStatusIcon(booking.status)} label={booking.status.toUpperCase()} color={getStatusColor(booking.status)} size="small" sx={{ fontWeight: 600 }} />
                                         </Box>
-
-                                        {/* <Grid container spacing={2} sx={{ mb: 2 }}>
-                                            <Grid item xs={6} sm={3}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <Settings fontSize="small" color="action" />
-                                                    <Typography variant="body2" color="text.secondary">{booking.transmission}</Typography>
-                                                </Box>
-                                            </Grid>
-                                            <Grid item xs={6} sm={3}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <LocalGasStation fontSize="small" color="action" />
-                                                    <Typography variant="body2" color="text.secondary">{booking.fuelType}</Typography>
-                                                </Box>
-                                            </Grid>
-                                            <Grid item xs={6} sm={3}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <Star fontSize="small" color="action" />
-                                                    <Typography variant="body2" color="text.secondary">{booking.rating}</Typography>
-                                                </Box>
-                                            </Grid>
-                                            <Grid item xs={6} sm={3}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <AttachMoney fontSize="small" color="action" />
-                                                    <Typography variant="body2" color="text.secondary">${booking.pricePerDay}/day</Typography>
-                                                </Box>
-                                            </Grid>
-                                        </Grid> */}
 
                                         <Grid container spacing={2} sx={{ mb: 2 }}>
                                             <Grid item xs={12}>
@@ -278,7 +263,7 @@ const BookedCarsPage = ({ onBook }) => {
                             <DirectionsCar sx={{ fontSize: 100, color: '#e0e0e0', mb: 2 }} />
                             <Typography variant="h5" color="text.secondary" sx={{ mb: 1 }}>No bookings found</Typography>
                             <Typography variant="body2" color="text.secondary">You haven't booked any cars yet</Typography>
-                            <Button variant="contained" sx={{ mt: 3 }} startIcon={<DirectionsCar />}>Browse Cars</Button>
+                            {/* <Button onClick={navigate("models")} variant="contained" sx={{ mt: 3 }} startIcon={<DirectionsCar />}>Browse Cars</Button> */}
                         </Box>
                     )}
                 </Grid>
