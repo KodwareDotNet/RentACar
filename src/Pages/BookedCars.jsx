@@ -18,6 +18,8 @@ const BookedCarsPage = () => {
     const [loading, setLoading] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
     const [showBookModal, setShowBookModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showReceiveModal, setShowReceiveModal] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [selectedBookingDetails, setSelectedBookingDetails] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -30,7 +32,7 @@ const BookedCarsPage = () => {
     const fetchBookings = async () => {
         setLoading(true);
         try {
-            
+
             const res = await bookCarsService.getBookedCars();
             if (res && res.status === 200) {
                 // Map API response to match UI fields
@@ -42,12 +44,12 @@ const BookedCarsPage = () => {
                     description: b.car?.description || '',
                     transmission: b.car?.transmission || '',
                     fuelType: b.car?.fuel || '',
-                    rating: '4/5', // If API has rating, replace
+                    rating: '4/5',
                     pickupDate: b.pickupDate,
                     dropoffDate: b.dropoffDate,
                     totalDays: calculateDays(b.pickupDate, b.dropoffDate),
                     totalPrice: (b.car?.pricePerDay || 0) * calculateDays(b.pickupDate, b.dropoffDate),
-                    status: 'active', // or get from API if status exists
+                    status: b.status, 
                     fullName: b.fullName || '',
                     fatherName: b.fatherName || '',
                     cnic: b.cnic || '',
@@ -57,18 +59,18 @@ const BookedCarsPage = () => {
                     address: b.address || '',
                     city: b.city || '',
                     attachments: b.attachments?.map(att => ({
-                    id: att.attachmentId,
-                    attachmentId: att.attachmentId,
-                    fileName: att.fileName,
-                    filePath: `${BASE_URL}${att.filePath}`,
-                    fileSize: att.fileSize,
-                    uploadDate: att.uploadDate
-                })) || [],
+                        id: att.attachmentId,
+                        attachmentId: att.attachmentId,
+                        fileName: att.fileName,
+                        filePath: `${BASE_URL}${att.filePath}`,
+                        fileSize: att.fileSize,
+                        uploadDate: att.uploadDate
+                    })) || [],
                     carDetail: b
                 }));
-                
+
                 setBookings(mappedBookings);
-                
+
             }
         } catch (err) {
             console.error("Failed to fetch bookings:", err);
@@ -87,6 +89,7 @@ const BookedCarsPage = () => {
     const handleCancelClick = (booking) => {
         setSelectedBooking(booking);
         setOpenDialog(true);
+        
     };
 
     const deleteBookCar = async (id) => {
@@ -149,8 +152,8 @@ const BookedCarsPage = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'active': return 'success';
-            case 'completed': return 'info';
+            case 'Active': return 'success';
+            case 'Completed': return 'info';
             case 'cancelled': return 'error';
             default: return 'default';
         }
@@ -161,7 +164,18 @@ const BookedCarsPage = () => {
         setShowBookModal((prev) => !prev);
     };
 
-    const getStatusIcon = (status) => (status === 'active' || status === 'completed') ? <CheckCircle fontSize="small" /> : <Cancel fontSize="small" />;
+    const handleEditClick = (booking) => {
+        setSelectedBookingDetails(booking);
+        setShowEditModal(true);
+    };
+
+    // Handler for Receive Booking button
+    const handleReceiveClick = (booking) => {
+        setSelectedBookingDetails(booking);
+        setShowReceiveModal(true);
+    };
+
+    const getStatusIcon = (status) => (status === 'Active' || status === 'Completed') ? <CheckCircle fontSize="small" /> : <Cancel fontSize="small" />;
 
     return (
         <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: 4 }}>
@@ -197,7 +211,7 @@ const BookedCarsPage = () => {
                                             </Box>
                                             <Chip icon={getStatusIcon(booking.status)} label={booking.status.toUpperCase()} color={getStatusColor(booking.status)} size="small" sx={{ fontWeight: 600 }} />
                                         </Box>
-
+                                         {booking.status === 'Active' && (
                                         <Grid container spacing={2} sx={{ mb: 2 }}>
                                             <Grid item xs={12}>
                                                 <Button
@@ -205,7 +219,7 @@ const BookedCarsPage = () => {
                                                     color="primary"
                                                     size="medium"
                                                     startIcon={<Settings />}
-                                                    onClick={() => toggleBookModal(booking)}
+                                                    onClick={() => handleEditClick(booking)}
                                                     sx={{
                                                         fontWeight: 600,
                                                         textTransform: 'none',
@@ -222,7 +236,7 @@ const BookedCarsPage = () => {
                                                 </Button>
                                             </Grid>
                                         </Grid>
-
+                                               )}
                                         <Divider sx={{ my: 2 }} />
 
                                         <Grid container spacing={2}>
@@ -247,13 +261,36 @@ const BookedCarsPage = () => {
                                             </Grid>
                                         </Grid>
 
-                                        {booking.status === 'active' && (
+                                        {booking.status === 'Active' && (
                                             <Box sx={{ mt: 3 }}>
                                                 <Button variant="outlined" color="error" size="large" startIcon={<Cancel />} onClick={() => handleCancelClick(booking)} fullWidth sx={{ py: 1.5, fontWeight: 600, '&:hover': { bgcolor: 'error.light', color: 'white', borderColor: 'error.main' } }}>
                                                     Cancel Booking
                                                 </Button>
                                             </Box>
                                         )}
+                                        <Box sx={{ mt: 3 }}>
+                                             {booking.status === 'Active' && (
+                                            <Button
+                                                variant="outlined"
+                                                color="success"
+                                                size="large"
+                                                startIcon={<CheckCircle />}
+                                                onClick={() => handleReceiveClick(booking)}
+                                                fullWidth
+                                                sx={{
+                                                    py: 1.5,
+                                                    fontWeight: 600,
+                                                    '&:hover': {
+                                                        bgcolor: 'success.light',
+                                                        color: 'white',
+                                                        borderColor: 'success.main'
+                                                    }
+                                                }}
+                                            >
+                                                Receive Booking
+                                            </Button>
+                                            )}
+                                        </Box>
                                     </CardContent>
                                 </Box>
                             </Card>
@@ -287,13 +324,28 @@ const BookedCarsPage = () => {
                     </Alert>
                 </Snackbar>
             </Container>
+            {/* EDIT MODE MODAL */}
             <BookACarModal
-                modal={showBookModal}
-                openModal={toggleBookModal}
+                modal={showEditModal}
+                openModal={() => setShowEditModal(false)}
                 cardetail={selectedBookingDetails?.carDetail}
-                bookingData={selectedBookingDetails} // Pass the booking data
-                isEditMode={true} // Flag to indicate edit mode
-                onUpdateSuccess={fetchBookings} // Refresh bookings after update
+                bookingData={selectedBookingDetails}
+                isEditMode={true}
+                isReceiveMode={false}
+                onUpdateSuccess={fetchBookings}
+               
+            />
+
+            {/* RECEIVE MODE MODAL */}
+            <BookACarModal
+                modal={showReceiveModal}
+                openModal={() => setShowReceiveModal(false)}
+                cardetail={selectedBookingDetails?.carDetail}
+                bookingData={selectedBookingDetails}
+                isEditMode={false}
+                isReceiveMode={true}
+                onUpdateSuccess={fetchBookings}
+               
             />
         </Box>
     );

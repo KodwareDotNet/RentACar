@@ -5,6 +5,7 @@ import { Button, IconButton, Box, Typography } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
 import addCarsService from "../api/services/AddCars/addCarsService";
+import { Alert, Snackbar } from "@mui/material";
 import { BASE_URL } from "../api/axiosConfig";
 
 function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList }) {
@@ -30,6 +31,21 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
     const [errors, setErrors] = useState({});
     const isEditMode = !!carToEdit;
     const navigate = useNavigate();
+
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success"
+    });
+
+    const showSnackbar = (message, severity = "success") => {
+        setSnackbar({ open: true, message, severity });
+    };
+
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') return;
+        setSnackbar({ ...snackbar, open: false });
+    };
 
     // Prefill form when carToEdit changes
     useEffect(() => {
@@ -176,7 +192,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                 }
 
                 await addCarsService.addCars(formData);
-                alert("Car Updated Successfully");
+                showSnackbar("Car updated successfully!", "success");
 
             } else {
                 // Add mode
@@ -193,12 +209,12 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
 
                 const res = await addCarsService.addCars(formData);
                 if (res.data === true || res.status === 200 || res.data.success) {
-                    alert("Car Added Successfully");
+                    showSnackbar("Car Added successfully!", "success");
 
                     // Reset form and close modal
 
                 } else {
-                    throw new Error("Failed to add car");
+                    showSnackbar("Failed to Add", "error");
                 }
             }
             resetForm();
@@ -645,6 +661,11 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                     </form>
                 </div>
             </div>
+            <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </>
     );
 }

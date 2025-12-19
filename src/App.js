@@ -8,6 +8,7 @@ import UsersList from "./Pages/UsersList";
 import RolesList from "./Pages/RolesList";
 import OrganizationList from "./Pages/OrganizationList";
 import BookedCarsPage from "./Pages/BookedCars";
+import ReceivedCarsPage from "./Pages/ReceivedCars";
 
 function App() {
   const location = useLocation();
@@ -32,6 +33,7 @@ function App() {
         <Route path="rolesList" element={<RolesList />} />
         <Route path="organizationList" element={<OrganizationList />} />
         <Route path="bookedCarsPage" element={<BookedCarsPage />} />
+        <Route path="receivedCarsPage" element={<ReceivedCarsPage />} />
       </Routes>
     </>
   );

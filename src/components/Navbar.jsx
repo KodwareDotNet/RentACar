@@ -57,7 +57,7 @@ function Navbar() {
     if (value === undefined) {
       setshowAddUserModal(prev => !prev);
     } else {
-      setshowAddUserModal(value);  // <-- explicit open/close
+      setshowAddUserModal(value);
     }
   };
 
@@ -127,7 +127,7 @@ function Navbar() {
     { label: 'Role List', path: 'rolesList' },
     { label: 'Assign Permission', onClick: toggleAddPermissionModal },
     { label: 'Booked Car', path: 'bookedCarsPage' },
-
+    { label: 'Received Car', path: 'receivedCarspage'}
   ];
 
 

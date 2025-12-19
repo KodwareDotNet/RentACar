@@ -78,7 +78,66 @@ const bookCarsService = {
             }
         }
     },
+     receiveBookCar: async ( formData) => {
+        
+        try {
+            const res = await api.post(`Car/receiveCar`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+            return res;
+        }
+        catch (error) {
+            if (error.response) {
+                // Server responded with a status other than 2xx
+                console.error("receive Booking failed:", error.response.data);
+                throw new Error(
+                    error.response.data.message || "Failed to receive the car."
+                );
+            } else if (error.request) {
+                // Request was made but no response received
+                console.error("No response from server:", error.request);
+                throw new Error("No response from the server. Please try again.");
+            } else {
+                // Something else happened while setting up the request
+                console.error("Error setting up request:", error.message);
+                throw new Error("Error booking the car: " + error.message);
+            }
+        }
+    },
     deleteBookCars: async (id) => {
+        try {
+            const res = await api.delete(`car/CancelBooking/${id}`
+            );
+            return res.data;
+        }
+        catch (ex) {
+            console.error("Cancel Error:", ex);
+            throw ex;
+        }
+    },
+    getReceivedCars: async () => {
+        try {
+            const res = await api.get("Car/GetAllReceivedCars"); // or whatever your endpoint is
+            return res;
+        }
+        catch (error) {
+            if (error.response) {
+                console.error("Failed to fetch GetAllReceivedCars:", error.response.data);
+                throw new Error(
+                    error.response.data.message || "Failed to fetch GetAllReceivedCars."
+                );
+            } else if (error.request) {
+                console.error("No response from server:", error.request);
+                throw new Error("No response from the server. Please try again.");
+            } else {
+                console.error("Error setting up request:", error.message);
+                throw new Error("Error fetching GetAllReceivedCars: " + error.message);
+            }
+        }
+    },
+     deleteReceiveCars: async (id) => {
         try {
             const res = await api.delete(`car/CancelBooking/${id}`
             );

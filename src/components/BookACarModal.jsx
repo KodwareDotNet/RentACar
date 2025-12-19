@@ -3,12 +3,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { Box, Typography, IconButton } from "@mui/material";
-import { Snackbar} from "@mui/material";
+import { Alert, Snackbar } from "@mui/material";
 import bookCarsService from "../api/services/BookCars/bookCarsService";
 import addCarsService from "../api/services/AddCars/addCarsService";
 import { BASE_URL } from "../api/axiosConfig";
 
-function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = false, onUpdateSuccess, carsApi }) {
+function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = false, isReceiveMode = false, onUpdateSuccess, carsApi }) {
     const [userData, setUserData] = useState({
         name: "",
         fatherName: "",
@@ -21,6 +21,13 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         pickupDate: "",
         dropoffDate: "",
         carId: "",
+    });
+
+    const [receiveData, setReceiveData] = useState({
+        Images: [],
+        damageNotes: "",
+        extraCharges: 0,
+        remarks: "",
     });
 
     const [uploadedImages, setUploadedImages] = useState([]);
@@ -56,13 +63,18 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             carId: "",
         });
         setUploadedImages([]);
+        setReceiveData({
+            Images: [],
+            damageNotes: "",
+            extraCharges: 0,
+            remarks: "",
+        });
     }
 
     // Update carId and image when cardetail changes
     React.useEffect(() => {
         if (isEditMode && bookingData) {
-
-            // Pre-fill data from existing booking for editing
+            // Edit mode logic (existing code)
             setUserData({
                 name: bookingData.fullName || "",
                 fatherName: bookingData.fatherName || "",
@@ -77,7 +89,6 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                 carId: bookingData.carDetail?.id || bookingData.id || "",
             });
 
-            // Set existing images from booking
             if (bookingData.attachments && bookingData.attachments.length > 0) {
                 const existingImages = bookingData.attachments.map(att => ({
                     id: att.id,
@@ -90,8 +101,6 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                     fileSize: att.fileSize
                 }));
                 setUploadedImages(existingImages);
-            } else {
-                setUploadedImages([]);
             }
         } else if (cardetail) {
             // For new booking mode
@@ -128,6 +137,25 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         setUploadedImages(newImages);
     };
 
+    const handleRemoveReturnImage = (index) => {
+        const newImages = receiveData.Images.filter((_, i) => i !== index);
+        setReceiveData(prev => ({ ...prev, Images: newImages }));
+    };
+
+    const handleReturnImagesSelect = (e) => {
+        const files = Array.from(e.target.files);
+
+        const images = files.map(file => ({
+            file,
+            preview: URL.createObjectURL(file),
+        }));
+
+        setReceiveData(prev => ({
+            ...prev,
+            Images: [...prev.Images, ...images],
+        }));
+    };
+
     const handleInputChange = (field, value) => {
         setUserData(prev => ({ ...prev, [field]: value }));
 
@@ -138,6 +166,22 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             }
             return newErrors;
         });
+    };
+
+    const handleReceiveInputChange = (field, value) => {
+        setReceiveData(prev => ({ ...prev, [field]: value }));
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            if (value.trim() !== "" && newErrors[field]) {
+                delete newErrors[field];
+            }
+            return newErrors;
+        });
+    };
+
+    const handleCloseModal = () => {
+        resetForm();     // reset all form states
+        openModal();     // close modal
     };
 
     const validateForm = () => {
@@ -212,6 +256,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append('CarId', carId);
             formData.append('CarName', bookingData.carName);
             formData.append('CarName', bookingData.carDetail?.carName || bookingData.carName);
+            formData.append('status', 'active');
 
 
             // Append new uploaded images (not existing ones)
@@ -238,30 +283,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                 formData.append('CarImageUrl', JSON.stringify(existingImageUrls));
             }
 
-            //  if  backend expects individual entries like in create:
-            // existingImageUrls.forEach(url => {
-            //     formData.append('CarImageUrl', url);
-            // });
 
-            // Keep track of existing images that weren't deleted
-            // const existingAttachmentIds = uploadedImages
-            //     .filter(img => img.isExisting)
-            //     .map(img => img.attachmentId);
-
-            // if (existingAttachmentIds.length > 0) {
-            //     formData.append('ExistingAttachmentIds', JSON.stringify(existingAttachmentIds));
-            // }
-
-            // const allOriginalAttachmentIds = bookingData.attachments?.map(att => att.attachmentId) || [];
-            // const deletedAttachmentIds = allOriginalAttachmentIds.filter(
-            //     id => !existingAttachmentIds.includes(id)
-            // );
-
-            // if (deletedAttachmentIds.length > 0) {
-            //     formData.append('DeletedAttachmentIds', JSON.stringify(deletedAttachmentIds));
-            // }
-
-            // Call update API (you'll need to create this endpoint)
             const res = await bookCarsService.updateBookCar(formData);
 
 
@@ -274,21 +296,64 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             }
         } catch (err) {
             console.error("Update failed:", err);
-            alert("Failed to update booking");
+            showSnackbar("Booking Not updated !", "error");
 
         }
         finally {
-            setTimeout(() => {
             openModal();
             resetForm();
-        }, 2000);
+
         }
 
+    };
+
+    const handleReceiveSubmit = async () => {
+
+        try {
+            const formData = new FormData();
+
+            formData.append('BookingId', bookingData.id);
+            formData.append('DamageRemarks', receiveData.damageNotes);
+            formData.append('ExtraCharges', receiveData.extraCharges || 0);
+            formData.append('Remarks', receiveData.remarks);
+            formData.append('status', 'Completed');
+            formData.append("bookingStatus", 2);
+            
+
+            // Append return images
+            receiveData.Images.forEach((image) => {
+                formData.append('ReceiveImages', image.file);
+            });
+
+            // Call your API endpoint
+            const res = await bookCarsService.receiveBookCar(formData);
+
+
+            if (res && res.status === 200) {
+                showSnackbar("Car return recorded successfully!", "success");
+            }
+            if (onUpdateSuccess) {
+                onUpdateSuccess();
+            }
+
+        } catch (err) {
+            console.error("Receive failed:", err);
+            showSnackbar("Failed to receive car !", "error");
+        }
+        finally {
+
+            openModal();
+            resetForm();
+        }
     };
 
     const handleSubmit = async () => {
         if (isEditMode) {
             handleUpdate();
+            return;
+        }
+        else if (isReceiveMode) {
+            handleReceiveSubmit();
             return;
         }
         if (!validateForm())
@@ -314,6 +379,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append('carId', cardetail?.id);
             formData.append('carName', cardetail?.carName);
             formData.append('price', cardetail?.pricePerDay);
+            formData.append('Status', 'Active');
 
             // Append new uploaded images (not existing ones)
             uploadedImages.forEach((image, index) => {
@@ -336,14 +402,14 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
             const res = await bookCarsService.bookCar(formData);
             if (res && res.status === 200) {
-                alert("car booked successfully");
+                showSnackbar("Booked successfully!", "success");
             }
             await carsApi();
             openModal();
             resetForm();
         }
         catch (err) {
-            alert("booking failed", err);
+            showSnackbar("Failed to book!", "error");
             openModal();
             resetForm();
         }
@@ -356,260 +422,73 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             <div
                 className={`modal-overlay ${modal ? "active-modal" : ""}`}
                 onClick={openModal}
-            ></div>
+            />
 
             {/* Modal Content */}
             <div className={`booking-modal ${modal ? "active-modal" : ""}`}>
                 <div className="booking-modal__title">
                     <h2>Complete Reservation</h2>
                     <CloseIcon
-                        onClick={openModal}
+                        onClick={handleCloseModal}
+
                         style={{ cursor: "pointer", fontSize: "2.5rem" }}
                     />
                 </div>
 
-                {/* Personal Info Section */}
-                <div className="booking-modal__person-info">
-                    <h4>Personal Information</h4>
-                    <form className="info-form">
-                        {/* Row 1: Name & Father Name */}
-                        <div className="info-form__2col">
-                            <span>
-                                <label>Full Name <b>*</b></label>
-                                <input
-                                    value={userData.name}
-                                    onChange={(e) => handleInputChange("name", e.target.value)}
-                                    type="text"
-                                    placeholder="Enter your full name"
-                                />
-                                {errors.name && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.name}
-                                    </Typography>
-                                )}
-                            </span>
+                {isReceiveMode ? (
+                    <>
+                        <h4 style={{ marginTop: "2rem", marginBottom: "1rem" }}>
+                            Car Return Details
+                        </h4>
 
-                            <span>
-                                <label>Father Name <b>*</b></label>
-                                <input
-                                    value={userData.fatherName}
-                                    onChange={(e) => handleInputChange("fatherName", e.target.value)}
-                                    type="text"
-                                    placeholder="Enter your father's name"
-                                />
-                                {errors.fatherName && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.fatherName}
-                                    </Typography>
-                                )}
-                            </span>
-                        </div>
-
-                        {/* Row 2: CNIC & License Number */}
-                        <div className="info-form__2col">
-                            <span>
-                                <label>CNIC <b>*</b></label>
-                                <input
-                                    value={userData.cnic}
-                                    onChange={(e) => handleInputChange("cnic", e.target.value)}
-                                    type="text"
-                                    placeholder="XXXXX-XXXXXXX-X"
-                                    maxLength="15"
-                                />
-                                {errors.cnic && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.cnic}
-                                    </Typography>
-                                )}
-                            </span>
-
-                            <span>
-                                <label>License Number <b>*</b></label>
-                                <input
-                                    value={userData.licenseNumber}
-                                    onChange={(e) => handleInputChange("licenseNumber", e.target.value)}
-                                    type="text"
-                                    placeholder="Enter your license number"
-                                />
-                                {errors.licenseNumber && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.licenseNumber}
-                                    </Typography>
-                                )}
-                            </span>
-                        </div>
-
-                        {/* Row 3: Phone & Age */}
-                        <div className="info-form__2col">
-                            <span>
-                                <label>Phone <b>*</b></label>
-                                <input
-                                    value={userData.phone}
-                                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                                    type="tel"
-                                    placeholder="Enter your phone number"
-                                />
-                                {errors.phone && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.phone}
-                                    </Typography>
-                                )}
-                            </span>
-
-                            <span>
-                                <label>Age <b>*</b></label>
-                                <input
-                                    value={userData.age}
-                                    onChange={(e) => handleInputChange("age", e.target.value)}
-                                    type="number"
-                                    inputMode="numeric"
-                                    placeholder="age"
-                                />
-                                {errors.age && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.age}
-                                    </Typography>
-                                )}
-                            </span>
-                        </div>
-
-                        {/* Row 4: Address & City */}
-                        <div className="info-form__2col">
-                            <span>
-                                <label>Address <b>*</b></label>
-                                <input
-                                    value={userData.address}
-                                    onChange={(e) => handleInputChange("address", e.target.value)}
-                                    type="text"
-                                    placeholder="Enter your street address"
-                                />
-                                {errors.address && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.address}
-                                    </Typography>
-                                )}
-                            </span>
-
-                            <span>
-                                <label>City <b>*</b></label>
-                                <input
-                                    value={userData.city}
-                                    onChange={(e) => handleInputChange("city", e.target.value)}
-                                    type="text"
-                                    placeholder="Enter your city"
-                                />
-                                {errors.city && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.city}
-                                    </Typography>
-                                )}
-                            </span>
-                        </div>
-
-                        {/* Row 5: Pickup & Dropoff Dates */}
-                        <div className="info-form__2col">
-                            <span>
-                                <label>Pickup Date <b>*</b></label>
-                                <input
-                                    value={userData.pickupDate}
-                                    onChange={(e) => handleInputChange("pickupDate", e.target.value)}
-                                    type="date"
-                                />
-                                {errors.pickupDate && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.pickupDate}
-                                    </Typography>
-                                )}
-                            </span>
-
-                            <span>
-                                <label>Dropoff Date <b>*</b></label>
-                                <input
-                                    value={userData.dropoffDate}
-                                    onChange={(e) => handleInputChange("dropoffDate", e.target.value)}
-                                    type="date"
-                                />
-                                {errors.dropoffDate && (
-                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                        {errors.dropoffDate}
-                                    </Typography>
-                                )}
-                            </span>
-                        </div>
-
-                        {/* Image Upload Section */}
-                        <Box sx={{ mt: 3, mb: 2 }}>
-                            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                                Car Images / Documents
+                        {/* Car Condition Images */}
+                        <Box sx={{ mb: 3 }}>
+                            <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                                Car Condition Images <span style={{ color: "red" }}>*</span>
                             </Typography>
-                            <Box sx={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: 2
-                            }}>
-                                {/* Display all uploaded/existing images */}
-                                {uploadedImages.map((image, index) => (
+
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{ mb: 2, display: "block" }}
+                            >
+                                Take photos of all sides, interior, and any damage
+                            </Typography>
+
+                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+                                {receiveData.Images.map((image, index) => (
                                     <Box
-                                        key={image.id || index}
+                                        key={index}
                                         sx={{
-                                            position: 'relative',
+                                            position: "relative",
                                             width: 120,
                                             height: 120,
                                             borderRadius: 1,
-                                            overflow: 'hidden',
-                                            border: image.isExisting ? '2px solid #1976d2' : '2px solid #e0e0e0',
-                                            '&:hover .delete-btn': {
-                                                opacity: 1
-                                            }
+                                            overflow: "hidden",
+                                            border: "2px solid #4caf50",
+                                            "&:hover .delete-btn": { opacity: 1 },
                                         }}
                                     >
                                         <img
                                             src={image.preview}
-                                            alt={image.fileName || `Car ${index + 1}`}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'cover'
-                                            }}
+                                            alt={`Return ${index + 1}`}
+                                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                         />
-
-                                        {/* Existing badge */}
-                                        {image.isExisting && (
-                                            <Box
-                                                sx={{
-                                                    position: 'absolute',
-                                                    bottom: 0,
-                                                    left: 0,
-                                                    right: 0,
-                                                    bgcolor: 'rgba(25, 118, 210, 0.9)',
-                                                    color: 'white',
-                                                    py: 0.5,
-                                                    px: 1,
-                                                    fontSize: '0.65rem',
-                                                    fontWeight: 600,
-                                                    textAlign: 'center'
-                                                }}
-                                            >
-                                                EXISTING
-                                            </Box>
-                                        )}
 
                                         <IconButton
                                             className="delete-btn"
-                                            onClick={() => handleRemoveImage(index)}
+                                            onClick={() => handleRemoveReturnImage(index)}
                                             sx={{
-                                                position: 'absolute',
+                                                position: "absolute",
                                                 top: 4,
                                                 right: 4,
-                                                bgcolor: 'error.main',
-                                                color: 'white',
+                                                bgcolor: "error.main",
+                                                color: "white",
                                                 width: 28,
                                                 height: 28,
                                                 opacity: 0,
-                                                transition: 'opacity 0.3s',
-                                                '&:hover': {
-                                                    bgcolor: 'error.dark'
-                                                }
+                                                transition: "opacity 0.3s",
+                                                "&:hover": { bgcolor: "error.dark" },
                                             }}
                                         >
                                             <DeleteIcon sx={{ fontSize: 18 }} />
@@ -617,68 +496,453 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                     </Box>
                                 ))}
 
-                                {/* Upload Button */}
                                 <Box
                                     component="label"
                                     sx={{
                                         width: 120,
                                         height: 120,
-                                        border: '2px dashed #ccc',
+                                        border: "2px dashed #4caf50",
                                         borderRadius: 1,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.3s',
-                                        bgcolor: '#fafafa',
-                                        '&:hover': {
-                                            borderColor: '#1976d2',
-                                            bgcolor: '#e3f2fd'
-                                        }
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        cursor: "pointer",
+                                        bgcolor: "#f1f8f4",
+                                        "&:hover": { bgcolor: "#e8f5e9" },
                                     }}
                                 >
-                                    <AddPhotoAlternateIcon sx={{ fontSize: 40, color: '#999', mb: 1 }} />
+                                    <AddPhotoAlternateIcon
+                                        sx={{ fontSize: 40, color: "#4caf50", mb: 1 }}
+                                    />
                                     <Typography variant="caption" color="text.secondary">
-                                        Upload
+                                        Add Photo
                                     </Typography>
                                     <input
                                         type="file"
                                         multiple
                                         accept="image/*"
-                                        onChange={handleFileSelect}
-                                        style={{ display: 'none' }}
+                                        onChange={handleReturnImagesSelect}
+                                        style={{ display: "none" }}
                                     />
                                 </Box>
                             </Box>
 
-                            {uploadedImages.length > 0 && (
-                                <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} selected
-                                    </Typography>
-                                    {uploadedImages.filter(img => img.isExisting).length > 0 && (
-                                        <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 600 }}>
-                                            ({uploadedImages.filter(img => img.isExisting).length} existing)
-                                        </Typography>
-                                    )}
-                                </Box>
+                            {errors.Images && (
+                                <Typography color="error" sx={{ fontSize: "0.875rem", mt: 1 }}>
+                                    {errors.Images}
+                                </Typography>
                             )}
                         </Box>
 
+
+                        <Box sx={{ mb: 3 }}>
+                            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                                Damage  Remarks
+                            </label>
+                            <textarea
+                                rows="4"
+                                value={receiveData.damageNotes}
+                                onChange={(e) =>
+                                    handleReceiveInputChange("damageNotes", e.target.value)
+                                }
+                                placeholder="Describe any scratches, dents, or damage found..."
+                                style={{
+                                    width: "100%",
+                                    padding: 12,
+                                    borderRadius: 3,
+                                    border: "1px solid #ccc",
+                                    fontSize: 14,
+                                }}
+                            />
+                        </Box>
+
+                        {/* Extra Charges */}
+                        <Box sx={{ mb: 3 }}>
+                            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                                Extra Charges for Damages (Optional)
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={receiveData.extraCharges}
+                                onChange={(e) =>
+                                    handleReceiveInputChange("extraCharges", e.target.value)
+                                }
+                                placeholder="Enter amount"
+                                style={{
+                                    width: "100%",
+                                    padding: 12,
+                                    borderRadius: 3,
+                                    border: "1px solid #ccc",
+                                    fontSize: 14,
+                                }}
+                            />
+                        </Box>
+
+                        <Box sx={{ mb: 3 }}>
+                            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                                Remarks <span style={{ color: "red" }}>*</span>
+                            </label>
+                            <input
+                                type="text"
+                                rows="4"
+                                value={receiveData.remarks}
+                                onChange={(e) =>
+                                    handleReceiveInputChange("remarks", e.target.value)
+                                }
+                                placeholder="Enter  remarks"
+                                style={{
+                                    width: "100%",
+                                    padding: 12,
+                                    borderRadius: 3,
+                                    border: errors.remarks
+                                        ? "1px solid red"
+                                        : "1px solid #ccc",
+                                    fontSize: 14,
+                                }}
+                            />
+                        </Box>
+
                         <div className="reserve-button">
-                            <button
-                                type="button"
-                                onClick={handleSubmit}
-                            >
-                                {isEditMode ? "Update Now" : "Book Now"}
+                            <button type="button" onClick={handleSubmit}>
+                                Complete Return Process
                             </button>
                         </div>
-                    </form>
-                </div>
+                    </>
+                ) : (
+                    <div className="booking-modal__person-info">
+                        <h4>Personal Information</h4>
+
+                        <form className="info-form">
+                            <form className="info-form">
+                                {/* Row 1: Name & Father Name */}
+                                <div className="info-form__2col">
+                                    <span>
+                                        <label>Full Name <b>*</b></label>
+                                        <input
+                                            value={userData.name}
+                                            onChange={(e) => handleInputChange("name", e.target.value)}
+                                            type="text"
+                                            placeholder="Enter your full name"
+                                        />
+                                        {errors.name && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.name}
+                                            </Typography>
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        <label>Father Name <b>*</b></label>
+                                        <input
+                                            value={userData.fatherName}
+                                            onChange={(e) => handleInputChange("fatherName", e.target.value)}
+                                            type="text"
+                                            placeholder="Enter your father's name"
+                                        />
+                                        {errors.fatherName && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.fatherName}
+                                            </Typography>
+                                        )}
+                                    </span>
+                                </div>
+
+                                {/* Row 2: CNIC & License Number */}
+                                <div className="info-form__2col">
+                                    <span>
+                                        <label>CNIC <b>*</b></label>
+                                        <input
+                                            value={userData.cnic}
+                                            onChange={(e) => handleInputChange("cnic", e.target.value)}
+                                            type="text"
+                                            placeholder="XXXXX-XXXXXXX-X"
+                                            maxLength="15"
+                                        />
+                                        {errors.cnic && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.cnic}
+                                            </Typography>
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        <label>License Number <b>*</b></label>
+                                        <input
+                                            value={userData.licenseNumber}
+                                            onChange={(e) => handleInputChange("licenseNumber", e.target.value)}
+                                            type="text"
+                                            placeholder="Enter your license number"
+                                        />
+                                        {errors.licenseNumber && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.licenseNumber}
+                                            </Typography>
+                                        )}
+                                    </span>
+                                </div>
+
+                                {/* Row 3: Phone & Age */}
+                                <div className="info-form__2col">
+                                    <span>
+                                        <label>Phone <b>*</b></label>
+                                        <input
+                                            value={userData.phone}
+                                            onChange={(e) => handleInputChange("phone", e.target.value)}
+                                            type="tel"
+                                            placeholder="Enter your phone number"
+                                        />
+                                        {errors.phone && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.phone}
+                                            </Typography>
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        <label>Age <b>*</b></label>
+                                        <input
+                                            value={userData.age}
+                                            onChange={(e) => handleInputChange("age", e.target.value)}
+                                            type="number"
+                                            inputMode="numeric"
+                                            placeholder="age"
+                                        />
+                                        {errors.age && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.age}
+                                            </Typography>
+                                        )}
+                                    </span>
+                                </div>
+
+                                {/* Row 4: Address & City */}
+                                <div className="info-form__2col">
+                                    <span>
+                                        <label>Address <b>*</b></label>
+                                        <input
+                                            value={userData.address}
+                                            onChange={(e) => handleInputChange("address", e.target.value)}
+                                            type="text"
+                                            placeholder="Enter your street address"
+                                        />
+                                        {errors.address && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.address}
+                                            </Typography>
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        <label>City <b>*</b></label>
+                                        <input
+                                            value={userData.city}
+                                            onChange={(e) => handleInputChange("city", e.target.value)}
+                                            type="text"
+                                            placeholder="Enter your city"
+                                        />
+                                        {errors.city && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.city}
+                                            </Typography>
+                                        )}
+                                    </span>
+                                </div>
+
+                                {/* Row 5: Pickup & Dropoff Dates */}
+                                <div className="info-form__2col">
+                                    <span>
+                                        <label>Pickup Date <b>*</b></label>
+                                        <input
+                                            value={userData.pickupDate}
+                                            onChange={(e) => handleInputChange("pickupDate", e.target.value)}
+                                            type="date"
+                                        />
+                                        {errors.pickupDate && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.pickupDate}
+                                            </Typography>
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        <label>Dropoff Date <b>*</b></label>
+                                        <input
+                                            value={userData.dropoffDate}
+                                            onChange={(e) => handleInputChange("dropoffDate", e.target.value)}
+                                            type="date"
+                                        />
+                                        {errors.dropoffDate && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.dropoffDate}
+                                            </Typography>
+                                        )}
+                                    </span>
+                                </div>
+
+                                {/* Image Upload Section */}
+                                <Box sx={{ mt: 3, mb: 2 }}>
+                                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                                        Car Images / Documents
+                                    </Typography>
+                                    <Box sx={{
+                                        display: 'flex',
+                                        flexWrap: 'wrap',
+                                        gap: 2
+                                    }}>
+                                        {/* Display all uploaded/existing images */}
+                                        {uploadedImages.map((image, index) => (
+                                            <Box
+                                                key={image.id || index}
+                                                sx={{
+                                                    position: 'relative',
+                                                    width: 120,
+                                                    height: 120,
+                                                    borderRadius: 1,
+                                                    overflow: 'hidden',
+                                                    border: image.isExisting ? '2px solid #1976d2' : '2px solid #e0e0e0',
+                                                    '&:hover .delete-btn': {
+                                                        opacity: 1
+                                                    }
+                                                }}
+                                            >
+                                                <img
+                                                    src={image.preview}
+                                                    alt={image.fileName || `Car ${index + 1}`}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'cover'
+                                                    }}
+                                                />
+
+                                                {/* Existing badge */}
+                                                {image.isExisting && (
+                                                    <Box
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            bottom: 0,
+                                                            left: 0,
+                                                            right: 0,
+                                                            bgcolor: 'rgba(25, 118, 210, 0.9)',
+                                                            color: 'white',
+                                                            py: 0.5,
+                                                            px: 1,
+                                                            fontSize: '0.65rem',
+                                                            fontWeight: 600,
+                                                            textAlign: 'center'
+                                                        }}
+                                                    >
+                                                        EXISTING
+                                                    </Box>
+                                                )}
+
+                                                <IconButton
+                                                    className="delete-btn"
+                                                    onClick={() => handleRemoveImage(index)}
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: 4,
+                                                        right: 4,
+                                                        bgcolor: 'error.main',
+                                                        color: 'white',
+                                                        width: 28,
+                                                        height: 28,
+                                                        opacity: 0,
+                                                        transition: 'opacity 0.3s',
+                                                        '&:hover': {
+                                                            bgcolor: 'error.dark'
+                                                        }
+                                                    }}
+                                                >
+                                                    <DeleteIcon sx={{ fontSize: 18 }} />
+                                                </IconButton>
+                                            </Box>
+                                        ))}
+
+                                        {/* Upload Button */}
+                                        <Box
+                                            component="label"
+                                            sx={{
+                                                width: 120,
+                                                height: 120,
+                                                border: '2px dashed #ccc',
+                                                borderRadius: 1,
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.3s',
+                                                bgcolor: '#fafafa',
+                                                '&:hover': {
+                                                    borderColor: '#1976d2',
+                                                    bgcolor: '#e3f2fd'
+                                                }
+                                            }}
+                                        >
+                                            <AddPhotoAlternateIcon sx={{ fontSize: 40, color: '#999', mb: 1 }} />
+                                            <Typography variant="caption" color="text.secondary">
+                                                Upload
+                                            </Typography>
+                                            <input
+                                                type="file"
+                                                multiple
+                                                accept="image/*"
+                                                onChange={handleFileSelect}
+                                                style={{ display: 'none' }}
+                                            />
+                                        </Box>
+                                    </Box>
+
+                                    {uploadedImages.length > 0 && (
+                                        <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} selected
+                                            </Typography>
+                                            {uploadedImages.filter(img => img.isExisting).length > 0 && (
+                                                <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 600 }}>
+                                                    ({uploadedImages.filter(img => img.isExisting).length} existing)
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    )}
+                                </Box>
+
+                                <div className="reserve-button">
+                                    <button
+                                        type="button"
+                                        onClick={handleSubmit}
+                                    >
+                                        {isEditMode ? "Update Now" : "Book Now"}
+                                    </button>
+                                </div>
+                            </form>
+                        </form>
+                    </div>
+                )}
             </div>
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={2000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
+                    variant="filled"
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </>
     );
+
 }
 
 export default BookACarModal;
