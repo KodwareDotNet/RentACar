@@ -6,6 +6,8 @@ import { Box, Typography, IconButton } from "@mui/material";
 import { Alert, Snackbar } from "@mui/material";
 import bookCarsService from "../api/services/BookCars/bookCarsService";
 import addCarsService from "../api/services/AddCars/addCarsService";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { BASE_URL } from "../api/axiosConfig";
 
 function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = false, isReceiveMode = false, onUpdateSuccess, carsApi }) {
@@ -21,6 +23,9 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         pickupDate: "",
         dropoffDate: "",
         carId: "",
+        pricingType: "daily",
+        pricePerUnit: 0,
+        totalPrice: 0
     });
 
     const [receiveData, setReceiveData] = useState({
@@ -84,9 +89,13 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                 age: bookingData.age || "",
                 address: bookingData.address || "",
                 city: bookingData.city || "",
-                pickupDate: bookingData.pickupDate?.split("T")[0] || "",
-                dropoffDate: bookingData.dropoffDate?.split("T")[0] || "",
+                pickupDate: bookingData.pickupDate
+                    ? bookingData.pickupDate.slice(0, 16)  : "",
+                dropoffDate: bookingData.dropoffDate
+                    ? bookingData.dropoffDate.slice(0, 16)
+                    : "",
                 carId: bookingData.carDetail?.id || bookingData.id || "",
+                pricePerUnit: bookingData.carDetail.pricePerUnit,
             });
 
             if (bookingData.attachments && bookingData.attachments.length > 0) {
@@ -104,7 +113,10 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             }
         } else if (cardetail) {
             // For new booking mode
-            setUserData(prev => ({ ...prev, carId: cardetail.id }));
+            setUserData(prev => ({
+                ...prev, carId: cardetail.id, pricePerUnit: cardetail.pricePerHour || 0,
+                pricingType: "hourly"
+            }));
 
             if (cardetail.imageUrl) {
                 const fullImageUrl = cardetail.imageUrl.startsWith('http')
@@ -121,6 +133,49 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             }
         }
     }, [cardetail, bookingData, isEditMode, modal]);
+
+    React.useEffect(() => {
+        const duration = calculateDuration(
+            userData.pickupDate,
+            userData.dropoffDate,
+            userData.pricingType
+        );
+
+        const total = duration * Number(userData.pricePerUnit || 0);
+
+        setUserData(prev => ({
+            ...prev,
+            totalPrice: total
+        }));
+    }, [
+        userData.pickupDate,
+        userData.dropoffDate,
+        userData.pricingType,
+        userData.pricePerUnit
+    ]);
+
+    const calculateTotalPrice = () => {
+        if (userData.pickupDate && userData.dropoffDate && userData.pricePerUnit) {
+            const pickup = new Date(userData.pickupDate);
+            const dropoff = new Date(userData.dropoffDate);
+
+            // Calculate difference in hours
+            const diffInMs = dropoff - pickup;
+            const diffInHours = diffInMs / (1000 * 60 * 60);
+
+            if (diffInHours > 0) {
+                const total = diffInHours * parseFloat(userData.pricePerUnit);
+                return {
+                    hours: diffInHours.toFixed(2),
+                    total: total.toFixed(2)
+                };
+            }
+        }
+        return { hours: 0, total: 0 };
+    };
+
+
+    const { hours, total } = calculateTotalPrice();
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
@@ -227,6 +282,24 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         return Object.keys(newErrors).length === 0;
     };
 
+    const calculateDuration = (start, end, type) => {
+        if (!start || !end) return 0;
+
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffMs = endDate - startDate;
+
+        if (diffMs <= 0) return 0;
+
+        if (type === "hourly") {
+            return Math.ceil(diffMs / (1000 * 60 * 60));
+        }
+        if (type === "monthly") {
+            return Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 30));
+        }
+        return Math.ceil(diffMs / (1000 * 60 * 60 * 24)); // daily
+    };
+
     const handleUpdate = async () => {
         if (!validateUpdateForm())
 
@@ -250,6 +323,9 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append('City', userData.city);
             formData.append('PickupDate', userData.pickupDate);
             formData.append('DropoffDate', userData.dropoffDate);
+            formData.append('PricingType', userData.pricingType);
+            formData.append('PricePerUnit', userData.pricePerUnit);
+            formData.append('TotalAmount', userData.totalPrice);
             const carId = bookingData.carDetail?.car?.carId ||
                 cardetail?.carId ||
                 bookingData.id;
@@ -318,7 +394,6 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append('Remarks', receiveData.remarks);
             formData.append('status', 'Completed');
             formData.append("bookingStatus", 2);
-            
 
             // Append return images
             receiveData.Images.forEach((image) => {
@@ -378,7 +453,9 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append('dropoffDate', userData.dropoffDate);
             formData.append('carId', cardetail?.id);
             formData.append('carName', cardetail?.carName);
-            formData.append('price', cardetail?.pricePerDay);
+            formData.append('pricingType', userData.pricingType);
+            formData.append('pricePerUnit', userData.pricePerUnit);
+            formData.append('totalAmount', userData.totalPrice);
             formData.append('Status', 'Active');
 
             // Append new uploaded images (not existing ones)
@@ -427,6 +504,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             {/* Modal Content */}
             <div className={`booking-modal ${modal ? "active-modal" : ""}`}>
                 <div className="booking-modal__title">
+                    {/* <h2>{isEditMode?'Edit Reservation' :isReceiveMode? "Receive ": "Complete Reservation"}</h2> */}
                     <h2>Complete Reservation</h2>
                     <CloseIcon
                         onClick={handleCloseModal}
@@ -758,7 +836,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                         <input
                                             value={userData.pickupDate}
                                             onChange={(e) => handleInputChange("pickupDate", e.target.value)}
-                                            type="date"
+                                            type="datetime-local"
                                         />
                                         {errors.pickupDate && (
                                             <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
@@ -772,7 +850,8 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                         <input
                                             value={userData.dropoffDate}
                                             onChange={(e) => handleInputChange("dropoffDate", e.target.value)}
-                                            type="date"
+                                            type="datetime-local"
+                                            min={userData.pickupDate}
                                         />
                                         {errors.dropoffDate && (
                                             <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
@@ -781,6 +860,40 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                         )}
                                     </span>
                                 </div>
+
+
+                                {/* Pricing Type */}
+                                <div className="info-form__2col">
+
+                                    <span>
+                                        <label>Price per Hour <b>*</b></label>
+                                        <input
+                                            type="number"
+                                            value={userData.pricePerUnit}
+                                            onChange={(e) =>
+                                                handleInputChange("pricePerUnit", e.target.value)
+                                            }
+                                        />
+                                    </span>
+                                </div>
+                                {hours > 0 && (
+                                    <div className="info-form__1col" style={{ marginTop: '10px' }}>
+                                        <div style={{
+                                            padding: '15px',
+                                            backgroundColor: '#f0f8ff',
+                                            borderRadius: '8px',
+                                            border: '1px solid #0066cc'
+                                        }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#0066cc' }}>
+                                                Total Price: ${total}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                ({hours} hours × ${userData.pricePerUnit}/hour)
+                                            </Typography>
+                                        </div>
+                                    </div>
+                                )}
+
 
                                 {/* Image Upload Section */}
                                 <Box sx={{ mt: 3, mb: 2 }}>

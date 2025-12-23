@@ -13,7 +13,7 @@
     "axios": "^1.13.2",
     "picomatch": "^2.3.1",
     "react": "^18.2.0",
-    "react-datepicker": "^4.10.0",
+    "react-datepicker": "^4.25.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.0",
     "react-scripts": "5.0.1",

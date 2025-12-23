@@ -14,7 +14,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
         brand: "",
         model: "",
         year: "",
-        pricePerDay: "",
+        pricePerHour: "",
         transmission: "",
         fuel: "",
         seats: "",
@@ -55,7 +55,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                 brand: carToEdit.brand || "",
                 model: carToEdit.model || "",
                 year: String(carToEdit.year || ""),
-                pricePerDay: String(carToEdit.pricePerDay || ""),
+                pricePerHour: String(carToEdit.pricePerHour || ""),
                 transmission: carToEdit.transmission || "",
                 fuel: carToEdit.fuel || "",
                 seats: String(carToEdit.seats || ""),
@@ -93,7 +93,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
             brand: "",
             model: "",
             year: "",
-            pricePerDay: "",
+            pricePerHour: "",
             transmission: "",
             fuel: "",
             seats: "",
@@ -150,7 +150,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
         if (!carData.brand.trim()) newErrors.brand = "Brand is required";
         if (!carData.model.trim()) newErrors.model = "Model is required";
         if (!carData.year.trim()) newErrors.year = "Year is required";
-        if (!carData.pricePerDay.trim()) newErrors.pricePerDay = "Price per day is required";
+        if (!carData.pricePerHour.trim()) newErrors.pricePerHour = "Price per Hour is required";
         if (!carData.transmission.trim()) newErrors.transmission = "Transmission type is required";
         if (!carData.fuel.trim()) newErrors.fuel = "Fuel type is required";
         if (!carData.seats.trim()) newErrors.seats = "Seats field is required";
@@ -225,8 +225,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
 
         } catch (err) {
             console.error(isEditMode ? "Update error:" : "Add error:", err);
-            alert(`${isEditMode ? 'Update' : 'Add'} failed: ` +
-                (err.response?.data?.message || err.message || "Unknown error"));
+            alert(`${isEditMode ? 'Update' : 'Add'} failed: ` );
         }
     };
 
@@ -323,17 +322,17 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                         {/* Row 3: Price & Transmission */}
                         <div className="info-form__2col">
                             <span>
-                                <label>Price (per day) <b>*</b></label>
+                                <label>Price (per Hour) <b>*</b></label>
                                 <input
-                                    value={carData.pricePerDay}
-                                    onChange={(e) => handleInputChange("pricePerDay", e.target.value)}
+                                    value={carData.pricePerHour}
+                                    onChange={(e) => handleInputChange("pricePerHour", e.target.value)}
                                     type="number"
                                     placeholder="e.g., 45"
                                     min="0"
                                 />
-                                {errors.pricePerDay && (
+                                {errors.pricePerHour && (
                                     <Typography color="error" sx={{ mb: 2 }}>
-                                        {errors.pricePerDay}
+                                        {errors.pricePerHour}
                                     </Typography>
                                 )}
                             </span>

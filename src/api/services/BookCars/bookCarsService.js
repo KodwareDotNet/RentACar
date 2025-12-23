@@ -108,8 +108,9 @@ const bookCarsService = {
     },
     deleteBookCars: async (id) => {
         try {
-            const res = await api.delete(`car/CancelBooking/${id}`
-            );
+            const res = await api.delete("car/CancelBooking", {
+                params: {id},
+        });
             return res.data;
         }
         catch (ex) {

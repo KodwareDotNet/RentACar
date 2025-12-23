@@ -20,8 +20,8 @@ const CarCard = ({ car, onBook, onUpdate, onDelete }) => {
                             </span>
                         </div>
                         <div className="models-div__box__descr__name-price__price">
-                            <h4>${car.pricePerDay}</h4>
-                            <p>per day</p>
+                            <h4>${car.pricePerHour}</h4>
+                            <p>per Hour</p>
                         </div>
                     </div>
 

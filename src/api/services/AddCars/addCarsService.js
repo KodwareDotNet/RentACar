@@ -13,7 +13,7 @@ const addCarsService ={
           return res;
         }
         catch(ex){
-          alert("failed to add car", ex);
+         console.log("error while adding car");
         }
     },
     getCars: async() => {

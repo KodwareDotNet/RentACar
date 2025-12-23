@@ -5,8 +5,7 @@ import {
     Alert, Snackbar, Divider, Paper
 } from '@mui/material';
 import {
-    DirectionsCar, CalendarToday, AttachMoney, Settings,
-    LocalGasStation, Cancel, CheckCircle, Star
+    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, Star
 } from '@mui/icons-material';
 import bookCarsService from '../api/services/BookCars/bookCarsService';
 import BookACarModal from "../components/BookACarModal";
@@ -28,6 +27,13 @@ const BookedCarsPage = () => {
         fetchBookings();
     }, []);
 
+    const pricingLabels = {
+        hourly: "hour",
+        daily: "days",
+        weekly: "weeks",
+        monthly: "months",
+    };
+
     const navigate = useNavigate();
     const fetchBookings = async () => {
         setLoading(true);
@@ -48,8 +54,8 @@ const BookedCarsPage = () => {
                     pickupDate: b.pickupDate,
                     dropoffDate: b.dropoffDate,
                     totalDays: calculateDays(b.pickupDate, b.dropoffDate),
-                    totalPrice: (b.car?.pricePerDay || 0) * calculateDays(b.pickupDate, b.dropoffDate),
-                    status: b.status, 
+                    totalPrice: (b.pricePerUnit || 0) * calculateHours(b.pickupDate, b.dropoffDate),
+                    status: b.status,
                     fullName: b.fullName || '',
                     fatherName: b.fatherName || '',
                     cnic: b.cnic || '',
@@ -86,11 +92,57 @@ const BookedCarsPage = () => {
         return Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 1);
     };
 
-    const handleCancelClick = (booking) => {
-        setSelectedBooking(booking);
-        setOpenDialog(true);
-        
+    const calculateHours = (start, end) => {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffTime = Math.abs(endDate - startDate);
+        // Convert milliseconds to hours
+        return Math.max(Math.ceil(diffTime / (1000 * 60 * 60)), 0);
     };
+
+
+    const calculateDuration = (start, end, type) => {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffMs = endDate - startDate;
+
+        if (diffMs <= 0) return 0;
+
+        if (type === "hourly") {
+            return Math.ceil(diffMs / (1000 * 60 * 60));
+        }
+        if (type === "monthly") {
+            return Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 30));
+        }
+        return Math.ceil(diffMs / (1000 * 60 * 60 * 24)); // daily
+    };
+
+    const handleCancelClick = (booking) => {
+        const cancelDate = new Date();
+
+        const usedUnits = calculateDuration(
+            booking.carDetail.pickupDate,
+            cancelDate,
+            booking.carDetail.pricingType
+        );
+
+        const usedAmount = usedUnits * booking.carDetail.pricePerUnit;
+
+        const refundableAmount = Math.max(
+            booking.totalPrice - usedAmount,
+            0
+        );
+
+        setSelectedBooking({
+            ...booking,
+            usedUnits,
+            usedAmount,
+            refundableAmount
+        });
+
+        setOpenDialog(true);
+    };
+
 
     const deleteBookCar = async (id) => {
         try {
@@ -142,6 +194,7 @@ const BookedCarsPage = () => {
     };
 
     const handleCloseDialog = () => {
+
         setOpenDialog(false);
         setSelectedBooking(null);
     };
@@ -178,7 +231,7 @@ const BookedCarsPage = () => {
     const getStatusIcon = (status) => (status === 'Active' || status === 'Completed') ? <CheckCircle fontSize="small" /> : <Cancel fontSize="small" />;
 
     return (
-        <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: 4 }}>
+        <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: { xs: 2, sm: 3, md: 4 } }}>
             <Container maxWidth="lg">
                 <Box sx={{ mb: 4, mt: 7 }}>
                     <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
@@ -189,7 +242,7 @@ const BookedCarsPage = () => {
                     </Typography>
                 </Box>
 
-                <Grid container spacing={3}>
+                <Grid container spacing={{ xs: 2, sm: 3 }}>
                     {bookings.length > 0 ? bookings.map((booking) => (
                         <Grid item xs={12} lg={6} key={booking.id}>
                             <Card elevation={2} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, overflow: 'hidden', '&:hover': { boxShadow: 4 }, transition: 'box-shadow 0.3s' }}>
@@ -211,32 +264,32 @@ const BookedCarsPage = () => {
                                             </Box>
                                             <Chip icon={getStatusIcon(booking.status)} label={booking.status.toUpperCase()} color={getStatusColor(booking.status)} size="small" sx={{ fontWeight: 600 }} />
                                         </Box>
-                                         {booking.status === 'Active' && (
-                                        <Grid container spacing={2} sx={{ mb: 2 }}>
-                                            <Grid item xs={12}>
-                                                <Button
-                                                    variant="outlined"
-                                                    color="primary"
-                                                    size="medium"
-                                                    startIcon={<Settings />}
-                                                    onClick={() => handleEditClick(booking)}
-                                                    sx={{
-                                                        fontWeight: 600,
-                                                        textTransform: 'none',
-                                                        borderRadius: 2,
-                                                        px: 3,
-                                                        '&:hover': {
-                                                            bgcolor: 'primary.light',
-                                                            color: 'white',
-                                                            borderColor: 'primary.main'
-                                                        }
-                                                    }}
-                                                >
-                                                    View Booking Details & Images
-                                                </Button>
+                                        {booking.status === 'Active' && (
+                                            <Grid container spacing={2} sx={{ mb: 2 }}>
+                                                <Grid item xs={12}>
+                                                    <Button
+                                                        variant="outlined"
+                                                        color="primary"
+                                                        size="medium"
+                                                        startIcon={<Settings />}
+                                                        onClick={() => handleEditClick(booking)}
+                                                        sx={{
+                                                            fontWeight: 600,
+                                                            textTransform: 'none',
+                                                            borderRadius: 2,
+                                                            px: 3,
+                                                            '&:hover': {
+                                                                bgcolor: 'primary.light',
+                                                                color: 'white',
+                                                                borderColor: 'primary.main'
+                                                            }
+                                                        }}
+                                                    >
+                                                        View Booking Details & Images
+                                                    </Button>
+                                                </Grid>
                                             </Grid>
-                                        </Grid>
-                                               )}
+                                        )}
                                         <Divider sx={{ my: 2 }} />
 
                                         <Grid container spacing={2}>
@@ -248,7 +301,7 @@ const BookedCarsPage = () => {
                                                     </Box>
                                                     <Typography variant="body2" color="text.secondary"><strong>From:</strong> {booking.pickupDate}</Typography>
                                                     <Typography variant="body2" color="text.secondary"><strong>To:</strong> {booking.dropoffDate}</Typography>
-                                                    <Typography variant="body2" color="text.secondary"><strong>Duration:</strong> {booking.totalDays} {booking.totalDays === 1 ? 'day' : 'days'}</Typography>
+                                                    {/* <Typography variant="body2" color="text.secondary"><strong>Duration:</strong> {booking.totalDays} {booking.totalDays === 1 ? 'day' : 'days'}</Typography> */}
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={12} sm={6}>
@@ -269,26 +322,26 @@ const BookedCarsPage = () => {
                                             </Box>
                                         )}
                                         <Box sx={{ mt: 3 }}>
-                                             {booking.status === 'Active' && (
-                                            <Button
-                                                variant="outlined"
-                                                color="success"
-                                                size="large"
-                                                startIcon={<CheckCircle />}
-                                                onClick={() => handleReceiveClick(booking)}
-                                                fullWidth
-                                                sx={{
-                                                    py: 1.5,
-                                                    fontWeight: 600,
-                                                    '&:hover': {
-                                                        bgcolor: 'success.light',
-                                                        color: 'white',
-                                                        borderColor: 'success.main'
-                                                    }
-                                                }}
-                                            >
-                                                Receive Booking
-                                            </Button>
+                                            {booking.status === 'Active' && (
+                                                <Button
+                                                    variant="outlined"
+                                                    color="success"
+                                                    size="large"
+                                                    startIcon={<CheckCircle />}
+                                                    onClick={() => handleReceiveClick(booking)}
+                                                    fullWidth
+                                                    sx={{
+                                                        py: 1.5,
+                                                        fontWeight: 600,
+                                                        '&:hover': {
+                                                            bgcolor: 'success.light',
+                                                            color: 'white',
+                                                            borderColor: 'success.main'
+                                                        }
+                                                    }}
+                                                >
+                                                    Receive Booking
+                                                </Button>
                                             )}
                                         </Box>
                                     </CardContent>
@@ -311,6 +364,49 @@ const BookedCarsPage = () => {
                         <DialogContentText>
                             Are you sure you want to cancel your booking for <strong>{selectedBooking?.carName}</strong>?
                         </DialogContentText>
+                        {selectedBooking && (
+                            <>
+                                {bookings
+                                    ?.filter(booking => booking.id === selectedBooking?.id)
+                                    .map((booking, index) => (
+                                        <Box sx={{ mb: 1 }} key={index}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                                <CalendarToday fontSize="small" color="primary" />
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                                    Booking Details
+                                                </Typography>
+                                            </Box>
+
+                                            <Typography variant="body2" color="text.secondary">
+                                                <strong>From:</strong> {booking?.carDetail?.pickupDate}
+                                            </Typography>
+
+                                            <Typography variant="body2" color="text.secondary">
+                                                <strong>To:</strong> {booking?.carDetail?.dropoffDate}
+                                            </Typography>
+
+                                            <Typography variant="body2" color="text.secondary">
+                                                <strong>Duration:</strong>{" "}
+                                                {booking.totalDays}{" "}
+                                                {booking.totalDays === 1 ? "day" : "days"}
+                                            </Typography>
+                                        </Box>
+                                    ))}
+
+                                <Box sx={{ mt: 2 }}>
+                                    <Typography>
+                                        Used {selectedBooking.usedUnits}{" "}
+                                        {pricingLabels[selectedBooking?.carDetail?.pricingType?.toLowerCase()] || ""}
+                                    </Typography>
+                                    <Typography color="error">
+                                        Deduction: Rs {selectedBooking.usedAmount}
+                                    </Typography>
+                                    <Typography color="success.main" sx={{ fontWeight: 600 }}>
+                                        Refund: Rs {selectedBooking.refundableAmount}
+                                    </Typography>
+                                </Box>
+                            </>
+                        )}
                     </DialogContent>
                     <DialogActions sx={{ p: 2, pt: 0 }}>
                         <Button onClick={handleCloseDialog} variant="outlined" sx={{ px: 3 }}>Keep Booking</Button>
@@ -333,7 +429,7 @@ const BookedCarsPage = () => {
                 isEditMode={true}
                 isReceiveMode={false}
                 onUpdateSuccess={fetchBookings}
-               
+
             />
 
             {/* RECEIVE MODE MODAL */}
@@ -345,7 +441,7 @@ const BookedCarsPage = () => {
                 isEditMode={false}
                 isReceiveMode={true}
                 onUpdateSuccess={fetchBookings}
-               
+
             />
         </Box>
     );
