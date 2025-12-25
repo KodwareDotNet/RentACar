@@ -16,7 +16,7 @@ namespace RentACar.ViewModel
         public int OrganizationId { get; set; }
         public string Brand { get; set; }
         public string Year { get; set; }
-        public string PricePerDay { get; set; }
+        public string PricePerHour { get; set; }
 
         public string Color { get; set; }
         public string? ImageUrl { get; set; }

@@ -212,7 +212,7 @@ public async Task<IActionResult> AddCar([FromForm] CarCreateDto dto)
         Brand = dto.Brand,
         Model = dto.Model,
         Year = dto.Year,
-        PricePerDay = dto.PricePerDay,
+        PricePerHour = dto.PricePerHour,
         Transmission = dto.Transmission,
         Fuel = dto.Fuel,
         Seats = dto.Seats,

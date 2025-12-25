@@ -34,7 +34,7 @@ namespace RentACar.Repository
             {
 
                 pId = cars.Id,
-               
+
 
             };
             DynamicParameters para = new DynamicParameters(parameters);
@@ -109,32 +109,56 @@ namespace RentACar.Repository
             var returnId = parameters.Get<int>("@pReturnId");
             return returnId > 0;
         }
-      public async Task<bool> BookCar(CarBooking booking)
+        public async Task<int> BookCarAndReturnId(CarBooking booking)
         {
-            var parameters = new
-            {
-                booking.FullName,
-                booking.FatherName,
-                booking.CNIC,
-                booking.LicenseNumber,
-                booking.Phone,
-                booking.Age,
-                booking.Address,
-                booking.City,
-                booking.PickupDate,
-                booking.DropoffDate,
-                booking.CarId,
-                booking.OrganizationId,
-                booking.CarImageUrl
-            };
-
-            var result = await _connection.ExecuteScalarAsync<int>(
+            return await _connection.ExecuteScalarAsync<int>(
                 "sp_BookCar",
-                parameters,
+                new
+                {
+                    Id = booking.Id == 0 ? (int?)null : booking.Id,
+                    booking.FullName,
+                    booking.FatherName,
+                    booking.CNIC,
+                    booking.LicenseNumber,
+                    booking.Phone,
+                    booking.Age,
+                    booking.Address,
+                    booking.City,
+                    booking.PickupDate,
+                    booking.DropoffDate,
+                    booking.CarId,
+                    booking.OrganizationId,
+                    booking.CarImageUrl,
+                    booking.PricePerUnit,      // ✅ New
+                    booking.PricingType,
+                    booking.TotalAmount// ✅ New
+                },
                 commandType: CommandType.StoredProcedure
             );
+        }
 
-            return result > 0;
+        public async Task SaveAttachment(int bookingId, string fileName, string filePath, long fileSize)
+        {
+            await _connection.ExecuteAsync(
+                "sp_SaveAttachment",
+                new
+                {
+                    CarBookingId = bookingId,
+                    FileName = fileName,
+                    FilePath = filePath,
+                    FileSize = fileSize
+                },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task DeleteAttachment(int attachmentId)
+        {
+            await _connection.ExecuteAsync(
+                "sp_DeleteAttachment",
+                new { AttachmentId = attachmentId },
+                commandType: CommandType.StoredProcedure
+            );
         }
         // Interface
 
@@ -147,70 +171,260 @@ namespace RentACar.Repository
             );
 
             if (result == null || !result.Any())
-            {
                 return new List<PersonWithCarDto>();
-            }
 
-            // Direct mapping - jo SQL se aaya wahi use karo
-            var personData = result.Select(b => new PersonWithCarDto
-            {
-                BookingId = b.Id,
-                OrganizationId = b.OrganizationId,
-
-                // Person Info
-                FullName = b.FullName,
-                FatherName = b.FatherName,
-                CNIC = b.CNIC,
-                LicenseNumber = b.LicenseNumber,
-                Phone = b.Phone,
-                Age = b.Age,
-                Address = b.Address,
-                City = b.City,
-                PickupDate = b.PickupDate,
-                DropoffDate = b.DropoffDate,
-
-                // Car Info - Direct SQL se jo aaya
-                Car = new CarInfoDto
+            var bookings = result
+                .GroupBy(b => b.BookingId)
+                .Select(g =>
                 {
-                    CarId = b.CarId,
-                    CarName = b.CarName,           
-                    Model = b.Model,               
-                    PricePerDay = b.PricePerDay,   
-                    Transmission = b.Transmission, 
-                    Fuel = b.Fuel,                 // No
-                    Description = b.Description,   // No default
-                    ImageUrl = string.IsNullOrEmpty(b.ImageUrl) ? b.CarImageUrl : b.ImageUrl
-                }
-            }).ToList();
+                    var first = g.First();
+                    return new PersonWithCarDto
+                    {
+                        BookingId = first.BookingId,
+                        OrganizationId = first.OrganizationId,
+                        FullName = first.FullName,
+                        FatherName = first.FatherName,
+                        CNIC = first.CNIC,
+                        LicenseNumber = first.LicenseNumber,
+                        Phone = first.Phone,
+                        Age = first.Age,
+                        Address = first.Address,
+                        City = first.City,
+                        PickupDate = first.PickupDate,
+                        DropoffDate = first.DropoffDate,
+                        BookingStatus = first.BookingStatus,
+                        Status = first.Status,
 
-            return personData;
+                        // ✅ NEW PROPERTIES
+                        PricePerUnit = first.PricePerUnit,
+                        PricingType = first.PricingType,
+
+                        Car = new CarInfoDto
+                        {
+                            CarId = first.CarId,
+                            CarName = first.CarName,
+                            Model = first.Model,
+                            PricePerHour = first.PricePerHour,
+                            Transmission = first.Transmission,
+                            Fuel = first.Fuel,
+                            Description = first.Description,
+                            ImageUrl = string.IsNullOrEmpty(first.ImageUrl)
+                                ? first.CarImageUrl
+                                : first.ImageUrl
+                        },
+
+                        Attachments = g
+                            .Where(x => x.AttachmentId > 0)
+                            .Select(a => new AttachmentDto
+                            {
+                                AttachmentId = a.AttachmentId,
+                                FileName = a.FileName,
+                                FilePath = a.FilePath,
+                                FileSize = a.FileSize,
+                                UploadDate = a.UploadDate
+                            })
+                            .ToList()
+                    };
+                })
+                .ToList();
+
+            return bookings;
         }
-        public async Task<bool> UpdateBooking(UpdateBookingDto booking)
+
+        public async Task<int> ReceiveCar(
+    int bookingId,
+    bool isDamaged,
+    string? remarks,
+    string? damageRemarks,
+    decimal charges
+)
         {
             var parameters = new DynamicParameters();
-            parameters.Add("@Id", booking.Id);
-            parameters.Add("@CarId", booking.CarId);
-            parameters.Add("@OrganizationId", booking.OrganizationId);
-            parameters.Add("@FullName", booking.FullName);
-            parameters.Add("@FatherName", booking.FatherName);
-            parameters.Add("@CNIC", booking.CNIC);
-            parameters.Add("@LicenseNumber", booking.LicenseNumber);
-            parameters.Add("@Phone", booking.Phone);
-            parameters.Add("@Age", booking.Age);
-            parameters.Add("@Address", booking.Address);
-            parameters.Add("@City", booking.City);
-            parameters.Add("@PickupDate", booking.PickupDate);
-            parameters.Add("@DropoffDate", booking.DropoffDate);
-            parameters.Add("@CarImageUrl", booking.CarImageUrl);
+            parameters.Add("@BookingId", bookingId);
+            parameters.Add("@Remarks", remarks);
+            parameters.Add("@IsDamaged", isDamaged);
+            parameters.Add("@DamageRemarks", damageRemarks);
+            parameters.Add("@DamageCharges", charges);
 
-            var result = await _connection.QueryFirstOrDefaultAsync<int>(
-                "sp_UpdateBooking",
+            return await _connection.ExecuteScalarAsync<int>(
+                "sp_ReceiveCar",
                 parameters,
                 commandType: CommandType.StoredProcedure
             );
-
-            return result > 0;
         }
+        public async Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType)
+        {
+            return await _connection.ExecuteScalarAsync<int>(
+                "sp_AddReceiveImage",
+                new
+                {
+                    ReceiveId = receiveId,  // ✅ Changed from CarReceiveId
+                    ImageUrl = imageUrl,
+                    ImageType = imageType
+                },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+
+        public async Task<List<ReceivedCarResponseDto>> GetAllReceivedCars()
+        {
+            using (var multi = await _connection.QueryMultipleAsync(
+                "sp_GetAllReceivedCars",
+                commandType: CommandType.StoredProcedure))
+            {
+                var receives = (await multi.ReadAsync<ReceivedCarResponseDto>()).ToList();
+                var images = (await multi.ReadAsync<ReceiveImageDto>()).ToList();
+
+                var imageGroups = images
+                    .GroupBy(img => img.ReceiveId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                foreach (var receive in receives)
+                {
+                    receive.Images = imageGroups.ContainsKey(receive.ReceiveId)
+                        ? imageGroups[receive.ReceiveId]
+                        : new List<ReceiveImageDto>();
+                }
+
+                return receives;
+            }
+        }
+
+        public async Task DeleteReceivedCar(int receiveId)
+        {
+            await _connection.ExecuteAsync(
+                "sp_DeleteReceiveCar",
+                new { ReceiveId = receiveId },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+        public async Task<BillingDto> GetBillingByBookingId(int bookingId)
+        {
+            var result = await _connection.QueryFirstOrDefaultAsync<BillingDto>(
+                "sp_GetBillingByBookingId",
+                new { BookingId = bookingId },
+                commandType: CommandType.StoredProcedure
+            );
+            return result;
+        }
+
+        public async Task<MonthlyProfitDto> GetMonthlyProfit(int month, int year)
+        {
+            var result = await _connection.QueryFirstOrDefaultAsync<MonthlyProfitDto>(
+                "sp_GetMonthlyProfit",
+                new { Month = month, Year = year },
+                commandType: CommandType.StoredProcedure
+            );
+            return result;
+        }
+
+        public async Task<List<BillingDto>> GetAllBillings(DateTime? startDate, DateTime? endDate)
+        {
+            var result = await _connection.QueryAsync<BillingDto>(
+                "sp_GetAllBillings",
+                new { StartDate = startDate, EndDate = endDate },
+                commandType: CommandType.StoredProcedure
+            );
+            return result.ToList();
+        }
+        public async Task CreatePayment(int bookingId)
+        {
+            await _connection.ExecuteAsync(
+                "sp_CreatePayment",
+                new { BookingId = bookingId },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task FinalizePayment(int bookingId)
+        {
+            await _connection.ExecuteAsync(
+                "sp_FinalizePayment",
+                new { BookingId = bookingId },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        //public async Task<Payment> GetPaymentByBookingId(int bookingId)
+        //{
+        //    return await _connection.QueryFirstOrDefaultAsync<Payment>(
+        //        "sp_GetPaymentByBookingId",
+        //        new { BookingId = bookingId },
+        //        commandType: CommandType.StoredProcedure
+        //    );
+        //}
+
+        //public async Task<Module> GetMonthlyProfit(int month, int year)
+        //{
+        //    return await _connection.QueryFirstOrDefaultAsync<Module>(
+        //        "sp_GetMonthlyProfit",
+        //        new { Month = month, Year = year },
+        //        commandType: CommandType.StoredProcedure
+        //    );
+        //}
+
+        //        public async Task<List<Payment>> GetAllPayments(DateTime? startDate, DateTime? endDate)
+        //        {
+        //            var result = await _connection.QueryAsync<Payment>(
+        //                "sp_GetAllPayments",
+        //                new { StartDate = startDate, EndDate = endDate },
+        //                commandType: CommandType.StoredProcedure
+        //            );
+        //            return result.ToList();
+        //        }
+        //}
+
+
+
+        //        public async Task SaveAttachment(
+        //    int carBookingId,
+        //    string fileName,
+        //    string filePath,
+        //    long fileSize
+        //)
+        //        {
+        //            await _connection.ExecuteAsync(
+        //                "sp_SaveAttachment",
+        //                new
+        //                {
+        //                    CarBookingId = carBookingId,
+        //                    FileName = fileName,
+        //                    FilePath = filePath,
+        //                    FileSize = fileSize
+        //                },
+        //                commandType: CommandType.StoredProcedure
+        //            );
+        //        }
+
+
+
+        //public async Task<bool> UpdateBooking(UpdateBookingDto booking)
+        //{
+        //    var parameters = new DynamicParameters();
+        //    parameters.Add("@Id", booking.Id);
+        //    parameters.Add("@CarId", booking.CarId);
+        //    parameters.Add("@OrganizationId", booking.OrganizationId);
+        //    parameters.Add("@FullName", booking.FullName);
+        //    parameters.Add("@FatherName", booking.FatherName);
+        //    parameters.Add("@CNIC", booking.CNIC);
+        //    parameters.Add("@LicenseNumber", booking.LicenseNumber);
+        //    parameters.Add("@Phone", booking.Phone);
+        //    parameters.Add("@Age", booking.Age);
+        //    parameters.Add("@Address", booking.Address);
+        //    parameters.Add("@City", booking.City);
+        //    parameters.Add("@PickupDate", booking.PickupDate);
+        //    parameters.Add("@DropoffDate", booking.DropoffDate);
+        //    parameters.Add("@CarImageUrl", booking.CarImageUrl);
+
+        //    var result = await _connection.QueryFirstOrDefaultAsync<int>(
+        //        "sp_UpdateBooking",
+        //        parameters,
+        //        commandType: CommandType.StoredProcedure
+        //    );
+
+        //    return result > 0;
+        //}
         //public async Task<BookCarDto> GetBookingWithCar(int bookingId)
         //{
         //    var result = await _connection.QueryAsync<BookCarDto>(
@@ -280,13 +494,20 @@ namespace RentACar.Repository
         //    return result;
         //}
 
-        public async Task<int> CancelBooking(int id)
+        public async Task<int> CancelBooking(CancelBookingRequest model)
         {
             var result = await _connection.ExecuteScalarAsync<int>(
                 "sp_CancelBooking",
-                new { Id = id },
+                new
+                {
+                    Id = model.Id,
+                    DeductedCharges = model.UsedAmount,
+                    RefundAmount = model.RefundableAmount,
+                    CancelledAt = model.CancelledAt
+                },
                 commandType: CommandType.StoredProcedure
             );
+
             return result;
         }
     }

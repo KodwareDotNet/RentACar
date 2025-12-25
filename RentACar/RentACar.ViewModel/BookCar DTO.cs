@@ -10,6 +10,7 @@ namespace RentACar.ViewModel
     public class BookCarDto
     {
         public int Id { get; set; }
+
         public int BookingId { get; set; }
         public string FullName { get; set; }
         public string FatherName { get; set; }
@@ -21,20 +22,35 @@ namespace RentACar.ViewModel
         public string City { get; set; }
         public DateTime PickupDate { get; set; }
         public DateTime DropoffDate { get; set; }
+        public int BookingStatus { get; set; }   // 1,2,3
+        public string Status { get; set; }
         public int CarId { get; set; }
         public int OrganizationId { get; set; }
         public string CarImageUrl { get; set; }
+        public decimal? PricePerUnit { get; set; }
+        public string PricingType { get; set; }
+        public decimal? TotalAmount { get; set; }
 
         // Car columns (flat - for Dapper mapping)
         public string CarName { get; set; }
         public string? Model { get; set; }
-        public decimal PricePerDay { get; set; }
+        public decimal PricePerHour { get; set; }
         public string? Transmission { get; set; }
         public string? Fuel { get; set; }
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
+
         public IFormFile? CarImage { get; set; }
         public List<IFormFile>? Attachments { get; set; }
+        public List<AttachmentDto>? AttachmentsArray { get; set; }
+
+        public int AttachmentId { get; set; }
+        public string? FileName { get; set; }
+        public string? FilePath { get; set; }
+        public long FileSize { get; set; }
+        public DateTime UploadDate { get; set; }
+       public List<int>? DeleteAttachmentIds { get; set; }
+
     }
 
     // Response ke liye (Car + its bookings)
@@ -50,6 +66,7 @@ namespace RentACar.ViewModel
         public string? ImageUrl { get; set; }
 
         public List<BookingInfoDto> Bookings { get; set; } = new List<BookingInfoDto>();
+
     }
 
     // Booking info (nested ke liye)
@@ -67,6 +84,7 @@ namespace RentACar.ViewModel
         public string City { get; set; }
         public DateTime PickupDate { get; set; }
         public DateTime DropoffDate { get; set; }
+
     }
 }
 

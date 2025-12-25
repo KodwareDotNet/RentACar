@@ -389,7 +389,7 @@ namespace MenuManagement.Repositories
                 Brand = car.Brand,
                 Model = car.Model,
                 Year = car.Year,
-                PricePerDay = car.PricePerDay,
+                PricePerHour = car.PricePerHour,
                 Transmission = car.Transmission,
                 Fuel = car.Fuel,
                 Seats = car.Seats,

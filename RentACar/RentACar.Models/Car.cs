@@ -17,7 +17,7 @@ namespace RentACar.Models
         public string Brand { get; set; }
         public string Model { get; set; }
         public string Year { get; set; }
-        public string PricePerDay { get; set; }
+        public string PricePerHour { get; set; }
         public string Transmission { get; set; }
         public string Fuel { get; set; }
         public int Seats { get; set; }

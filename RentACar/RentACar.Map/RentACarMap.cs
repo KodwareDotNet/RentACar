@@ -63,11 +63,22 @@ namespace RentACar.Map
         {
             return await _rentService.GetAllKeyValuePair(keyValuePair, id);
         }
-  
-       public async Task<bool> BookCar(CarBooking booking)
+
+        public async Task<int> BookCarAndReturnId(CarBooking booking)
         {
-            return await _rentService.BookCar(booking);
+            return await _rentService.BookCarAndReturnId(booking);
         }
+
+        public async Task SaveAttachment(int bookingId, string fileName, string filePath, long fileSize)
+        {
+            await _rentService.SaveAttachment(bookingId, fileName, filePath, fileSize);
+        }
+
+        public async Task DeleteAttachment(int attachmentId)
+        {
+            await _rentService.DeleteAttachment(attachmentId);
+        }
+
         // Interface
 
 
@@ -76,10 +87,14 @@ namespace RentACar.Map
         {
             return await _rentService.GetAllBookings();
         }
-        public async Task<bool> UpdateBooking(UpdateBookingDto booking)
-        {
-            return await _rentService.UpdateBooking(booking);
-        }
+        //public async Task SaveAttachment(int bookingId, string fileName, string filePath, long fileSize)
+        //{
+        //    await _rentService.SaveAttachment(bookingId, fileName, filePath, fileSize);
+        //}
+        //public async Task<bool> UpdateBooking(UpdateBookingDto booking)
+        //{
+        //    return await _rentService.UpdateBooking(booking);
+        //}
         //public async Task<BookCarDto> GetBookingWithCar(int bookingId)
         //{
         //    return await _rentService.GetBookingWithCar(bookingId);
@@ -89,9 +104,53 @@ namespace RentACar.Map
         //    return await _rentService.UpdateBooking(id, bookingDto);
         //}
 
-        public async Task<int> CancelBooking(int id)
+        public async Task<int> CancelBooking(CancelBookingRequest model)
         {
-            return await _rentService.CancelBooking(id);
+            return await _rentService.CancelBooking(model);
+        }
+
+        // 🔥 NEW
+        public async Task<int> ReceiveCar(
+    int bookingId,
+    bool isDamaged,
+    string? remarks,
+    string? damageRemarks,
+    decimal charges
+)
+        {
+            return await _rentService.ReceiveCar(
+                bookingId,
+                isDamaged,
+                remarks,
+                damageRemarks,
+                charges
+            );
+        }
+        public async Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType)
+        {
+            return await _rentService.AddReceiveImage(receiveId, imageUrl, imageType);
+        }
+
+
+        public async Task<List<ReceivedCarResponseDto>> GetAllReceivedCars()
+        => await _rentService.GetAllReceivedCars();
+
+        public async Task DeleteReceivedCar(int receiveId)
+            => await _rentService.DeleteReceivedCar(receiveId);
+    
+    public async Task<BillingDto> GetBillingByBookingId(int bookingId)
+        {
+            return await _rentService.GetBillingByBookingId(bookingId);
+        }
+
+        public async Task<MonthlyProfitDto> GetMonthlyProfit(int month, int year)
+        {
+            return await _rentService.GetMonthlyProfit(month, year);
+        }
+
+        public async Task<List<BillingDto>> GetAllBillings(DateTime? startDate, DateTime? endDate)
+        {
+            return await _rentService.GetAllBillings(startDate, endDate);
         }
     }
 }

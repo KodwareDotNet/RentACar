@@ -23,11 +23,15 @@ namespace RentACar.ViewModel
         public string City { get; set; }
         public DateTime PickupDate { get; set; }
         public DateTime DropoffDate { get; set; }
+        public decimal? PricePerUnit { get; set; }
+        public string PricingType { get; set; }
 
         // Car Info (nested)
         public CarInfoDto Car { get; set; }
-        public List<AttachmentDto> Attachments { get; set; } = new();
 
+        public List<AttachmentDto> Attachments { get; set; } = new List<AttachmentDto>();
+        public int BookingStatus { get; set; }
+        public string Status { get; set; }
     }
 
     public class CarInfoDto
@@ -35,7 +39,7 @@ namespace RentACar.ViewModel
         public int CarId { get; set; }
         public string CarName { get; set; }
         public string Model { get; set; }
-        public decimal PricePerDay { get; set; }
+        public decimal PricePerHour { get; set; }
         public string Transmission { get; set; }
         public string Fuel { get; set; }
         public string Description { get; set; }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -80,16 +82,33 @@ namespace RentACar.Service
         {
             throw new NotImplementedException();
         }
-        public async Task<bool> BookCar(CarBooking booking)
-        {
-            return await _carRepo.BookCar(booking);
-        }
+        //public async Task<int> BookCarAndReturnId(CarBooking booking)
+        //{
+        //    return await _carRepo.BookCarAndReturnId(booking);
+        //}
         // Interface
 
 
         // Implementation
+
+        public async Task<int> BookCarAndReturnId(CarBooking booking)
+        {
+            return await _carRepo.BookCarAndReturnId(booking);
+        }
+
+        public async Task SaveAttachment(int bookingId, string fileName, string filePath, long fileSize)
+        {
+            await _carRepo.SaveAttachment(bookingId, fileName, filePath, fileSize);
+        }
+
+        public async Task DeleteAttachment(int attachmentId)
+        {
+            await _carRepo.DeleteAttachment(attachmentId);
+        }
+
         public async Task<List<PersonWithCarDto>> GetAllBookings()
         {
+            // Simply call repository method
             return await _carRepo.GetAllBookings();
         }
         //public async Task<BookCarDto> GetBookingWithCar(int bookingId)
@@ -100,14 +119,83 @@ namespace RentACar.Service
         //{
         //    return await _carRepo.UpdateBooking(id, bookingDto);
         //}
-        public async Task<bool> UpdateBooking(UpdateBookingDto booking)
+        //public async Task<bool> UpdateBooking(UpdateBookingDto booking)
+        //{
+        //    return await _carRepo.UpdateBooking(booking);
+        //}
+
+        public async Task<int> CancelBooking(CancelBookingRequest model)
         {
-            return await _carRepo.UpdateBooking(booking);
+            return await _carRepo.CancelBooking(model);
         }
 
-        public async Task<int> CancelBooking(int id)
+        public async Task<int> ReceiveCar(
+     int bookingId,
+     bool isDamaged,
+     string? remarks,
+     string? damageRemarks,
+     decimal charges
+ )
         {
-            return await _carRepo.CancelBooking(id);
+            return await _carRepo.ReceiveCar(
+                bookingId,
+                isDamaged,
+                remarks,
+                damageRemarks,
+                charges
+            );
+        }
+        public async Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType)
+        {
+            return await _carRepo.AddReceiveImage(receiveId, imageUrl, imageType);
+        }
+
+
+        public async Task<List<ReceivedCarResponseDto>> GetAllReceivedCars()
+      => await _carRepo.GetAllReceivedCars();
+
+        public async Task DeleteReceivedCar(int receiveId)
+            => await _carRepo.DeleteReceivedCar(receiveId);
+
+        public async Task<BillingDto> GetBillingByBookingId(int bookingId)
+        {
+            return await _carRepo.GetBillingByBookingId(bookingId);
+        }
+
+        public async Task<MonthlyProfitDto> GetMonthlyProfit(int month, int year)
+        {
+            return await _carRepo.GetMonthlyProfit(month, year);
+        }
+
+        public async Task<List<BillingDto>> GetAllBillings(DateTime? startDate, DateTime? endDate)
+        {
+            return await _carRepo.GetAllBillings(startDate, endDate);
+        }
+
+        public async Task CreatePaymentAsync(int bookingId)
+        {
+            await _carRepo.CreatePayment(bookingId);
+        }
+
+        public async Task FinalizePaymentAsync(int bookingId)
+        {
+            await _carRepo.FinalizePayment(bookingId);
         }
     }
 }
+
+    //    public async Task<Payment> GetPaymentByBookingIdAsync(int bookingId)
+    //    {
+    //        return await _carRepo.GetPaymentByBookingId(bookingId);
+    //    }
+
+//    public async Task<MonthlyProfitDto> GetMonthlyProfitAsync(int month, int year)
+//    {
+//        return await _carRepo.GetMonthlyProfit(month, year);
+//    }
+
+//    public async Task<List<Payment>> GetAllPaymentsAsync(DateTime? startDate, DateTime? endDate)
+//    {
+//        return await _carRepo.GetAllPayments(startDate, endDate);
+//    }
+//}

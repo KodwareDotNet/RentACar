@@ -24,6 +24,10 @@ namespace RentACar.Models
 
         public DateTime PickupDate { get; set; }
         public DateTime DropoffDate { get; set; }
+        public decimal? PricePerUnit { get; set; }
+        public string PricingType { get; set; }
         public string CarImageUrl { get; set; }
+        public decimal? TotalAmount { get; set; }
+        //public decimal? TotalAmount { get; set; }
     }
 }
