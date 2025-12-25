@@ -25,13 +25,15 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         carId: "",
         pricingType: "daily",
         pricePerUnit: 0,
-        totalPrice: 0
+        totalPrice: 0,
+        receiveDate: ""
     });
 
     const [receiveData, setReceiveData] = useState({
         Images: [],
         damageNotes: "",
         extraCharges: 0,
+        lateReturnCharges: 0,
         remarks: "",
     });
 
@@ -73,8 +75,25 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             damageNotes: "",
             extraCharges: 0,
             remarks: "",
+            dropoffDate: "",
+            receiveDate: ""
         });
     }
+
+    const price = bookingData.carDetail.pricePerUnit;
+
+    React.useEffect(() => {
+        if (isReceiveMode && bookingData) {
+            setUserData(prev => ({
+                ...prev, // Keep existing state
+                dropoffDate: bookingData.dropoffDate
+                    ? bookingData.dropoffDate.slice(0, 16)
+                    : "",
+                pricePerUnit: bookingData.pricePerUnit || bookingData.carDetail?.pricePerUnit || 0,
+                pricingType: bookingData.pricingType || "hourly",
+            }));
+        }
+    }, [bookingData, isReceiveMode, modal]);
 
     // Update carId and image when cardetail changes
     React.useEffect(() => {
@@ -90,7 +109,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                 address: bookingData.address || "",
                 city: bookingData.city || "",
                 pickupDate: bookingData.pickupDate
-                    ? bookingData.pickupDate.slice(0, 16)  : "",
+                    ? bookingData.pickupDate.slice(0, 16) : "",
                 dropoffDate: bookingData.dropoffDate
                     ? bookingData.dropoffDate.slice(0, 16)
                     : "",
@@ -300,6 +319,19 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         return Math.ceil(diffMs / (1000 * 60 * 60 * 24)); // daily
     };
 
+
+    const calculateHours = (start, end) => {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffTime = endDate - startDate; // Can be negative, handle below
+        return Math.max(Math.ceil(diffTime / (1000 * 60 * 60)), 0);
+    };
+
+    const calculateExtraCharges = (dropoff, receive, pricePerUnit) => {
+        const extraHours = calculateHours(dropoff, receive);
+        return extraHours > 0 ? extraHours * (pricePerUnit || 0) : 0;
+    };
+
     const handleUpdate = async () => {
         if (!validateUpdateForm())
 
@@ -386,14 +418,19 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
     const handleReceiveSubmit = async () => {
 
         try {
+            const lateCharges = new Date(userData.receiveDate) > new Date(userData.dropoffDate)
+            ? calculateExtraCharges(userData.dropoffDate, userData.receiveDate, price)
+            : 0;
             const formData = new FormData();
 
             formData.append('BookingId', bookingData.id);
             formData.append('DamageRemarks', receiveData.damageNotes);
             formData.append('ExtraCharges', receiveData.extraCharges || 0);
             formData.append('Remarks', receiveData.remarks);
+            formData.append('Receive Date', userData.receiveDate);
             formData.append('status', 'Completed');
             formData.append("bookingStatus", 2);
+            formData.append("lateExtraCharges", lateCharges)
 
             // Append return images
             receiveData.Images.forEach((image) => {
@@ -504,8 +541,8 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             {/* Modal Content */}
             <div className={`booking-modal ${modal ? "active-modal" : ""}`}>
                 <div className="booking-modal__title">
-                    {/* <h2>{isEditMode?'Edit Reservation' :isReceiveMode? "Receive ": "Complete Reservation"}</h2> */}
-                    <h2>Complete Reservation</h2>
+                    <h2>{isEditMode ? 'Edit Reservation' : isReceiveMode ? "Receive " : "Complete Reservation"}</h2>
+                    {/* <h2>Complete Reservation</h2> */}
                     <CloseIcon
                         onClick={handleCloseModal}
 
@@ -659,6 +696,50 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                             />
                         </Box>
 
+                        <div className="info-form__2col">
+                            <span>
+                                <label>Actual Dropoff Date <b>*</b></label>
+                                <input
+                                    value={userData.dropoffDate}
+                                    onChange={(e) => handleInputChange("dropoffDate", e.target.value)}
+                                    readOnly
+                                    type="datetime-local"
+                                    min={userData.pickupDate}
+                                />
+                                {errors.dropoffDate && (
+                                    <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                        {errors.dropoffDate}
+                                    </Typography>
+                                )}
+                            </span>
+
+                            <span>
+                                <label> Date Of Receiving <b>*</b></label>
+                                <input
+                                    value={userData.receiveDate}
+                                    onChange={(e) => handleInputChange("receiveDate", e.target.value)}
+                                    type="datetime-local"
+                                    min={userData.dropoffDate}
+                                />
+                            </span>
+
+                            {new Date(userData.receiveDate) > new Date(userData.dropoffDate) && (
+                                <Box sx={{ mb: 3, p: 2, bgcolor: '#fff3e0', borderRadius: 1, border: '1px solid #ffb74d' }}>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#e65100' }}>
+                                        Late Return Charges
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Extra Hours: {calculateHours(userData.dropoffDate, userData.receiveDate)} hours
+                                    </Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#e65100' }}>
+                                        Rs {calculateExtraCharges(userData.dropoffDate, userData.receiveDate, price)}
+                                    </Typography>
+                                </Box>
+                            )}
+
+                        </div>
+
+
                         <Box sx={{ mb: 3 }}>
                             <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
                                 Remarks <span style={{ color: "red" }}>*</span>
@@ -682,6 +763,8 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                 }}
                             />
                         </Box>
+
+
 
                         <div className="reserve-button">
                             <button type="button" onClick={handleSubmit}>

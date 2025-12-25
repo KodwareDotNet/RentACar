@@ -50,14 +50,14 @@ const bookCarsService = {
             }
         }
     },
-    updateBookCar: async ( formData) => {
-        
+    updateBookCar: async (formData) => {
+
         try {
             const res = await api.post(`Car/BookCar`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             return res;
         }
         catch (error) {
@@ -78,14 +78,14 @@ const bookCarsService = {
             }
         }
     },
-     receiveBookCar: async ( formData) => {
-        
+    receiveBookCar: async (formData) => {
+
         try {
             const res = await api.post(`Car/receiveCar`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             return res;
         }
         catch (error) {
@@ -106,14 +106,30 @@ const bookCarsService = {
             }
         }
     },
-    deleteBookCars: async (id) => {
+    // deleteBookCars: async (id) => {
+    //     try {
+    //         const res = await api.delete("car/CancelBooking", {
+    //             params: { id },
+    //         });
+    //         return res.data;
+    //     }
+    //     catch (ex) {
+    //         console.error("Cancel Error:", ex);
+    //         throw ex;
+    //     }
+    // },
+    cancelBooking: async (id, cancellationData) => {
         try {
-            const res = await api.delete("car/CancelBooking", {
-                params: {id},
-        });
+            const res = await api.put("car/CancelBooking", {
+                id,
+                usedUnits: cancellationData.usedUnits,
+                UsedAmount: cancellationData.usedAmount,
+                refundableAmount: cancellationData.refundableAmount,
+                cancelledAt: new Date().toISOString(),
+                status: 'Cancelled'
+            });
             return res.data;
-        }
-        catch (ex) {
+        } catch (ex) {
             console.error("Cancel Error:", ex);
             throw ex;
         }
@@ -138,7 +154,7 @@ const bookCarsService = {
             }
         }
     },
-     deleteReceiveCars: async (id) => {
+    deleteReceiveCars: async (id) => {
         try {
             const res = await api.delete(`car/CancelBooking/${id}`
             );

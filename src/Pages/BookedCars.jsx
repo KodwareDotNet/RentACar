@@ -119,10 +119,14 @@ const BookedCarsPage = () => {
 
     const handleCancelClick = (booking) => {
         const cancelDate = new Date();
+        const dropoffDate = new Date(booking.carDetail.dropoffDate);
+
+        // Use the earlier date between cancel date and dropoff date
+        const effectiveCancelDate = cancelDate > dropoffDate ? dropoffDate : cancelDate;
 
         const usedUnits = calculateDuration(
             booking.carDetail.pickupDate,
-            cancelDate,
+            effectiveCancelDate,
             booking.carDetail.pricingType
         );
 
@@ -144,9 +148,17 @@ const BookedCarsPage = () => {
     };
 
 
+
+
     const deleteBookCar = async (id) => {
         try {
-            const res = await bookCarsService.deleteBookCars(id);
+            const cancellationData = {
+                usedUnits: selectedBooking.usedUnits,
+                usedAmount: selectedBooking.usedAmount,
+                refundableAmount: selectedBooking.refundableAmount
+            };
+
+            const res = await bookCarsService.cancelBooking(id, cancellationData);
 
             if (res?.success === true || res?.status === 200) {
                 setSnackbar({
@@ -168,11 +180,8 @@ const BookedCarsPage = () => {
                 severity: "error"
             });
         } finally {
-            // 🔥 ALWAYS close dialog
             setOpenDialog(false);
             setSelectedBooking(null);
-
-            // 🔄 Refresh list (optional)
             fetchBookings();
         }
     };
