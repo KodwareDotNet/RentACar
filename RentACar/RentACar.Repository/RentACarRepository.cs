@@ -232,19 +232,26 @@ namespace RentACar.Repository
         }
 
         public async Task<int> ReceiveCar(
-    int bookingId,
-    bool isDamaged,
-    string? remarks,
-    string? damageRemarks,
-    decimal charges
-)
+      int bookingId,
+      bool isDamaged,
+      string? remarks,
+      string? damageRemarks,
+      decimal damageCharges,
+      decimal lateExtraCharges,
+      DateTime? dropOffDate,
+        decimal totalPrice
+  )
         {
             var parameters = new DynamicParameters();
             parameters.Add("@BookingId", bookingId);
             parameters.Add("@Remarks", remarks);
             parameters.Add("@IsDamaged", isDamaged);
             parameters.Add("@DamageRemarks", damageRemarks);
-            parameters.Add("@DamageCharges", charges);
+            parameters.Add("@DamageCharges", damageCharges);
+            parameters.Add("@LateExtraCharges", lateExtraCharges);
+            parameters.Add("@DropOffDate", dropOffDate);
+            parameters.Add("@TotalPrice", totalPrice); // totalPrice calculated in front end
+
 
             return await _connection.ExecuteScalarAsync<int>(
                 "sp_ReceiveCar",
@@ -252,6 +259,7 @@ namespace RentACar.Repository
                 commandType: CommandType.StoredProcedure
             );
         }
+
         public async Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType)
         {
             return await _connection.ExecuteScalarAsync<int>(

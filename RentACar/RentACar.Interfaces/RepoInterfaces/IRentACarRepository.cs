@@ -27,7 +27,7 @@ namespace RentACar.Interfaces.RepoInterfaces
         //Task<bool> UpdateBooking(UpdateBookingDto booking);
         Task<int> CancelBooking(CancelBookingRequest model);
 
-        Task<int> ReceiveCar(int bookingId, bool isDamaged, string? remarks, string? damageRemarks, decimal charges);   
+        Task<int> ReceiveCar(int bookingId, bool isDamaged, string? remarks, string? damageRemarks, decimal charges, decimal lateExtraCharges, DateTime? dropOffDate, decimal totalPrice);   
         Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType);
         Task<List<ReceivedCarResponseDto>> GetAllReceivedCars();
         Task DeleteReceivedCar(int receiveId);

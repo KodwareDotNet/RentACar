@@ -246,7 +246,10 @@ public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
                     dto.IsDamaged,
                     dto.Remarks,
                     dto.DamageRemarks,
-                    dto.DamageCharges
+                    dto.DamageCharges,
+                    dto.LateExtraCharges,
+                    dto.DropOffDate,
+                    dto.TotalPrice
                 );
 
                 // 2️⃣ Then save all images

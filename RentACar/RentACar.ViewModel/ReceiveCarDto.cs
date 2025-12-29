@@ -18,6 +18,11 @@ namespace RentACar.ViewModel
         public string? DamageRemarks { get; set; }
         public decimal DamageCharges { get; set; }
         public int ReceiveId { get; set; }
+        public decimal LateExtraCharges { get; set; }
+        public DateTime? DropOffDate { get; set; }
+        public decimal TotalPrice { get; set; }
+
+
         //public List<ReceiveImageDto>? Images { get; set; }
     }
     public class ReceiveImageDto
@@ -64,6 +69,9 @@ namespace RentACar.ViewModel
         public DateTime CreatedAt { get; set; }
         public DateTime PickupDate { get; set; }
         public DateTime ActualReturnDate { get; set; }
+        public decimal LateExtraCharges { get; set; }
+        public DateTime? DropOffDate { get; set; }
+
     }
 
     public class MonthlyProfitDto

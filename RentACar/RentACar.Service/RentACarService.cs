@@ -130,21 +130,28 @@ namespace RentACar.Service
         }
 
         public async Task<int> ReceiveCar(
-     int bookingId,
-     bool isDamaged,
-     string? remarks,
-     string? damageRemarks,
-     decimal charges
- )
+      int bookingId,
+      bool isDamaged,
+      string? remarks,
+      string? damageRemarks,
+      decimal charges,
+      decimal lateExtraCharges,
+      DateTime? dropOffDate,
+            decimal TotalPrice
+  )
         {
             return await _carRepo.ReceiveCar(
                 bookingId,
                 isDamaged,
                 remarks,
                 damageRemarks,
-                charges
+                charges,
+                lateExtraCharges,
+                dropOffDate,
+                 TotalPrice
             );
         }
+
         public async Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType)
         {
             return await _carRepo.AddReceiveImage(receiveId, imageUrl, imageType);

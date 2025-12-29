@@ -32,6 +32,7 @@ namespace RentACar.ViewModel
         public List<AttachmentDto> Attachments { get; set; } = new List<AttachmentDto>();
         public int BookingStatus { get; set; }
         public string Status { get; set; }
+        public decimal? TotalAmount { get; set; }
     }
 
     public class CarInfoDto
