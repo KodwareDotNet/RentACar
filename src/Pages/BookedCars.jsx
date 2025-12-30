@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import {
     Container, Typography, Card, CardContent, CardMedia, Grid, Button, Chip, Box,
     Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText,
-    Alert, Snackbar, Divider, Paper
+    Alert, Snackbar, Divider, Paper,
+    FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import {
-    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, Star
+    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, Star, FilterList
 } from '@mui/icons-material';
 import bookCarsService from '../api/services/BookCars/bookCarsService';
 import BookACarModal from "../components/BookACarModal";
@@ -22,10 +23,31 @@ const BookedCarsPage = () => {
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [selectedBookingDetails, setSelectedBookingDetails] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage] = useState(10);
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [filterPriceRange, setFilterPriceRange] = useState('all');
+    const [filterCarType, setFilterCarType] = useState('all');
+    const [pagination, setPagination] = useState({
+        currentPage,
+        pageSize: 10,
+        totalPages: 1,
+        totalRecords: 0
+    });
+
+
+
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const currentBookings = bookings;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterStatus, filterPriceRange, filterCarType]);
 
     useEffect(() => {
         fetchBookings();
-    }, []);
+    }, [currentPage, filterStatus, filterPriceRange, filterCarType]);
 
     const pricingLabels = {
         hourly: "hour",
@@ -34,52 +56,90 @@ const BookedCarsPage = () => {
         monthly: "months",
     };
 
+    const formatDate = (dateString) => {
+        if (!dateString || dateString === "0001-01-01T00:00:00") {
+            return 'Not set';
+        }
+        try {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch (e) {
+            return 'Invalid date';
+        }
+    };
+
     const navigate = useNavigate();
     const fetchBookings = async () => {
+        console.log('🔍 Fetching bookings for page:', currentPage);
         setLoading(true);
         try {
+            const res = await bookCarsService.getBookedCars({
+                pageNumber: currentPage,
+                pageSize: rowsPerPage,
+                bookingStatus: filterStatus,
+                priceRange: filterPriceRange,
+            });
 
-            const res = await bookCarsService.getBookedCars();
             if (res && res.status === 200) {
-                // Map API response to match UI fields
-                const mappedBookings = res.data.map((b) => ({
-                    id: b.bookingId,
-                    carName: b.car?.carName || "Unknown Car",
-                    image: b.car?.imageUrl ? `${BASE_URL}${b.car.imageUrl}` : '/placeholder.png',
-                    price: b.car?.pricePerDay || 0,
-                    description: b.car?.description || '',
-                    transmission: b.car?.transmission || '',
-                    fuelType: b.car?.fuel || '',
-                    rating: '4/5',
-                    pickupDate: b.pickupDate,
-                    dropoffDate: b.dropoffDate,
-                    totalDays: calculateDays(b.pickupDate, b.dropoffDate),
-                    totalPrice: (b.pricePerUnit || 0) * calculateHours(b.pickupDate, b.dropoffDate),
-                    status: b.status,
-                    fullName: b.fullName || '',
-                    fatherName: b.fatherName || '',
-                    cnic: b.cnic || '',
-                    licenseNumber: b.licenseNumber || '',
-                    phone: b.phone || '',
-                    age: b.age || '',
-                    address: b.address || '',
-                    city: b.city || '',
-                    attachments: b.attachments?.map(att => ({
-                        id: att.attachmentId,
-                        attachmentId: att.attachmentId,
-                        fileName: att.fileName,
-                        filePath: `${BASE_URL}${att.filePath}`,
-                        fileSize: att.fileSize,
-                        uploadDate: att.uploadDate
-                    })) || [],
-                    carDetail: b
-                }));
+                console.log('API Response:', res.data);
+
+                // Check the response structure
+                const responseData = res.data.data || res.data;
+                const paginationData = res.data.pagination;
+
+                const mappedBookings = responseData.map((b) => {
+                    // Calculate dates properly
+                    const pickup = b.pickupDate !== "0001-01-01T00:00:00" ? new Date(b.pickupDate) : null;
+                    const dropoff = b.dropoffDate !== "0001-01-01T00:00:00" ? new Date(b.dropoffDate) : null;
+
+                    return {
+                        id: b.bookingId,
+                        carName: b.car?.carName || "Unknown Car",
+                        image: b.car?.imageUrl ? `${BASE_URL}${b.car.imageUrl}` : '/placeholder.png',
+                        price: b.car?.pricePerHour || b.pricePerUnit || 0,
+                        description: b.car?.description || '',
+                        transmission: b.car?.transmission || 'N/A',
+                        fuelType: b.car?.fuel || 'N/A',
+                        rating: '4/5',
+                        pickupDate: pickup,
+                        dropoffDate: dropoff,
+                        totalDays: pickup && dropoff ? calculateDays(pickup, dropoff) : 0,
+                        totalPrice: b.totalAmount || 0,
+                        status: b.status || 'Pending',
+                        fullName: b.fullName || '',
+                        fatherName: b.fatherName || '',
+                        cnic: b.cnic || '',
+                        licenseNumber: b.licenseNumber || '',
+                        phone: b.phone || '',
+                        age: b.age || 0,
+                        address: b.address || '',
+                        city: b.city || '',
+                        attachments: b.attachments?.map(att => ({
+                            id: att.attachmentId,
+                            attachmentId: att.attachmentId,
+                            fileName: att.fileName,
+                            filePath: att.filePath ? `${BASE_URL}${att.filePath}` : null,
+                            fileSize: att.fileSize,
+                            uploadDate: att.uploadDate
+                        })) || [],
+                        carDetail: b
+                    };
+                });
+
+                console.log('Mapped Bookings:', mappedBookings); // Debug log
 
                 setBookings(mappedBookings);
 
+                if (paginationData) {
+                    setPagination(paginationData);
+                }
             }
         } catch (err) {
             console.error("Failed to fetch bookings:", err);
+
         } finally {
             setLoading(false);
         }
@@ -242,135 +302,417 @@ const BookedCarsPage = () => {
     return (
         <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: { xs: 2, sm: 3, md: 4 } }}>
             <Container maxWidth="lg">
-                <Box sx={{ mb: 4, mt: 7 }}>
-                    <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+                {/* Header Section */}
+                <Box sx={{ mb: { xs: 2, sm: 3, md: 4 }, mt: { xs: 2, sm: 4, md: 7 } }}>
+                    <Typography
+                        variant="h3"
+                        component="h1"
+                        gutterBottom
+                        sx={{
+                            fontWeight: 700,
+                            mb: 1,
+                            color: '#1a1a1a',
+                            fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3rem' }
+                        }}
+                    >
                         My Bookings
                     </Typography>
-                    <Typography variant="body1" sx={{ color: '#666' }}>
+                    <Typography
+                        variant="body1"
+                        sx={{
+                            color: '#666',
+                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                        }}
+                    >
                         View and manage your car rental bookings
                     </Typography>
                 </Box>
 
+                <Box sx={{
+                    mb: 3,
+                    bgcolor: 'white',
+                    p: 3,
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    display: 'block',
+                    width: '35%'
+                }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <FilterList color="primary" />
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            Filter Bookings
+                        </Typography>
+                    </Box>
+
+                    <Grid container spacing={2}>
+                        {/* Status Filter */}
+                        <Grid item xs={12} sm={6} md={4}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={filterStatus}
+                                    label="Status"
+                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                >
+                                    <MenuItem value="all">All Status</MenuItem>
+                                    <MenuItem value="1">Active</MenuItem>
+                                    <MenuItem value="2">Completed</MenuItem>
+                                    <MenuItem value="3">Cancelled</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        {/* Price Range Filter */}
+                        {/* <Grid item xs={12} sm={6} md={4}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Price Range</InputLabel>
+                                <Select
+                                    value={filterPriceRange}
+                                    label="Price Range"
+                                    onChange={(e) => setFilterPriceRange(e.target.value)}
+                                >
+                                    <MenuItem value="all">All Prices</MenuItem>
+                                    <MenuItem value="low">Under $100</MenuItem>
+                                    <MenuItem value="medium">$100 - $500</MenuItem>
+                                    <MenuItem value="high">Over $500</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid> */}
+
+                        {/* Car Type Filter */}
+                        {/* <Grid item xs={12} sm={6} md={4}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Transmission</InputLabel>
+                                <Select
+                                    value={filterCarType}
+                                    label="Transmission"
+                                    onChange={(e) => setFilterCarType(e.target.value)}
+                                >
+                                    <MenuItem value="all">All Types</MenuItem>
+                                    <MenuItem value="Automatic">Automatic</MenuItem>
+                                    <MenuItem value="Manual">Manual</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid> */}
+                    </Grid>
+
+                    {/* Clear Filters Button */}
+                    {(filterStatus !== 'all' || filterPriceRange !== 'all' || filterCarType !== 'all') && (
+                        <Box sx={{ mt: 2 }}>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => {
+                                    setFilterStatus('all');
+                                    setFilterPriceRange('all');
+                                    setFilterCarType('all');
+                                }}
+                            >
+                                Clear All Filters
+                            </Button>
+                        </Box>
+                    )}
+
+                    {/* Results Count */}
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        Showing {bookings.length} of {bookings.length} bookings
+                    </Typography>
+                </Box>
+
                 <Grid container spacing={{ xs: 2, sm: 3 }}>
-                    {bookings.length > 0 ? bookings.map((booking) => (
-                        <Grid item xs={12} lg={6} key={booking.id}>
-                            <Card elevation={2} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, overflow: 'hidden', '&:hover': { boxShadow: 4 }, transition: 'box-shadow 0.3s' }}>
+                    {bookings.length > 0 ? currentBookings.map((booking) => (
+                        <Grid item xs={12} sm={12} md={6} lg={4} key={booking.id}>
+                            <Card
+                                elevation={2}
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    height: '100%',
+                                    overflow: 'hidden',
+                                    '&:hover': { boxShadow: 4 },
+                                    transition: 'box-shadow 0.3s'
+                                }}
+                            >
                                 <CardMedia
                                     component="img"
-                                    sx={{ width: { xs: '100%', md: 300 }, height: { xs: 200, md: 'auto' }, objectFit: 'fill' }}
                                     image={booking.image}
                                     alt={booking.carName}
+                                    sx={{
+                                        width: '100%',
+                                        height: 180,
+                                        objectFit: 'cover'
+                                    }}
                                 />
-
-                                <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                    <CardContent sx={{ flex: '1 0 auto', p: 3 }}>
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-                                            <Box>
-                                                <Typography component="h2" variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                                    {booking.carName}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">{booking.description}</Typography>
-                                            </Box>
-                                            <Chip icon={getStatusIcon(booking.status)} label={booking.status.toUpperCase()} color={getStatusColor(booking.status)} size="small" sx={{ fontWeight: 600 }} />
+                                <CardContent
+                                    sx={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        p: { xs: 2, sm: 2.5, md: 3 }
+                                    }}
+                                >
+                                    {/* Header with Car Name and Status */}
+                                    <Box sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-start',
+                                        mb: 2,
+                                        gap: 1
+                                    }}>
+                                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                                            <Typography
+                                                component="h2"
+                                                variant="h5"
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    mb: 0.5,
+                                                    fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.5rem' }
+                                                }}
+                                            >
+                                                {booking.carName}
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{
+                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden'
+                                                }}
+                                            >
+                                                {booking.description}
+                                            </Typography>
                                         </Box>
-                                        {booking.status === 'Active' && (
-                                            <Grid container spacing={2} sx={{ mb: 2 }}>
-                                                <Grid item xs={12}>
-                                                    <Button
-                                                        variant="outlined"
-                                                        color="primary"
-                                                        size="medium"
-                                                        startIcon={<Settings />}
-                                                        onClick={() => handleEditClick(booking)}
+                                        <Chip
+                                            icon={getStatusIcon(booking.status)}
+                                            label={booking.status.toUpperCase()}
+                                            color={getStatusColor(booking.status)}
+                                            size="small"
+                                            sx={{
+                                                fontWeight: 600,
+                                                fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                                                height: { xs: 24, sm: 28 }
+                                            }}
+                                        />
+                                    </Box>
+
+                                    {/* View Details Button - Only for Active */}
+                                    {booking.status === 'Active' && (
+                                        <Box sx={{ mb: 2 }}>
+                                            <Button
+                                                variant="outlined"
+                                                color="primary"
+                                                size="small"
+                                                startIcon={<Settings sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />}
+                                                onClick={() => handleEditClick(booking)}
+                                                fullWidth
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    textTransform: 'none',
+                                                    borderRadius: 2,
+                                                    px: { xs: 1.5, sm: 2 },
+                                                    py: { xs: 0.75, sm: 1 },
+                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                                    '&:hover': {
+                                                        bgcolor: 'primary.light',
+                                                        color: 'white',
+                                                        borderColor: 'primary.main'
+                                                    }
+                                                }}
+                                            >
+                                                View Details & Images
+                                            </Button>
+                                        </Box>
+                                    )}
+
+                                    <Divider sx={{ my: 2 }} />
+
+                                    {/* Booking Details Grid */}
+                                    <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 2 }}>
+                                        <Grid item xs={12}>
+                                            <Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                                    <CalendarToday sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }} color="primary" />
+                                                    <Typography
+                                                        variant="subtitle2"
                                                         sx={{
                                                             fontWeight: 600,
-                                                            textTransform: 'none',
-                                                            borderRadius: 2,
-                                                            px: 3,
-                                                            '&:hover': {
-                                                                bgcolor: 'primary.light',
-                                                                color: 'white',
-                                                                borderColor: 'primary.main'
-                                                            }
+                                                            fontSize: { xs: '0.8rem', sm: '0.875rem' }
                                                         }}
                                                     >
-                                                        View Booking Details & Images
-                                                    </Button>
-                                                </Grid>
-                                            </Grid>
-                                        )}
-                                        <Divider sx={{ my: 2 }} />
-
-                                        <Grid container spacing={2}>
-                                            <Grid item xs={12} sm={6}>
-                                                <Box sx={{ mb: 1 }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                        <CalendarToday fontSize="small" color="primary" />
-                                                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Booking Details</Typography>
-                                                    </Box>
-                                                    <Typography variant="body2" color="text.secondary"><strong>From:</strong> {booking.pickupDate}</Typography>
-                                                    <Typography variant="body2" color="text.secondary"><strong>To:</strong> {booking.dropoffDate}</Typography>
-                                                    {/* <Typography variant="body2" color="text.secondary"><strong>Duration:</strong> {booking.totalDays} {booking.totalDays === 1 ? 'day' : 'days'}</Typography> */}
-                                                </Box>
-                                            </Grid>
-                                            <Grid item xs={12} sm={6}>
-                                                <Paper elevation={0} sx={{ bgcolor: '#f0f7ff', p: 2.5, borderRadius: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', border: '1px solid #e3f2fd' }}>
-                                                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>Total Amount</Typography>
-                                                    <Typography variant="h4" sx={{ fontWeight: 700, color: '#2e7d32', display: 'flex', alignItems: 'center' }}>
-                                                        ${booking.totalPrice}
+                                                        Booking Details
                                                     </Typography>
-                                                </Paper>
-                                            </Grid>
-                                        </Grid>
-
-                                        {booking.status === 'Active' && (
-                                            <Box sx={{ mt: 3 }}>
-                                                <Button variant="outlined" color="error" size="large" startIcon={<Cancel />} onClick={() => handleCancelClick(booking)} fullWidth sx={{ py: 1.5, fontWeight: 600, '&:hover': { bgcolor: 'error.light', color: 'white', borderColor: 'error.main' } }}>
-                                                    Cancel Booking
-                                                </Button>
+                                                </Box>
+                                                <Typography
+                                                    variant="body2"
+                                                    color="text.secondary"
+                                                    sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, mb: 0.5 }}
+                                                >
+                                                    <strong>From:</strong> {formatDate(booking.pickupDate)}
+                                                </Typography>
+                                                <Typography
+                                                    variant="body2"
+                                                    color="text.secondary"
+                                                    sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
+                                                >
+                                                    <strong>To:</strong> {formatDate(booking.dropoffDate)}
+                                                </Typography>
                                             </Box>
-                                        )}
-                                        <Box sx={{ mt: 3 }}>
-                                            {booking.status === 'Active' && (
-                                                <Button
-                                                    variant="outlined"
-                                                    color="success"
-                                                    size="large"
-                                                    startIcon={<CheckCircle />}
-                                                    onClick={() => handleReceiveClick(booking)}
-                                                    fullWidth
+                                        </Grid>
+                                        <Grid item xs={12}>
+                                            <Paper
+                                                elevation={0}
+                                                sx={{
+                                                    bgcolor: '#f0f7ff',
+                                                    p: { xs: 1.5, sm: 2 },
+                                                    borderRadius: 2,
+                                                    border: '1px solid #e3f2fd',
+                                                    textAlign: 'center'
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant="caption"
+                                                    color="text.secondary"
                                                     sx={{
-                                                        py: 1.5,
-                                                        fontWeight: 600,
-                                                        '&:hover': {
-                                                            bgcolor: 'success.light',
-                                                            color: 'white',
-                                                            borderColor: 'success.main'
-                                                        }
+                                                        mb: 0.5,
+                                                        fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                                        display: 'block'
                                                     }}
                                                 >
-                                                    Receive Booking
-                                                </Button>
-                                            )}
+                                                    Total Amount
+                                                </Typography>
+                                                <Typography
+                                                    variant="h4"
+                                                    sx={{
+                                                        fontWeight: 700,
+                                                        color: '#2e7d32',
+                                                        fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
+                                                    }}
+                                                >
+                                                    ${booking.totalPrice}
+                                                </Typography>
+                                            </Paper>
+                                        </Grid>
+                                    </Grid>
+
+                                    {/* Action Buttons - Spacer to push buttons to bottom */}
+                                    <Box sx={{ flexGrow: 1 }} />
+
+                                    {/* Action Buttons */}
+                                    {booking.status === 'Active' && (
+                                        <Box sx={{ mt: 'auto' }}>
+                                            <Button
+                                                variant="outlined"
+                                                color="error"
+                                                size="medium"
+                                                startIcon={<Cancel sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />}
+                                                onClick={() => handleCancelClick(booking)}
+                                                fullWidth
+                                                sx={{
+                                                    py: { xs: 1, sm: 1.25 },
+                                                    mb: 1.5,
+                                                    fontWeight: 600,
+                                                    fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                                                    '&:hover': {
+                                                        bgcolor: 'error.light',
+                                                        color: 'white',
+                                                        borderColor: 'error.main'
+                                                    }
+                                                }}
+                                            >
+                                                Cancel Booking
+                                            </Button>
+                                            <Button
+                                                variant="outlined"
+                                                color="success"
+                                                size="medium"
+                                                startIcon={<CheckCircle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />}
+                                                onClick={() => handleReceiveClick(booking)}
+                                                fullWidth
+                                                sx={{
+                                                    py: { xs: 1, sm: 1.25 },
+                                                    fontWeight: 600,
+                                                    fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                                                    '&:hover': {
+                                                        bgcolor: 'success.light',
+                                                        color: 'white',
+                                                        borderColor: 'success.main'
+                                                    }
+                                                }}
+                                            >
+                                                Receive Booking
+                                            </Button>
                                         </Box>
-                                    </CardContent>
-                                </Box>
+                                    )}
+
+                                    {/* Empty space for cancelled/completed bookings to maintain height */}
+                                    {booking.status !== 'Active' && (
+                                        <Box sx={{ mt: 'auto', minHeight: { xs: 90, sm: 100 } }} />
+                                    )}
+                                </CardContent>
                             </Card>
                         </Grid>
                     )) : (
-                        <Box sx={{ textAlign: 'center', py: 10, bgcolor: 'white', borderRadius: 2, boxShadow: 1 }}>
-                            <DirectionsCar sx={{ fontSize: 100, color: '#e0e0e0', mb: 2 }} />
-                            <Typography variant="h5" color="text.secondary" sx={{ mb: 1 }}>No bookings found</Typography>
-                            <Typography variant="body2" color="text.secondary">You haven't booked any cars yet</Typography>
-                            {/* <Button onClick={navigate("models")} variant="contained" sx={{ mt: 3 }} startIcon={<DirectionsCar />}>Browse Cars</Button> */}
-                        </Box>
+                        <Grid item xs={12}>
+                            <Box sx={{
+                                textAlign: 'center',
+                                py: { xs: 6, sm: 8, md: 10 },
+                                bgcolor: 'white',
+                                borderRadius: 2,
+                                boxShadow: 1,
+                                mx: { xs: 1, sm: 0 }
+                            }}>
+                                <DirectionsCar sx={{
+                                    fontSize: { xs: 60, sm: 80, md: 100 },
+                                    color: '#e0e0e0',
+                                    mb: 2
+                                }} />
+                                <Typography
+                                    variant="h5"
+                                    color="text.secondary"
+                                    sx={{
+                                        mb: 1,
+                                        fontSize: { xs: '1.25rem', sm: '1.5rem' }
+                                    }}
+                                >
+                                    No bookings found
+                                </Typography>
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                                >
+                                    You haven't booked any cars yet
+                                </Typography>
+                            </Box>
+                        </Grid>
                     )}
                 </Grid>
 
-                <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-                    <DialogTitle sx={{ fontWeight: 600, fontSize: '1.25rem' }}>Cancel Booking?</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>
+                {/* Cancel Dialog */}
+                <Dialog
+                    open={openDialog}
+                    onClose={handleCloseDialog}
+                    maxWidth="sm"
+                    fullWidth
+                    PaperProps={{
+                        sx: {
+                            m: { xs: 2, sm: 3 },
+                            maxHeight: { xs: '90vh', sm: 'calc(100% - 64px)' }
+                        }
+                    }}
+                >
+                    <DialogTitle sx={{
+                        fontWeight: 600,
+                        fontSize: { xs: '1.125rem', sm: '1.25rem' },
+                        pb: { xs: 1, sm: 2 }
+                    }}>
+                        Cancel Booking?
+                    </DialogTitle>
+                    <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+                        <DialogContentText sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                             Are you sure you want to cancel your booking for <strong>{selectedBooking?.carName}</strong>?
                         </DialogContentText>
                         {selectedBooking && (
@@ -378,23 +720,41 @@ const BookedCarsPage = () => {
                                 {bookings
                                     ?.filter(booking => booking.id === selectedBooking?.id)
                                     .map((booking, index) => (
-                                        <Box sx={{ mb: 1 }} key={index}>
+                                        <Box sx={{ mb: 1, mt: 2 }} key={index}>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                                                 <CalendarToday fontSize="small" color="primary" />
-                                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                                <Typography
+                                                    variant="subtitle2"
+                                                    sx={{
+                                                        fontWeight: 600,
+                                                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                                                    }}
+                                                >
                                                     Booking Details
                                                 </Typography>
                                             </Box>
 
-                                            <Typography variant="body2" color="text.secondary">
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                                            >
                                                 <strong>From:</strong> {booking?.carDetail?.pickupDate}
                                             </Typography>
 
-                                            <Typography variant="body2" color="text.secondary">
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                                            >
                                                 <strong>To:</strong> {booking?.carDetail?.dropoffDate}
                                             </Typography>
 
-                                            <Typography variant="body2" color="text.secondary">
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                                            >
                                                 <strong>Duration:</strong>{" "}
                                                 {booking.totalDays}{" "}
                                                 {booking.totalDays === 1 ? "day" : "days"}
@@ -403,32 +763,133 @@ const BookedCarsPage = () => {
                                     ))}
 
                                 <Box sx={{ mt: 2 }}>
-                                    <Typography>
+                                    <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                                         Used {selectedBooking.usedUnits}{" "}
                                         {pricingLabels[selectedBooking?.carDetail?.pricingType?.toLowerCase()] || ""}
                                     </Typography>
-                                    <Typography color="error">
+                                    <Typography
+                                        color="error"
+                                        sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                                    >
                                         Deduction: Rs {selectedBooking.usedAmount}
                                     </Typography>
-                                    <Typography color="success.main" sx={{ fontWeight: 600 }}>
+                                    <Typography
+                                        color="success.main"
+                                        sx={{
+                                            fontWeight: 600,
+                                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                                        }}
+                                    >
                                         Refund: Rs {selectedBooking.refundableAmount}
                                     </Typography>
                                 </Box>
                             </>
                         )}
                     </DialogContent>
-                    <DialogActions sx={{ p: 2, pt: 0 }}>
-                        <Button onClick={handleCloseDialog} variant="outlined" sx={{ px: 3 }}>Keep Booking</Button>
-                        <Button onClick={() => deleteBookCar(selectedBooking.id)} color="error" variant="contained" sx={{ px: 3 }}>Cancel Booking</Button>
+                    <DialogActions sx={{
+                        p: { xs: 2, sm: 2 },
+                        pt: 0,
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        gap: { xs: 1, sm: 0 }
+                    }}>
+                        <Button
+                            onClick={handleCloseDialog}
+                            variant="outlined"
+                            sx={{
+                                px: 3,
+                                width: { xs: '100%', sm: 'auto' }
+                            }}
+                        >
+                            Keep Booking
+                        </Button>
+                        <Button
+                            onClick={() => deleteBookCar(selectedBooking.id)}
+                            color="error"
+                            variant="contained"
+                            sx={{
+                                px: 3,
+                                width: { xs: '100%', sm: 'auto' }
+                            }}
+                        >
+                            Cancel Booking
+                        </Button>
                     </DialogActions>
                 </Dialog>
 
-                <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-                    <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+                <Snackbar
+                    open={snackbar.open}
+                    autoHideDuration={4000}
+                    onClose={handleCloseSnackbar}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                    sx={{
+                        bottom: { xs: 16, sm: 24 },
+                    }}
+                >
+                    <Alert
+                        onClose={handleCloseSnackbar}
+                        severity={snackbar.severity}
+                        variant="filled"
+                        sx={{
+                            width: '100%',
+                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                        }}
+                    >
                         {snackbar.message}
                     </Alert>
                 </Snackbar>
+
+                {pagination.totalRecords > rowsPerPage && (
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        gap: 1
+                    }}>
+                        <Button
+                            variant="outlined"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            sx={{ minWidth: 'auto', px: 2 }}
+                        >
+                            Previous
+                        </Button>
+
+                        {[...Array(pagination.totalPages)].map((_, index) => {
+                            
+                            const pageNum = index + 1;
+                            return (
+                                <Button
+                                    key={pageNum}
+                                    variant={currentPage === pageNum ? "contained" : "outlined"}
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    sx={{
+                                        minWidth: 40,
+                                        fontWeight: currentPage === pageNum ? 600 : 400
+                                    }}
+                                >
+                                    {pageNum}
+                                </Button>
+                            );
+                        })}
+
+                        <Button
+                            variant="outlined"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+                            disabled={currentPage === pagination.totalPages}
+                            sx={{ minWidth: 'auto', px: 2 }}
+                        >
+                            Next
+                        </Button>
+                    </Box>
+                )}
+
+                {/* Update Results Count */}
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    Showing {bookings.length} of {pagination.totalRecords} bookings
+                </Typography>
             </Container>
+
             {/* EDIT MODE MODAL */}
             <BookACarModal
                 modal={showEditModal}
@@ -438,7 +899,6 @@ const BookedCarsPage = () => {
                 isEditMode={true}
                 isReceiveMode={false}
                 onUpdateSuccess={fetchBookings}
-
             />
 
             {/* RECEIVE MODE MODAL */}
@@ -450,7 +910,6 @@ const BookedCarsPage = () => {
                 isEditMode={false}
                 isReceiveMode={true}
                 onUpdateSuccess={fetchBookings}
-
             />
         </Box>
     );

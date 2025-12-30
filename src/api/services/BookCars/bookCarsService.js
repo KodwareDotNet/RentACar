@@ -30,26 +30,33 @@ const bookCarsService = {
         }
     },
 
-    getBookedCars: async () => {
-        try {
-            const res = await api.get("Car/GetAllBookings"); // or whatever your endpoint is
-            return res;
+    // Service
+getBookedCars: async (params = {}) => {
+    try {
+        const { pageNumber = 1, pageSize = 10, bookingStatus = 'all', priceRange = 'all' } = params;
+        
+        const queryParams = new URLSearchParams({
+            pageNumber: pageNumber.toString(),
+            pageSize: pageSize.toString(),
+            ...(bookingStatus !== 'all' && { bookingStatus }),
+            ...(priceRange !== 'all' && { priceRange }),
+        });
+        
+        const res = await api.get(`Car/GetAllBookings?${queryParams}`);
+        return res;
+    } catch (error) {
+        if (error.response) {
+            console.error("Failed to fetch bookings:", error.response.data);
+            throw new Error(error.response.data.message || "Failed to fetch bookings.");
+        } else if (error.request) {
+            console.error("No response from server:", error.request);
+            throw new Error("No response from the server. Please try again.");
+        } else {
+            console.error("Error setting up request:", error.message);
+            throw new Error("Error fetching bookings: " + error.message);
         }
-        catch (error) {
-            if (error.response) {
-                console.error("Failed to fetch bookings:", error.response.data);
-                throw new Error(
-                    error.response.data.message || "Failed to fetch bookings."
-                );
-            } else if (error.request) {
-                console.error("No response from server:", error.request);
-                throw new Error("No response from the server. Please try again.");
-            } else {
-                console.error("Error setting up request:", error.message);
-                throw new Error("Error fetching bookings: " + error.message);
-            }
-        }
-    },
+    }
+},
     updateBookCar: async (formData) => {
 
         try {

@@ -79,8 +79,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             receiveDate: ""
         });
     }
-
-    const price = bookingData.carDetail.pricePerUnit;
+    const price = bookingData && bookingData.carDetail ? bookingData.carDetail.pricePerUnit : 0;
 
     React.useEffect(() => {
         if (isReceiveMode && bookingData) {
@@ -91,6 +90,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                     : "",
                 pricePerUnit: bookingData.pricePerUnit || bookingData.carDetail?.pricePerUnit || 0,
                 pricingType: bookingData.pricingType || "hourly",
+                bookingPrice: bookingData.totalPrice
             }));
         }
     }, [bookingData, isReceiveMode, modal]);
@@ -332,6 +332,16 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         return extraHours > 0 ? extraHours * (pricePerUnit || 0) : 0;
     };
 
+    const calculateTotalAmount = () => {
+        const bookingPrice = parseFloat(userData.bookingPrice) || 0;
+        const damageCharges = parseFloat(receiveData.extraCharges) || 0;
+        const lateCharges = new Date(userData.receiveDate) > new Date(userData.dropoffDate)
+            ? calculateExtraCharges(userData.dropoffDate, userData.receiveDate, price)
+            : 0;
+
+        return bookingPrice + damageCharges + lateCharges;
+    };
+
     const handleUpdate = async () => {
         if (!validateUpdateForm())
 
@@ -419,18 +429,23 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
         try {
             const lateCharges = new Date(userData.receiveDate) > new Date(userData.dropoffDate)
-            ? calculateExtraCharges(userData.dropoffDate, userData.receiveDate, price)
-            : 0;
+                ? calculateExtraCharges(userData.dropoffDate, userData.receiveDate, price)
+                : 0;
+
+            const totalAmount = calculateTotalAmount();
             const formData = new FormData();
 
             formData.append('BookingId', bookingData.id);
             formData.append('DamageRemarks', receiveData.damageNotes);
-            formData.append('ExtraCharges', receiveData.extraCharges || 0);
+            formData.append('bookingPrice', userData.bookingPrice);
+            formData.append('DamageCharges', receiveData.extraCharges || 0);
             formData.append('Remarks', receiveData.remarks);
-            formData.append('Receive Date', userData.receiveDate);
+            formData.append('ReceiveDate', userData.receiveDate);
+            formData.append('DropOffDate', userData.dropoffDate);
             formData.append('status', 'Completed');
             formData.append("bookingStatus", 2);
-            formData.append("lateExtraCharges", lateCharges)
+            formData.append("lateExtraCharges", lateCharges);
+            formData.append("totalPrice", totalAmount);
 
             // Append return images
             receiveData.Images.forEach((image) => {
@@ -672,6 +687,22 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                             />
                         </Box>
 
+                        <Box sx={{ mb: 3 }}>
+                            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                                Booking Charges
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={userData.bookingPrice}
+                                onChange={(e) =>
+                                    handleReceiveInputChange("totalPrice", e.target.value)
+                                }
+                                readOnly
+                            />
+                        </Box>
+
                         {/* Extra Charges */}
                         <Box sx={{ mb: 3 }}>
                             <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
@@ -695,6 +726,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                 }}
                             />
                         </Box>
+
 
                         <div className="info-form__2col">
                             <span>
@@ -738,6 +770,28 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                             )}
 
                         </div>
+
+                        <Box sx={{ mb: 3 }}>
+                            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                                Total Amount
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={calculateTotalAmount().toFixed(2)}
+                                readOnly
+                                style={{
+                                    width: "100%",
+                                    padding: 12,
+                                    borderRadius: 3,
+                                    border: "1px solid #ccc",
+                                    fontSize: 14,
+                                    backgroundColor: "#f5f5f5",
+                                    cursor: "not-allowed"
+                                }}
+                            />
+                        </Box>
 
 
                         <Box sx={{ mb: 3 }}>
