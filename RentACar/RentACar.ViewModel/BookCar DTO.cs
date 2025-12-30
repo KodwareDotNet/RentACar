@@ -38,6 +38,7 @@ namespace RentACar.ViewModel
         public string? Transmission { get; set; }
         public string? Fuel { get; set; }
         public string? Description { get; set; }
+
         public string? ImageUrl { get; set; }
 
         public IFormFile? CarImage { get; set; }
@@ -50,7 +51,7 @@ namespace RentACar.ViewModel
         public long FileSize { get; set; }
         public DateTime UploadDate { get; set; }
        public List<int>? DeleteAttachmentIds { get; set; }
-
+        public int TotalRecords { get; set; }
     }
 
     // Response ke liye (Car + its bookings)

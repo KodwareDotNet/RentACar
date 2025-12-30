@@ -163,21 +163,50 @@ namespace RentACar.Repository
         // Interface
 
         // Implementation
-        public async Task<List<PersonWithCarDto>> GetAllBookings()
+        public async Task<PagedResponse<PersonWithCarDto>> GetAllBookings(
+    int pageNumber,
+    int pageSize,
+    int? bookingStatus,
+    string? fullName
+)
         {
+            var parameters = new
+            {
+                BookingStatus = bookingStatus,
+                FullName = fullName,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
             var result = await _connection.QueryAsync<BookCarDto>(
                 "sp_GetAllBookings",
+                parameters,
                 commandType: CommandType.StoredProcedure
             );
 
-            if (result == null || !result.Any())
-                return new List<PersonWithCarDto>();
+            if (!result.Any())
+            {
+                return new PagedResponse<PersonWithCarDto>
+                {
+                    Data = new List<PersonWithCarDto>(),
+                    Pagination = new PaginationDto
+                    {
+                        CurrentPage = pageNumber,
+                        PageSize = pageSize,
+                        TotalPages = 0,
+                        TotalRecords = 0
+                    }
+                };
+            }
+
+            int totalRecords = result.First().TotalRecords;
 
             var bookings = result
                 .GroupBy(b => b.BookingId)
                 .Select(g =>
                 {
                     var first = g.First();
+
                     return new PersonWithCarDto
                     {
                         BookingId = first.BookingId,
@@ -194,10 +223,9 @@ namespace RentACar.Repository
                         DropoffDate = first.DropoffDate,
                         BookingStatus = first.BookingStatus,
                         Status = first.Status,
-
-                        // ✅ NEW PROPERTIES
                         PricePerUnit = first.PricePerUnit,
                         PricingType = first.PricingType,
+                        TotalAmount = first.TotalAmount,
 
                         Car = new CarInfoDto
                         {
@@ -208,9 +236,11 @@ namespace RentACar.Repository
                             Transmission = first.Transmission,
                             Fuel = first.Fuel,
                             Description = first.Description,
-                            ImageUrl = string.IsNullOrEmpty(first.ImageUrl)
-                                ? first.CarImageUrl
-                                : first.ImageUrl
+
+                            // 🔥 IMAGE FIX
+                            ImageUrl = !string.IsNullOrEmpty(first.ImageUrl)
+                                ? first.ImageUrl
+                                : first.CarImageUrl
                         },
 
                         Attachments = g
@@ -228,8 +258,22 @@ namespace RentACar.Repository
                 })
                 .ToList();
 
-            return bookings;
+            return new PagedResponse<PersonWithCarDto>
+            {
+                Data = bookings,
+                Pagination = new PaginationDto
+                {
+                    CurrentPage = pageNumber,
+                    PageSize = pageSize,
+                    TotalRecords = totalRecords,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+                }
+            };
         }
+
+
+
+
 
         public async Task<int> ReceiveCar(
       int bookingId,

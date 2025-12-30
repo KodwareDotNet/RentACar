@@ -19,7 +19,14 @@ namespace RentACar.Repositories.Services.Interfaces
         Task<int> BookCarAndReturnId(CarBooking booking);
         Task SaveAttachment(int bookingId, string fileName, string filePath, long fileSize);
         Task DeleteAttachment(int attachmentId);
-        Task<List<PersonWithCarDto>> GetAllBookings();
+        Task<PagedResponse<PersonWithCarDto>> GetAllBookings(
+       int pageNumber,
+       int pageSize,
+       int? bookingStatus,
+       string? fullName
+   );
+
+
         //Task UpdateBooking(CarBooking booking);
         //Task<bool> UpdateBooking(UpdateBookingDto booking);
         //Task<BookCarDto> GetBookingWithCar(int bookingId);

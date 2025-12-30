@@ -106,11 +106,16 @@ namespace RentACar.Service
             await _carRepo.DeleteAttachment(attachmentId);
         }
 
-        public async Task<List<PersonWithCarDto>> GetAllBookings()
+        public async Task<PagedResponse<PersonWithCarDto>> GetAllBookings(
+       int pageNumber,
+       int pageSize,
+       int? bookingStatus,
+       string? fullName)
         {
-            // Simply call repository method
-            return await _carRepo.GetAllBookings();
+            return await _carRepo.GetAllBookings(pageNumber, pageSize, bookingStatus, fullName);
         }
+
+
         //public async Task<BookCarDto> GetBookingWithCar(int bookingId)
         //{
         //    return await _carRepo.GetBookingWithCar(bookingId);

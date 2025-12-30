@@ -19,7 +19,17 @@ namespace RentACar.Interfaces.ServiceInterface
         Task<int> BookCarAndReturnId(CarBooking booking);
         Task SaveAttachment(int bookingId, string fileName, string filePath, long fileSize);
         Task DeleteAttachment(int attachmentId);
-        Task<List<PersonWithCarDto>> GetAllBookings();
+        public interface IRentACarService
+        {
+            Task<PagedResponse<PersonWithCarDto>> GetAllBookings(
+                int pageNumber,
+                int pageSize,
+                int? bookingStatus,
+                string? fullName
+            );
+        }
+
+
         //Task<List<PersonWithCarDto>> GetAllBookings();
         //Task<int> UpdateBooking(int id, BookCarDto bookingDto);
         //Task<bool> UpdateBooking(UpdateBookingDto booking);
@@ -36,6 +46,7 @@ namespace RentACar.Interfaces.ServiceInterface
         Task<List<BillingDto>> GetAllBillings(DateTime? startDate, DateTime? endDate);
         Task CreatePaymentAsync(int bookingId);
         Task FinalizePaymentAsync(int bookingId);
+        Task<PagedResponse<PersonWithCarDto>> GetAllBookings(int pageNumber, int pageSize, int? bookingStatus, string? fullName);
         //Task<Payment> GetPaymentByBookingIdAsync(int bookingId);
         //Task<MonthlyProfitDto> GetMonthlyProfitAsync(int month, int year);
         //Task<List<Payment>> GetAllPaymentsAsync(DateTime? startDate, DateTime? endDate);

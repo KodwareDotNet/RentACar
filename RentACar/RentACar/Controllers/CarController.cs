@@ -155,11 +155,24 @@ namespace NewsApi.Controllers
         }
         // Controller
         [HttpGet("GetAllBookings")]
-        public async Task<IActionResult> GetAllBookings()
+        public async Task<IActionResult> GetAllBookings(
+    int pageNumber = 1,
+    int pageSize = 10,
+    int? bookingStatus = null,
+    string? fullName = null
+)
         {
-            var result = await _rentACarMap.GetAllBookings();
+            var result = await _rentACarMap.GetAllBookings(
+                pageNumber,
+                pageSize,
+                bookingStatus,
+                fullName
+            );
+
             return Ok(result);
         }
+
+
         //[HttpPut("UpdateBooking")]
         //public async Task<IActionResult> UpdateBooking([FromForm] UpdateBookingDto dto)
         //{
@@ -219,7 +232,7 @@ namespace NewsApi.Controllers
         //    }
         //}
 
-[HttpPut("CancelBooking")]
+        [HttpPut("CancelBooking")]
 public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
 {
     var result = await _rentACarMap.CancelBooking(model);
