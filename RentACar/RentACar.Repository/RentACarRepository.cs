@@ -44,24 +44,6 @@ namespace RentACar.Repository
             return NewsId;
         }
 
-        public async Task<bool> DeleteNews(long id)
-        {
-
-            var parameters = new
-            {
-                pId = id
-            };
-            DynamicParameters para = new DynamicParameters(parameters);
-            para.Add("@pReturnId", dbType: DbType.Int32, direction: ParameterDirection.Output);
-            await ExecuteAsync("uspDeleteNews", para, CommandType.StoredProcedure);
-            var NewsId = para.Get<int>("@pReturnId");
-            if (NewsId > 0)
-            {
-                return true;
-            }
-            return false;
-        }
-
         public async Task<IEnumerable<Models.KeyValuePair>> GetAllKeyValuePair(KeyValuePairType keyValuePair, long? id)
         {
             var parameters = new
@@ -71,26 +53,6 @@ namespace RentACar.Repository
             };
             var result = await QueryAsync<Models.KeyValuePair>("uspGetKeyValuePairs", parameters);
             return result;
-        }
-
-        public async Task<IEnumerable<Car>> GetAllNews()
-        {
-            var parameters = new
-            {
-            };
-            (IEnumerable<Car> postedNews, IEnumerable<AttachmentViewModel> attachments) =
-                await QueryMultipleAsync<Car, AttachmentViewModel>("sp_GetAllNews", parameters);
-
-            foreach (Car car in postedNews)
-            {
-                //Associate attachments with each board if available
-                car.attachments = attachments.Any()
-                    ? attachments.Where(a => a.Id == car.Id).ToList()
-                    : new List<AttachmentViewModel>();
-            }
-            return postedNews;
-            //var term = await QueryAsync<News>("sp_GetAllNews", parameters);   
-            //return term;
         }
 
         public Task<IEnumerable<Car>> GetcarsByIdAsync(long? id)
@@ -319,29 +281,77 @@ namespace RentACar.Repository
         }
 
 
-        public async Task<List<ReceivedCarResponseDto>> GetAllReceivedCars()
+        public async Task<PagedResponse<ReceivedCarResponseDto>> GetAllReceivedCars(
+     int pageNumber,
+     int pageSize,
+     string? fullName,
+     DateTime? fromDate,
+     DateTime? toDate)
         {
+            var parameters = new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                FullName = fullName,
+                FromDate = fromDate,
+                ToDate = toDate
+            };
+
             using (var multi = await _connection.QueryMultipleAsync(
                 "sp_GetAllReceivedCars",
+                parameters,
                 commandType: CommandType.StoredProcedure))
             {
                 var receives = (await multi.ReadAsync<ReceivedCarResponseDto>()).ToList();
                 var images = (await multi.ReadAsync<ReceiveImageDto>()).ToList();
 
+                if (!receives.Any())
+                {
+                    return new PagedResponse<ReceivedCarResponseDto>
+                    {
+                        Data = new List<ReceivedCarResponseDto>(),
+                        Pagination = new PaginationDto
+                        {
+                            CurrentPage = pageNumber,
+                            PageSize = pageSize,
+                            TotalRecords = 0,
+                            TotalPages = 0
+                        }
+                    };
+                }
+
+                int totalRecords = receives.First().TotalRecords;
+
+                // 🔥 ONLY current page ReceiveIds
+                var receiveIds = receives.Select(r => r.ReceiveId).ToList();
+
                 var imageGroups = images
+                    .Where(img => receiveIds.Contains(img.ReceiveId))
                     .GroupBy(img => img.ReceiveId)
                     .ToDictionary(g => g.Key, g => g.ToList());
 
                 foreach (var receive in receives)
                 {
-                    receive.Images = imageGroups.ContainsKey(receive.ReceiveId)
-                        ? imageGroups[receive.ReceiveId]
+                    receive.Images = imageGroups.TryGetValue(receive.ReceiveId, out var imgs)
+                        ? imgs
                         : new List<ReceiveImageDto>();
                 }
 
-                return receives;
+                return new PagedResponse<ReceivedCarResponseDto>
+                {
+                    Data = receives,
+                    Pagination = new PaginationDto
+                    {
+                        CurrentPage = pageNumber,
+                        PageSize = pageSize,
+                        TotalRecords = totalRecords,
+                        TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+                    }
+                };
             }
         }
+
+
 
         public async Task DeleteReceivedCar(int receiveId)
         {
@@ -397,154 +407,6 @@ namespace RentACar.Repository
                 commandType: CommandType.StoredProcedure
             );
         }
-
-        //public async Task<Payment> GetPaymentByBookingId(int bookingId)
-        //{
-        //    return await _connection.QueryFirstOrDefaultAsync<Payment>(
-        //        "sp_GetPaymentByBookingId",
-        //        new { BookingId = bookingId },
-        //        commandType: CommandType.StoredProcedure
-        //    );
-        //}
-
-        //public async Task<Module> GetMonthlyProfit(int month, int year)
-        //{
-        //    return await _connection.QueryFirstOrDefaultAsync<Module>(
-        //        "sp_GetMonthlyProfit",
-        //        new { Month = month, Year = year },
-        //        commandType: CommandType.StoredProcedure
-        //    );
-        //}
-
-        //        public async Task<List<Payment>> GetAllPayments(DateTime? startDate, DateTime? endDate)
-        //        {
-        //            var result = await _connection.QueryAsync<Payment>(
-        //                "sp_GetAllPayments",
-        //                new { StartDate = startDate, EndDate = endDate },
-        //                commandType: CommandType.StoredProcedure
-        //            );
-        //            return result.ToList();
-        //        }
-        //}
-
-
-
-        //        public async Task SaveAttachment(
-        //    int carBookingId,
-        //    string fileName,
-        //    string filePath,
-        //    long fileSize
-        //)
-        //        {
-        //            await _connection.ExecuteAsync(
-        //                "sp_SaveAttachment",
-        //                new
-        //                {
-        //                    CarBookingId = carBookingId,
-        //                    FileName = fileName,
-        //                    FilePath = filePath,
-        //                    FileSize = fileSize
-        //                },
-        //                commandType: CommandType.StoredProcedure
-        //            );
-        //        }
-
-
-
-        //public async Task<bool> UpdateBooking(UpdateBookingDto booking)
-        //{
-        //    var parameters = new DynamicParameters();
-        //    parameters.Add("@Id", booking.Id);
-        //    parameters.Add("@CarId", booking.CarId);
-        //    parameters.Add("@OrganizationId", booking.OrganizationId);
-        //    parameters.Add("@FullName", booking.FullName);
-        //    parameters.Add("@FatherName", booking.FatherName);
-        //    parameters.Add("@CNIC", booking.CNIC);
-        //    parameters.Add("@LicenseNumber", booking.LicenseNumber);
-        //    parameters.Add("@Phone", booking.Phone);
-        //    parameters.Add("@Age", booking.Age);
-        //    parameters.Add("@Address", booking.Address);
-        //    parameters.Add("@City", booking.City);
-        //    parameters.Add("@PickupDate", booking.PickupDate);
-        //    parameters.Add("@DropoffDate", booking.DropoffDate);
-        //    parameters.Add("@CarImageUrl", booking.CarImageUrl);
-
-        //    var result = await _connection.QueryFirstOrDefaultAsync<int>(
-        //        "sp_UpdateBooking",
-        //        parameters,
-        //        commandType: CommandType.StoredProcedure
-        //    );
-
-        //    return result > 0;
-        //}
-        //public async Task<BookCarDto> GetBookingWithCar(int bookingId)
-        //{
-        //    var result = await _connection.QueryAsync<BookCarDto>(
-        //        "sp_GetBookingWithCar",
-        //        (booking, car) =>
-        //        {
-        //            booking.Car = car;  // Car object assign karo
-        //            return booking;
-        //        },
-        //        new { BookingId = bookingId },
-        //        splitOn: "CarId",  // Car data yahan se start hota hai
-        //        commandType: CommandType.StoredProcedure
-        //    );
-
-        //    return result.FirstOrDefault();
-        //}
-        //public async Task<int> UpdateBooking(int id, BookCarDto bookingDto)
-        //{
-        //    string carImageUrl = null;
-
-        //    // Agar nayi image upload hui hai
-        //    if (bookingDto.CarImage != null)
-        //    {
-        //        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Images/Bookings");
-
-        //        if (!Directory.Exists(uploadsFolder))
-        //            Directory.CreateDirectory(uploadsFolder);
-
-        //        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(bookingDto.CarImage.FileName);
-        //        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-        //        using (var fileStream = new FileStream(filePath, FileMode.Create))
-        //        {
-        //            await bookingDto.CarImage.CopyToAsync(fileStream);
-        //        }
-
-        //        carImageUrl = "/Images/Bookings/" + uniqueFileName;
-        //    }
-
-        //    var parameters = new DynamicParameters();
-        //    parameters.Add("@BookingId", id);
-        //    parameters.Add("@FullName", bookingDto.FullName);
-        //    parameters.Add("@FatherName", bookingDto.FatherName);
-        //    parameters.Add("@CNIC", bookingDto.CNIC);
-        //    parameters.Add("@LicenseNumber", bookingDto.LicenseNumber);
-        //    parameters.Add("@Phone", bookingDto.Phone);
-        //    parameters.Add("@Age", bookingDto.Age);
-        //    parameters.Add("@Address", bookingDto.Address);
-        //    parameters.Add("@City", bookingDto.City);
-        //    parameters.Add("@PickupDate", bookingDto.PickupDate);
-        //    parameters.Add("@DropoffDate", bookingDto.DropoffDate);
-        //    parameters.Add("@CarId", bookingDto.CarId);
-        //    parameters.Add("@OrganizationId", bookingDto.OrganizationId);
-
-        //    // Agar nayi image hai toh update karo, warna null pass karo (SP mein handle hoga)
-        //    if (carImageUrl != null)
-        //        parameters.Add("@CarImageUrl", carImageUrl);
-        //    else
-        //        parameters.Add("@CarImageUrl", DBNull.Value);
-
-        //    var result = await _connection.ExecuteAsync(
-        //        "sp_UpdateBooking",
-        //        parameters,
-        //        commandType: CommandType.StoredProcedure
-        //    );
-
-        //    return result;
-        //}
 
         public async Task<int> CancelBooking(CancelBookingRequest model)
         {

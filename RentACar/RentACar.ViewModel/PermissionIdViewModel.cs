@@ -13,14 +13,5 @@ namespace Kodware.API.ViewModels
         [JsonIgnore]
         public long RoleId { get; set; }
         public long PermissionId { get; set; }
-        //public string DisplayName { get; set; }
-        //public string PermissionName { get; set; }
-        //public string PermissionValue { get; set; }
-        //public string Value { get; set; }
-        //public string OrganizationName { get; set; }
-        // public string SelectedPermissions { get; set; }
-
-
-
     }
 }

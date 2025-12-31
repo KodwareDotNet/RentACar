@@ -67,11 +67,7 @@ namespace RentACar.Service
             return await _carRepo.GetAllKeyValuePair(keyValuePair, id);
         }
 
-        public async Task<IEnumerable<Car>> GetAllNews()
-        {
-            return await _carRepo.GetAllNews();
-        }
-
+   
         public async Task<IEnumerable<Car>> GetcarsByIdAsync(long? id)
         {
             return await _carRepo.GetcarsByIdAsync(id);
@@ -82,11 +78,6 @@ namespace RentACar.Service
         {
             throw new NotImplementedException();
         }
-        //public async Task<int> BookCarAndReturnId(CarBooking booking)
-        //{
-        //    return await _carRepo.BookCarAndReturnId(booking);
-        //}
-        // Interface
 
 
         // Implementation
@@ -114,21 +105,6 @@ namespace RentACar.Service
         {
             return await _carRepo.GetAllBookings(pageNumber, pageSize, bookingStatus, fullName);
         }
-
-
-        //public async Task<BookCarDto> GetBookingWithCar(int bookingId)
-        //{
-        //    return await _carRepo.GetBookingWithCar(bookingId);
-        //}
-        //public async Task<int> UpdateBooking(int id, BookCarDto bookingDto)
-        //{
-        //    return await _carRepo.UpdateBooking(id, bookingDto);
-        //}
-        //public async Task<bool> UpdateBooking(UpdateBookingDto booking)
-        //{
-        //    return await _carRepo.UpdateBooking(booking);
-        //}
-
         public async Task<int> CancelBooking(CancelBookingRequest model)
         {
             return await _carRepo.CancelBooking(model);
@@ -163,8 +139,16 @@ namespace RentACar.Service
         }
 
 
-        public async Task<List<ReceivedCarResponseDto>> GetAllReceivedCars()
-      => await _carRepo.GetAllReceivedCars();
+        public async Task<PagedResponse<ReceivedCarResponseDto>> GetAllReceivedCars(
+     int pageNumber,
+     int pageSize,
+     string? fullName,
+     DateTime? fromDate,
+     DateTime? toDate)
+     => await _carRepo.GetAllReceivedCars(
+         pageNumber, pageSize, fullName, fromDate, toDate);
+
+
 
         public async Task DeleteReceivedCar(int receiveId)
             => await _carRepo.DeleteReceivedCar(receiveId);
@@ -196,18 +180,3 @@ namespace RentACar.Service
     }
 }
 
-    //    public async Task<Payment> GetPaymentByBookingIdAsync(int bookingId)
-    //    {
-    //        return await _carRepo.GetPaymentByBookingId(bookingId);
-    //    }
-
-//    public async Task<MonthlyProfitDto> GetMonthlyProfitAsync(int month, int year)
-//    {
-//        return await _carRepo.GetMonthlyProfit(month, year);
-//    }
-
-//    public async Task<List<Payment>> GetAllPaymentsAsync(DateTime? startDate, DateTime? endDate)
-//    {
-//        return await _carRepo.GetAllPayments(startDate, endDate);
-//    }
-//}

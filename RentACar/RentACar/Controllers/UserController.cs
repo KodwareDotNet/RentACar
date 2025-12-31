@@ -232,13 +232,16 @@ public async Task<IActionResult> AddCar([FromForm] CarCreateDto dto)
     return Ok(result);
 }
 
-[HttpGet("GetCars")]
-public async Task<IActionResult> GetCars(int orgId)
-{
-    var result = await _userMap.GetCars(orgId);
-    return Ok(result);
-}
-[HttpDelete("DeleteCar")]
+        [HttpGet("GetCars")]
+        public async Task<IActionResult> GetCars(
+            int orgId,
+            int page = 1,
+            int pageSize = 10)
+        {
+            var result = await _userMap.GetCars(orgId, page, pageSize);
+            return Ok(result);
+        }
+        [HttpDelete("DeleteCar")]
 public async Task<IActionResult> DeleteCar(int id)
 {
     var result = await _userMap.DeleteCar(id);
@@ -246,77 +249,5 @@ public async Task<IActionResult> DeleteCar(int id)
 }
     }
 }
-//        [HttpPost("BookCar")]
-//        public async Task<IActionResult> BookCar([FromForm] BookCarDto dto)
-//        {
-//            string carImagePath = dto.CarImageUrl;
-
-//            // Upload Car Image
-//            if (dto.CarImage != null && dto.CarImage.Length > 0)
-//            {
-//                var rootPath = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Bookings";
-
-//                // Create folder if not exists
-//                if (!Directory.Exists(rootPath))
-//                    Directory.CreateDirectory(rootPath);
-
-//                var fileName = Guid.NewGuid() + Path.GetExtension(dto.CarImage.FileName);
-//                var fullPath = Path.Combine(rootPath, fileName);
-
-//                using (var stream = new FileStream(fullPath, FileMode.Create))
-//                {
-//                    await dto.CarImage.CopyToAsync(stream);
-//                }
-
-//                carImagePath = Path.Combine($"/Images/Bookings/{fileName}");
-//            }
-
-//            var booking = new CarBooking
-//            {
-//                FullName = dto.FullName,
-//                FatherName = dto.FatherName,
-//                CNIC = dto.CNIC,
-//                LicenseNumber = dto.LicenseNumber,
-//                Phone = dto.Phone,
-//                Age = dto.Age,
-//                Address = dto.Address,
-//                City = dto.City,
-//                PickupDate = dto.PickupDate,
-//                DropoffDate = dto.DropoffDate,
-//                CarId = dto.CarId,
-//                OrganizationId = dto.OrganizationId,
-//                CarImageUrl = carImagePath
-//            };
-
-//            var result = await _userMap.BookCar(booking);
-
-//            if (result)
-//                return Ok(new { success = true, message = "Car booked successfully" });
-//            else
-//                return BadRequest(new { success = false, message = "Booking failed" });
-//        }
-//        [HttpGet("GetAllBookings")]
-//        public async Task<IActionResult> GetAllBookings()
-//        {
-//            var result = await _userMap.GetAllBookings();
-//            return Ok(result);
-//        }
-//        [HttpDelete("CancelBooking/{id}")]
-//        public async Task<IActionResult> CancelBooking(int id)
-//        {
-//            var result = await _userMap.CancelBooking(id);
-
-//            if (result == 1)
-//                return Ok(new { success = true, message = "Booking cancelled successfully" });
-//            else if (result == -2)
-//                return BadRequest(new { success = false, message = "Booking is already cancelled" });
-//            else if (result == 0)
-//                return NotFound(new { success = false, message = "Booking not found" });
-//            else
-//                return StatusCode(500, new { success = false, message = "Error cancelling booking" });
-//        }
-//    }
-//}
-
 
 #endregion

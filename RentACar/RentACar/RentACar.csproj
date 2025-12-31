@@ -22,8 +22,4 @@
     <ProjectReference Include="..\RentACar.ViewModel\RentACar.ViewModel.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="NewFolder\" />
-  </ItemGroup>
-
 </Project>

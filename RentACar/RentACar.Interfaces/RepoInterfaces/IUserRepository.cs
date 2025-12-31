@@ -11,15 +11,10 @@ namespace RentACar.Interfaces.RepoInterfaces
     public interface IUserRepository
     {
         public Task<decimal> GetDailyIncome(DateTime date);
-
         Task<User?> GetByEmailOrGoogleIdAsync(string email, string? googleId);
-
         Task<int> CreateAsync(User user);
-
         Task SaveRefreshTokenAsync(int userId, string refreshToken, DateTime expiresAt);
-
         Task<User?> GetUserByRefreshTokenAsync(string refreshToken);
-
         Task<int> CreateOrganization(Organization organization);
         Task<IEnumerable<Organization>> GetAllOrganizations();
         Task<int> UpdateOrganization(Organization organization);
@@ -30,18 +25,10 @@ namespace RentACar.Interfaces.RepoInterfaces
         Task<User> GetUserByUsername(string username);
         Task<DBErrorResponse> CreateRole(Role role);
         Task<bool> AddCar(Car car);
-        Task<IEnumerable<Car>> GetCars(int orgId);
+        Task<PagedResponse<Car>> GetCars(int orgId, int page, int pageSize);
         Task<bool> DeleteCar(int id);
-        //Task<bool> BookCar(CarBooking booking);
-        //Task<List<CarBooking>> GetAllBookings();
-        //Task<int> CancelBooking(int id);
-
-
         Task<IEnumerable<Permissions>> GetAllPermissions(long? userId, long? organizationId, UserType userType);
-        //Task<int> CreateCategory(Category category);
         Task<IEnumerable<Role>> GetRolesByOrganization(int organizationId);
-        
-
         Task<int> UpdateRole(Role role);
         Task<int> DeleteRole(int roleId);
         Task<IEnumerable<Role>> GetAllRoles(string searchString, int pageNumber, long? userId, long? organizationId, long? pageSize);

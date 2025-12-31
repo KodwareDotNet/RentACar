@@ -186,9 +186,9 @@ namespace RentACar.Services
         }
         //Task<IEnumerable<Car>> GetCars(int orgId);
 
-        public async Task<IEnumerable<Car>> GetCars(int orgId)
+        public async Task<PagedResponse<Car>> GetCars(int orgId, int page, int pageSize)
         {
-            return await _userRepo.GetCars(orgId);
+            return await _userRepo.GetCars(orgId, page, pageSize);
         }
         public async Task<bool> DeleteCar(int id)
         {
@@ -199,18 +199,3 @@ namespace RentACar.Services
         }
     }
 }
-
-//        public async Task<bool> BookCar(CarBooking booking)
-//        {
-//            return await _userRepo.BookCar(booking);
-//        }
-//        public async Task<List<CarBooking>> GetAllBookings()
-//        {
-//            return await _userRepo.GetAllBookings();
-//        }
-//        public async Task<int> CancelBooking(int id)
-//        {
-//            return await _userRepo.CancelBooking(id);
-//        }
-//    }
-//}

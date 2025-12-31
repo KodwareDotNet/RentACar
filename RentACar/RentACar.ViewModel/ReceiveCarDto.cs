@@ -13,7 +13,6 @@ namespace RentACar.ViewModel
         public int BookingId { get; set; }
         public string? Remarks { get; set; }
         public List<IFormFile>? ReceiveImages { get; set; }
-        //public IFormFile? ReceiveImage { get; set; }
         public bool IsDamaged { get; set; }
         public string? DamageRemarks { get; set; }
         public decimal DamageCharges { get; set; }
@@ -21,9 +20,6 @@ namespace RentACar.ViewModel
         public decimal LateExtraCharges { get; set; }
         public DateTime? DropOffDate { get; set; }
         public decimal TotalPrice { get; set; }
-
-
-        //public List<ReceiveImageDto>? Images { get; set; }
     }
     public class ReceiveImageDto
     {
@@ -48,13 +44,8 @@ namespace RentACar.ViewModel
         public DateTime ReceivedDate { get; set; }
         public DateTime? CreatedAt { get; set; }
         public string? Remarks { get; set; }
-        //public int CarId { get; set; }
-
+        public int TotalRecords { get; set; }
         public List<ReceiveImageDto>? Images { get; set; }
-
-        //public bool IsDamaged { get; set; }
-        //public string? DamageRemarks { get; set; }
-        //public decimal DamageCharges { get; set; }
     }
     public class BillingDto
     {

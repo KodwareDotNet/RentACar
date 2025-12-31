@@ -21,25 +21,12 @@ namespace RentACar.Interfaces.ServiceInterface
         Task DeleteAttachment(int attachmentId);
         public interface IRentACarService
         {
-            Task<PagedResponse<PersonWithCarDto>> GetAllBookings(
-                int pageNumber,
-                int pageSize,
-                int? bookingStatus,
-                string? fullName
-            );
+            Task<PagedResponse<PersonWithCarDto>> GetAllBookings(int pageNumber,int pageSize,int? bookingStatus,string? fullName);
         }
-
-
-        //Task<List<PersonWithCarDto>> GetAllBookings();
-        //Task<int> UpdateBooking(int id, BookCarDto bookingDto);
-        //Task<bool> UpdateBooking(UpdateBookingDto booking);
         Task<int> CancelBooking(CancelBookingRequest model);
-
         Task<int> ReceiveCar(int bookingId, bool isDamaged, string? remarks, string? damageRemarks, decimal charges, decimal lateExtraCharges, DateTime? dropOffDate, decimal totalPrice);
         Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType);
-
-
-        Task<List<ReceivedCarResponseDto>> GetAllReceivedCars();
+        Task<PagedResponse<ReceivedCarResponseDto>> GetAllReceivedCars(int pageNumber,int pageSize,string? fullName,DateTime? fromDate,DateTime? toDate);
         Task DeleteReceivedCar(int receiveId);
         Task<BillingDto> GetBillingByBookingId(int bookingId);
         Task<MonthlyProfitDto> GetMonthlyProfit(int month, int year);
@@ -47,10 +34,5 @@ namespace RentACar.Interfaces.ServiceInterface
         Task CreatePaymentAsync(int bookingId);
         Task FinalizePaymentAsync(int bookingId);
         Task<PagedResponse<PersonWithCarDto>> GetAllBookings(int pageNumber, int pageSize, int? bookingStatus, string? fullName);
-        //Task<Payment> GetPaymentByBookingIdAsync(int bookingId);
-        //Task<MonthlyProfitDto> GetMonthlyProfitAsync(int month, int year);
-        //Task<List<Payment>> GetAllPaymentsAsync(DateTime? startDate, DateTime? endDate);
-
-        //Task<BookCarDto> GetBookingWithCar(int bookingId); 
     }
 }

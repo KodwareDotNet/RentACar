@@ -89,16 +89,3 @@ namespace RentACar.ViewModel
     }
 }
 
-//    public class CarInfo
-//    {
-//        public int CarId { get; set; }
-//        public string CarName { get; set; }
-//        public string Model { get; set; }
-//        public decimal PricePerDay { get; set; }
-//        public string Transmission { get; set; }
-//        public string Fuel { get; set; }
-//        public string Description { get; set; }
-
-
-//    }
-//}

@@ -237,9 +237,6 @@ namespace RentACar.Map
                 SelectedPermissions = r.Permission?.Select(p => new PermissionIdViewModel
                 {
                     PermissionId = p.PermissionId,
-                    ////DisplayName = p.PermissionName,
-                    //PermissionName = p.PermissionName,
-                    //PermissionValue = p.PermissionValue
                 }).ToList()
             });
         }
@@ -247,11 +244,10 @@ namespace RentACar.Map
         {
             return await _userService.AddCar(car);
         }
-        //Task<IEnumerable<Car>> GetCars(int orgId);
 
-        public async Task<IEnumerable<Car>> GetCars(int orgId)
+        public async Task<PagedResponse<Car>> GetCars(int orgId, int page, int pageSize)
         {
-            return await _userService.GetCars(orgId);
+            return await _userService.GetCars(orgId, page, pageSize);
         }
         public async Task<bool> DeleteCar(int id)
         {
@@ -259,20 +255,7 @@ namespace RentACar.Map
         }
     }
 }
-//        public async Task<bool> BookCar(CarBooking booking)
-//        {
-//            return await _userService.BookCar(booking);
-//        }
-//        public async Task<List<CarBooking>> GetAllBookings()
-//        {
-//            return await _userService.GetAllBookings();
-//        }
-//        public async Task<int> CancelBooking(int id)
-//        {
-//            return await _userService.CancelBooking(id);
-//        }
-//    }
-//}
+
 
 
 #endregion

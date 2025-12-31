@@ -97,24 +97,6 @@ namespace RentACar.Map
             );
         }
 
-
-        //public async Task SaveAttachment(int bookingId, string fileName, string filePath, long fileSize)
-        //{
-        //    await _rentService.SaveAttachment(bookingId, fileName, filePath, fileSize);
-        //}
-        //public async Task<bool> UpdateBooking(UpdateBookingDto booking)
-        //{
-        //    return await _rentService.UpdateBooking(booking);
-        //}
-        //public async Task<BookCarDto> GetBookingWithCar(int bookingId)
-        //{
-        //    return await _rentService.GetBookingWithCar(bookingId);
-        //}
-        //public async Task<int> UpdateBooking(int id, BookCarDto bookingDto)
-        //{
-        //    return await _rentService.UpdateBooking(id, bookingDto);
-        //}
-
         public async Task<int> CancelBooking(CancelBookingRequest model)
         {
             return await _rentService.CancelBooking(model);
@@ -150,8 +132,15 @@ namespace RentACar.Map
         }
 
 
-        public async Task<List<ReceivedCarResponseDto>> GetAllReceivedCars()
-        => await _rentService.GetAllReceivedCars();
+        public async Task<PagedResponse<ReceivedCarResponseDto>> GetAllReceivedCars(
+    int pageNumber,
+    int pageSize,
+    string? fullName,
+    DateTime? fromDate,
+    DateTime? toDate)
+    => await _rentService.GetAllReceivedCars(
+        pageNumber, pageSize, fullName, fromDate, toDate);
+
 
         public async Task DeleteReceivedCar(int receiveId)
             => await _rentService.DeleteReceivedCar(receiveId);

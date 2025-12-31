@@ -34,19 +34,13 @@ namespace RentACar.Map
         Task<int> CreateUser(UserCreateDto dto);
         Task<User?> Login(LoginDto dto);
         public Task<DBErrorResponse> CreateRole(RoleViewModel role);
-        //Task<int> CreateCategory(Categoryviewmodel category);
-
         Task<bool> UpdateRole(RoleViewModel role);
         Task<List<PermissionsViewModel>> GetAllPermissions(long? userId, long? organizationId, UserType userType);
         Task<bool> DeleteRole(int id);
 
         Task<UserViewModel?> GetByEmailOrGoogleId(string email, string? googleId);
         Task<bool> AddCar(Car car);
-        //Task<bool> BookCar(CarBooking booking);
-        //Task<List<CarBooking>> GetAllBookings();
-        //Task<int> CancelBooking(int id);
-
-        Task<IEnumerable<Car>> GetCars(int orgId);
+        Task<PagedResponse<Car>> GetCars(int orgId, int page, int pageSize);
         Task<bool> DeleteCar(int id);
 
 

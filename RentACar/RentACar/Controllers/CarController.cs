@@ -172,66 +172,6 @@ namespace NewsApi.Controllers
             return Ok(result);
         }
 
-
-        //[HttpPut("UpdateBooking")]
-        //public async Task<IActionResult> UpdateBooking([FromForm] UpdateBookingDto dto)
-        //{
-        //    string carImagePath = dto.CarImageUrl;
-
-        //    // Agar new image upload ki hai
-        //    if (dto.CarImage != null && dto.CarImage.Length > 0)
-        //    {
-        //        var rootPath = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Bookings";
-
-        //        if (!Directory.Exists(rootPath))
-        //            Directory.CreateDirectory(rootPath);
-
-        //        var fileName = Guid.NewGuid() + Path.GetExtension(dto.CarImage.FileName);
-        //        var fullPath = Path.Combine(rootPath, fileName);
-
-        //        using (var stream = new FileStream(fullPath, FileMode.Create))
-        //        {
-        //            await dto.CarImage.CopyToAsync(stream);
-        //        }
-
-        //        carImagePath = $"/Images/Bookings/{fileName}";
-        //        dto.CarImageUrl = carImagePath;
-        //    }
-
-        //    var result = await _rentACarMap.UpdateBooking(dto);
-
-        //    if (result)
-        //        return Ok(new { success = true, message = "Booking updated successfully" });
-        //    else
-        //        return BadRequest(new { success = false, message = "Failed to update booking" });
-        //}
-        //[HttpGet("GetBookingDetails/{id}")]
-        //public async Task<IActionResult> GetBookingDetails(int id)
-        //{
-        //    var result = await _rentACarMap.GetBookingWithCar(id);
-
-        //    if (result == null)
-        //        return NotFound("Booking not found");
-
-        //    return Ok(result);
-        //}
-        //[HttpPut("UpdateBooking/{id}")]
-        //public async Task<IActionResult> UpdateBooking(int id, [FromForm] BookCarDto bookingDto)
-        //{
-        //    try
-        //    {
-        //        var result = await _rentACarMap.UpdateBooking(id, bookingDto);
-        //        if (result > 0)
-        //            return Ok(new { message = "Booking updated successfully", bookingId = id });
-
-        //        return NotFound("Booking not found");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
-
         [HttpPut("CancelBooking")]
 public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
 {
@@ -322,13 +262,21 @@ public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
 
 
 
-
         [HttpGet("GetAllReceivedCars")]
-        public async Task<IActionResult> GetAllReceivedCars()
+        public async Task<IActionResult> GetAllReceivedCars(
+    int pageNumber = 1,
+    int pageSize = 10,
+    string? fullName = null,
+    DateTime? fromDate = null,
+    DateTime? toDate = null)
         {
-            var data = await _rentACarMap.GetAllReceivedCars();
+            var data = await _rentACarMap.GetAllReceivedCars(
+                pageNumber, pageSize, fullName, fromDate, toDate);
+
             return Ok(data);
         }
+
+
 
         [HttpDelete("DeleteReceivedCar/{id}")]
         public async Task<IActionResult> DeleteReceivedCar(int id)
@@ -369,172 +317,5 @@ public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
     }
 }
 
-//        [HttpGet("GetAllBillings")]
-//        public async Task<IActionResult> GetAllBillings([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
-//        {
-//            try
-//            {
-//                var billings = await _rentACarMap.GetAllBillings(startDate, endDate);
-//                return Ok(new { success = true, data = billings });
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(new { success = false, message = ex.Message });
-//            }
-//            [HttpPost("Create/{bookingId}")]
-//            public async Task<IActionResult> CreatePayment(int bookingId)
-//            {
-//                await _paymentService.CreatePaymentAsync(bookingId);
-//                return Ok(new { message = $"Payment created for booking {bookingId}" });
-//            }
-
-//            [HttpPost("Finalize/{bookingId}")]
-//            public async Task<IActionResult> FinalizePayment(int bookingId)
-//            {
-//                await _paymentService.FinalizePaymentAsync(bookingId);
-//                var payment = await _paymentService.GetPaymentByBookingIdAsync(bookingId);
-//                return Ok(payment);
-//            }
-
-//            [HttpGet("{bookingId}")]
-//            public async Task<IActionResult> GetPaymentByBookingId(int bookingId)
-//            {
-//                var payment = await _paymentService.GetPaymentByBookingIdAsync(bookingId);
-//                return Ok(payment);
-//            }
-
-//            [HttpGet("MonthlyProfit")]
-//            public async Task<IActionResult> GetMonthlyProfit(int month, int year)
-//            {
-//                var profit = await _paymentService.GetMonthlyProfitAsync(month, year);
-//                return Ok(profit);
-//            }
-
-//            [HttpGet("AllPayments")]
-//            public async Task<IActionResult> GetAllPayments(DateTime? startDate, DateTime? endDate)
-//            {
-//                var payments = await _paymentService.GetAllPaymentsAsync(startDate, endDate);
-//                return Ok(payments);
-//            }
-//        }
-//    }
-//}
-
-
-//[HttpGet]
-//public async Task<IActionResult> GetAll()
-//{
-//    var posts = await NewsMap.GetAllAsync();
-//    return Ok(posts);
-//}
-
-
-
-//[HttpGet("{id}")]
-//public async Task<IActionResult> GetById(long? id)
-//{
-//    var post = await _repo.GetByIdAsync(id);
-//    if (post == null) return NotFound();
-//    return Ok(post);
-//}
-
-
-//[HttpPost]
-//public async Task<bool> CreateNews(IFormCollection collection)
-//{
-//    // Get uploaded files
-//    List<IFormFile> files = (List<IFormFile>)collection.Files;
-
-//    // Allow imageFile to be nullable
-//    IFormFile? imageFile = files.FirstOrDefault(p => p.ContentType.Contains("image"));
-
-//    // Allow obj to be nullable
-//    var obj = collection["obj"];
-
-//    // Use null-forgiving operator because you know "obj" will be provided by frontend
-//    NewsViewModel news = JsonConvert.DeserializeObject<NewsViewModel>(obj!)!;
-
-//    // Use null-coalescing to handle nullable attachments
-//    List<AttachmentViewModel> attachments = new List<AttachmentViewModel>(news.attachments ?? new List<AttachmentViewModel>());
-
-//    // Use null-forgiving operator since you're confident this key exists in appsettings
-//    var directoryPath = Path.Combine(configuration["uploadedFilespath:FilePath"]!);
-
-//    var imageFilePath = string.Empty;
-//    var imageFileName = string.Empty;
-
-//    if (imageFile != null)
-//    {
-//        var guid = Guid.NewGuid().ToString();
-
-//        // Combine safely with null-forgiving operator
-//        imageFilePath = Path.Combine(directoryPath, guid + imageFile.FileName);
-
-//        if (!Directory.Exists(directoryPath))
-//        {
-//            Directory.CreateDirectory(directoryPath);
-//        }
-
-//        Utilities.Utilities.SaveFile(imageFile, imageFilePath);
-//        imageFileName = guid + imageFile.FileName;
-
-//        attachments.Add(new AttachmentViewModel
-//        {
-//            AttachmentType = AttachmentType.Image,
-//            Name = imageFileName,
-//            Path = imageFilePath,
-//        });
-
-//        // Assign attachments list back to model
-//        news.attachments = attachments;
-
-//        // Use null-forgiving operator since news is guaranteed non-null after deserialization
-
-//    }
-//    return await NewsMap.CreateNews(news!);
-
-//    return false;
-//}
-
-
-//[HttpDelete]
-//public async Task<bool> DeleteCar(long id)
-//{
-//    return await RentACarMap.Delete(id);
-//}
-
-
-
-//[HttpGet]
-//public async Task<IActionResult> GetAllNews()
-//{
-//    var newsList = await _newsService.GetAllNews();
-//    return Ok(newsList);
-//} 
-
-//[HttpPut("{id}")]
-//public async Task<IActionResult> Update(long? id, [FromBody] Models.News post)
-//{
-//    if (id == null) return BadRequest("ID cannot be null.");
-
-//    var existing = await _repo.GetByIdAsync(id);
-//    if (existing == null) return NotFound();
-
-//    post.Id = id.Value; // Explicitly convert nullable long to long
-//    await _repo.UpdateAsync(post);
-//    return NoContent();
-//}
-
-//[HttpDelete("{id}")]
-//public async Task<IActionResult> Delete(long? id)
-//{
-//    var existing = await _repo.GetByIdAsync(id);
-//    if (existing == null) return NotFound();
-
-//    await _repo.DeleteAsync(id);
-//    return NoContent();
-//}
-//}
-//}
 
 

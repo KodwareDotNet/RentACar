@@ -413,17 +413,49 @@ namespace MenuManagement.Repositories
             return result > 0;
         }
 
-        public async Task<IEnumerable<Car>> GetCars(int orgId)
+        public async Task<PagedResponse<Car>> GetCars(int orgId, int page, int pageSize)
         {
-            var parameters = new { OrganizationId = orgId };
+            var parameters = new
+            {
+                OrganizationId = orgId,
+                PageNumber = page,
+                PageSize = pageSize
+            };
 
-            var cars = await _connection.QueryAsync<Car>(
+            var cars = (await _connection.QueryAsync<Car>(
                 "sp_GetCars",
                 parameters,
                 commandType: CommandType.StoredProcedure
-            );
+            )).ToList();
 
-            return cars;
+            if (!cars.Any())
+            {
+                return new PagedResponse<Car>
+                {
+                    Data = new List<Car>(),
+                    Pagination = new PaginationDto
+                    {
+                        CurrentPage = page,
+                        PageSize = pageSize,
+                        TotalRecords = 0,
+                        TotalPages = 0
+                    }
+                };
+            }
+
+            int totalRecords = cars.First().TotalRecords;
+
+            return new PagedResponse<Car>
+            {
+                Data = cars,
+                Pagination = new PaginationDto
+                {
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalRecords = totalRecords,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+                }
+            };
         }
 
         public async Task<bool> DeleteCar(int id)
@@ -454,52 +486,7 @@ namespace MenuManagement.Repositories
         }
     }
 }
-    //    public async Task<bool> BookCar(CarBooking booking)
-    //    {
-    //        var parameters = new
-    //        {
-    //            booking.FullName,
-    //            booking.FatherName,
-    //            booking.CNIC,
-    //            booking.LicenseNumber,
-    //            booking.Phone,
-    //            booking.Age,
-    //            booking.Address,
-    //            booking.City,
-    //            booking.PickupDate,
-    //            booking.DropoffDate,
-    //            booking.CarId,
-    //            booking.OrganizationId,
-    //            booking.CarImageUrl
-    //        };
-
-//        var result = await _connection.ExecuteScalarAsync<int>(
-//            "sp_BookCar",
-//            parameters,
-//            commandType: CommandType.StoredProcedure
-//        );
-
-//        return result > 0;
-//    }
-//    public async Task<List<CarBooking>> GetAllBookings()
-//    {
-//        var result = await _connection.QueryAsync<CarBooking>(
-//            "sp_GetAllBookings",
-//            commandType: CommandType.StoredProcedure
-//        );
-//        return result.ToList();
-//    }
-//    public async Task<int> CancelBooking(int id)
-//    {
-//        var result = await _connection.ExecuteScalarAsync<int>(
-//            "sp_CancelBooking",
-//            new { Id = id },
-//            commandType: CommandType.StoredProcedure
-//        );
-//        return result;
-//    }
-//}
-//}
+   
 #endregion
 
 

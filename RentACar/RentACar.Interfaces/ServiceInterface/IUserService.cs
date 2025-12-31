@@ -20,20 +20,12 @@ namespace RentACar.Interfaces.ServiceInterface
         Task<int> DeleteOrganization(int organizationId);
         Task<int> CreateUser(User user);
         Task<User?> Login(string email, string password);
-
         Task<bool> AddCar(Car car);
-        Task<IEnumerable<Car>> GetCars(int orgId);
+        Task<PagedResponse<Car>> GetCars(int orgId, int page, int pageSize);
         Task<bool> DeleteCar(int id);
-        //Task<bool> BookCar(CarBooking booking);
-        //Task<List<CarBooking>> GetAllBookings();
-        //Task<int> CancelBooking(int id);
-
         Task<User> GetUserByUsername(string username);
         Task<DBErrorResponse> CreateRole(Role role);
-
-        //Task<int> CreateCategory(Category category);
         Task<IEnumerable<Role>> GetRolesByOrganization(int organizationId);
-
         Task<IEnumerable<Permissions>> GetAllPermissions(long? userId, long? organizationId, UserType userType);
         Task<bool> UpdateRole(Role role);
 Task<bool> DeleteRole(int roleId);

@@ -121,20 +121,3 @@ namespace RentACar.Repository
         }
     }
 }
-
-//        bool IAttachmentRepository.CreateCarAttachment(long Id, int id)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        bool IAttachmentRepository.DeleteCarAttachment(long Id, int id)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        bool IAttachmentRepository.GetCarAttachments(long Id, int id)
-//        {
-//            throw new NotImplementedException();
-//        }
-//    }
-//}

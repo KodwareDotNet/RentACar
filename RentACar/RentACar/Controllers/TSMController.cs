@@ -111,12 +111,6 @@ namespace RentACar.Controllers
                 loggerService.LogError(ex, "Error occurred in GetCurrentUserType");
             }
             return UserType.User;
-            //var userType = HttpContext.User.Identity.Name;
-            //string userType = HttpContext.Items["UserType"].ToString();
-            //if (!string.IsNullOrEmpty(userType))
-            //    return userType;
-            //else
-            //    return "";
         }
         protected long GetCurrentUserOrganizationType()
         {

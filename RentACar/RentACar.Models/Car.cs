@@ -33,21 +33,6 @@ namespace RentACar.Models
         public string CarData { get; set; }
         public string CarBrand { get; set; }
         public int OrganizationId { get; set; }
+        public int TotalRecords { get; set; }
     }
 }
-
-        //public CarInfo Car { get; set; }
-
-
-//        public class CarInfo
-//        {
-//            public int Id { get; set; }
-//            public string CarName { get; set; }
-//            public string ImageUrl { get; set; }
-//            public decimal PricePerDay { get; set; }
-//            public string Description { get; set; }
-//            public string Transmission { get; set; }
-//            public string Fuel { get; set; }
-//        }
-//    }
-//}
