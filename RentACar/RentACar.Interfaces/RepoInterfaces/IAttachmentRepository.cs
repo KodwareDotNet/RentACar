@@ -9,9 +9,16 @@ namespace RentACar.Interfaces.RepoInterfaces
 {
     public interface IAttachmentRepository
     {
-        public long CreateAttachment(string? filePath, string? name, AttachmentType? attachmentType);
-        public long CreateNewsAttachment(long newsId, long attachmentId);
-        public long DeleteNewsAttachment(long newsId, int id);
-    }
+        Task<long> CreateCarAttachment(string? filePath, string? name, AttachmentType? attachmentType);
 
+        // Link attachment to car
+        Task<bool> CreateCarAttachment(long carId, long attachmentId);
+
+        // Get attachments for a car
+        Task<IEnumerable<string>> GetCarAttachments(long carId, long attachmentId);
+
+        // Delete attachment
+        Task<bool> DeleteCarAttachment(long carId, int attachmentId);
+
+    }
 }

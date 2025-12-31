@@ -15,54 +15,36 @@ namespace RentACar.Repository
     {
         public AttachmentRepository(IDbConnection connection) : base(connection) { }
 
-        public long CreateAttachment(string? filePath, string? name, AttachmentType? attachmentType)
+        public async Task<long> CreateCarAttachment(string? filePath, string? name, AttachmentType? attachmentType)
         {
             var parameters = new
             {
-                pFileName = name,
                 pFilePath = filePath,
-                pAttachmentType = attachmentType
+                pName = name,
+                pAttachmentType = (int?)attachmentType
             };
+
             DynamicParameters para = new DynamicParameters(parameters);
-            para.Add("@pReturnId", dbType: DbType.Int64, direction: ParameterDirection.Output);
-            var response = ExecuteAsync("uspCreateAttachment", para, CommandType.StoredProcedure).Result;
-            var id = para.Get<long>("@pReturnId");
-            return id;
+            para.Add("@pAttachmentId", dbType: DbType.Int64, direction: ParameterDirection.Output);
+
+            await _connection.ExecuteAsync(
+                "uspCreateAttachment", // SP jo attachment create kare aur ID return kare
+                para,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return para.Get<long>("@pAttachmentId");
         }
 
-
-        public long CreateNewsAttachment(long newsId, long attachmentId)
-        {
-            var parameters = new
-            {
-                pNewsId = newsId,
-                pAttachmentId = attachmentId,
-            };
-            DynamicParameters para = new DynamicParameters(parameters);
-            var response = ExecuteAsync("uspCreateNewsAttachment", para, CommandType.StoredProcedure).Result;
-            return 1;
-        }
-
-        public long DeleteNewsAttachment(long newsId, int attachmentId)
-        {
-            var parameters = new
-            {
-                pNewsId = newsId,
-                pAttachmentId = attachmentId,
-
-            };
-            DynamicParameters para = new DynamicParameters(parameters);
-            var response = ExecuteAsync("uspDeleteNewsAttachment", para, CommandType.StoredProcedure).Result;
-            return 1;
-        }
-
-        public async Task<bool> CreateCarAttachment(long carId, int attachmentId)
+        // Link attachment to car in CarAttachments table
+        public async Task<bool> CreateCarAttachment(long carId, long attachmentId)
         {
             var parameters = new
             {
                 pCarId = carId,
                 pAttachmentId = attachmentId
             };
+
             DynamicParameters para = new DynamicParameters(parameters);
 
             var rows = await _connection.ExecuteAsync(
@@ -73,7 +55,6 @@ namespace RentACar.Repository
 
             return rows > 0;
         }
-
 
         // Delete attachment (image) for a car
         public async Task<bool> DeleteCarAttachment(long carId, int attachmentId)
@@ -100,7 +81,6 @@ namespace RentACar.Repository
 
             DynamicParameters para = new DynamicParameters(parameters);
 
-            // ✅ ExecuteAsync returns number of rows affected, convert to bool
             var rows = await _connection.ExecuteAsync(
                 "uspDeleteCarAttachment",
                 para,
@@ -110,9 +90,8 @@ namespace RentACar.Repository
             return rows > 0;
         }
 
-
         // Get attachments for a car
-        public async Task<IEnumerable<string>> GetCarAttachments(long carId, int attachmentId)
+        public async Task<IEnumerable<string>> GetCarAttachments(long carId, long attachmentId)
         {
             return await _connection.QueryAsync<string>(
                 "SELECT ImageUrl FROM CarAttachments WHERE CarId = @CarId AND Id = @AttachmentId",

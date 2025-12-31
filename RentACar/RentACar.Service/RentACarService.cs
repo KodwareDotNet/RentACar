@@ -27,28 +27,28 @@ namespace RentACar.Service
 
         public async Task<bool> CreateCars(Car Car)
         {
-            long NewsId = await _carRepo.Create(Car);
+            long carId = await _carRepo.Create(Car);
+
             foreach (var attachment in Car.attachments)
             {
                 if (attachment.Id != null)
                 {
-                    _ = _AttachmentRepository.DeleteNewsAttachment(NewsId, (int)attachment.Id);
+                    await _AttachmentRepository.DeleteCarAttachment(carId, (int)attachment.Id);
                 }
+
                 if (attachment.AttachmentType == AttachmentType.Image)
                 {
-                    long attachmentId = _AttachmentRepository.CreateAttachment(attachment.Path, attachment.Name, attachment.AttachmentType);
-                    _ = _AttachmentRepository.CreateNewsAttachment(NewsId, attachmentId);
+                    long attachmentId = await _AttachmentRepository.CreateCarAttachment(
+                        attachment.Path,
+                        attachment.Name,
+                        attachment.AttachmentType
+                    );
+
+                    await _AttachmentRepository.CreateCarAttachment(carId, attachmentId);
                 }
             }
-            if (NewsId > 0)
-            {
-                return true;
 
-            }
-            else
-            {
-                return false;
-            }
+            return carId > 0;
         }
 
         public async Task<bool> DeletCar(long id)

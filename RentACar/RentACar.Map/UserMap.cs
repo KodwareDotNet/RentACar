@@ -20,8 +20,8 @@ namespace RentACar.Map
 
         public async Task<IEnumerable<UserViewModel>> GetAll(string name, int pageNumber, int pageSize)
         {
-            // Example: call service method and map to ViewModel
-            var users = await _userService.GetByEmailOrGoogleIdAsync(name, null); // You can adjust for real GetAll logic
+           
+            var users = await _userService.GetByEmailOrGoogleIdAsync(name, null); 
             var list = new List<UserViewModel>();
 
             var userType = Enum.TryParse<UserType>(users.UserRole, ignoreCase: true, out var result)
