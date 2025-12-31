@@ -8,7 +8,7 @@ import addCarsService from "../api/services/AddCars/addCarsService";
 import bookCarsService from "../api/services/BookCars/bookCarsService";
 import { BASE_URL } from "../api/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
-import {Box , Button} from '@mui/material';
+import { Box, Button } from '@mui/material';
 
 export function Models() {
   const [carsList, setCarsList] = useState([]);
@@ -25,6 +25,10 @@ export function Models() {
       setCurrentPage(newPage);
     }
   };
+
+  useEffect(() => {
+    carsApi(currentPage, pageSize);
+  }, [currentPage, pageSize]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,10 +68,12 @@ export function Models() {
     return !isBooked;
   }
 
-  const carsApi = async (pageNumber = 1, pageSize = 10) => {
+  const carsApi = async () => {
     try {
-      debugger
-      const res = await addCarsService.getCars(pageNumber, pageSize);
+      const res = await addCarsService.getCars({
+        pageNumber: currentPage,
+        pageSize: pageSize
+      });
       console.log("carsApi called");
       console.log("Cars API Response:", res);
 

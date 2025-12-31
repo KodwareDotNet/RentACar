@@ -21,7 +21,7 @@ const addCarsService ={
           const { pageNumber = 1, pageSize = 10 } = params;
 
             const queryParams = new URLSearchParams({
-                pageNumber: pageNumber.toString(),
+                page: pageNumber.toString(),
                 pageSize: pageSize.toString(),
             });
          const res = await api.get(`User/GetCars?${queryParams}`);
