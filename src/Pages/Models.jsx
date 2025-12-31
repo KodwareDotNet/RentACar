@@ -8,12 +8,23 @@ import addCarsService from "../api/services/AddCars/addCarsService";
 import bookCarsService from "../api/services/BookCars/bookCarsService";
 import { BASE_URL } from "../api/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
+import {Box , Button} from '@mui/material';
 
 export function Models() {
   const [carsList, setCarsList] = useState([]);
   const [showBookModal, setShowBookModal] = useState(false);
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [selectedCarDetail, setSelectedCarDetail] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,11 +41,11 @@ export function Models() {
       setShowAddCarModal(false);
       setSelectedCarDetail(null);
     }
-  }, [location.search]); 
+  }, [location.search]);
 
   const isCarAvailable = (carId, allBookings, currentDate) => {
-   
-    const carBookings = allBookings.filter(booking => booking.car.carId === carId);
+
+    const carBookings = allBookings.filter(booking => booking.car.id === carId);
 
     if (carBookings.length === 0) {
       return true;
@@ -53,15 +64,18 @@ export function Models() {
     return !isBooked;
   }
 
-  const carsApi = async () => {
+  const carsApi = async (pageNumber = 1, pageSize = 10) => {
     try {
-      const res = await addCarsService.getCars();
+      debugger
+      const res = await addCarsService.getCars(pageNumber, pageSize);
       console.log("carsApi called");
       console.log("Cars API Response:", res);
 
+      const paginationData = res.data.pagination;
+
       const bookingsRes = await bookCarsService.getBookedCars();
       const currentDate = new Date().toISOString().split('T')[0];
-      const carsWithImages = (res.data || []).map((item) => {
+      const carsWithImages = (res.data.data || []).map((item) => {
         let imageUrl = null;
 
         if (item.imageUrl) {
@@ -76,14 +90,20 @@ export function Models() {
       });
 
       const availableCars = carsWithImages.filter(car => {
-        return isCarAvailable(car.id, bookingsRes.data, currentDate);
+        return isCarAvailable(car.id, bookingsRes.data.data, currentDate);
       });
 
       setCarsList(availableCars);
+      if (paginationData) {
+        setCurrentPage(paginationData.currentPage);
+        setTotalPages(paginationData.totalPages);
+        setTotalRecords(paginationData.totalRecords);
+        setPageSize(paginationData.pageSize);
+      }
     } catch (ex) {
       alert("failed", ex);
     }
-    
+
   };
 
   const handleUpdate = (car) => {
@@ -171,7 +191,50 @@ export function Models() {
           onAddCar={handleCarAdded}
           refreshCarsList={carsApi}
         />
+        {totalRecords > pageSize && (
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            mt: 4,
+            gap: 1
+          }}>
+            <Button
+              variant="outlined"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              sx={{ minWidth: 'auto', px: 2 }}
+            >
+              Previous
+            </Button>
 
+            {[...Array(totalPages)].map((_, index) => {
+              const pageNum = index + 1;
+              return (
+                <Button
+                  key={pageNum}
+                  variant={currentPage === pageNum ? "contained" : "outlined"}
+                  onClick={() => handlePageChange(pageNum)}
+                  sx={{
+                    minWidth: 40,
+                    fontWeight: currentPage === pageNum ? 600 : 400
+                  }}
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+
+            <Button
+              variant="outlined"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              sx={{ minWidth: 'auto', px: 2 }}
+            >
+              Next
+            </Button>
+          </Box>
+        )}
         <Footer />
       </section>
     </>

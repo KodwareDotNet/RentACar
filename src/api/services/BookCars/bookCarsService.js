@@ -31,32 +31,32 @@ const bookCarsService = {
     },
 
     // Service
-getBookedCars: async (params = {}) => {
-    try {
-        const { pageNumber = 1, pageSize = 10, bookingStatus = 'all', priceRange = 'all' } = params;
-        
-        const queryParams = new URLSearchParams({
-            pageNumber: pageNumber.toString(),
-            pageSize: pageSize.toString(),
-            ...(bookingStatus !== 'all' && { bookingStatus }),
-            ...(priceRange !== 'all' && { priceRange }),
-        });
-        
-        const res = await api.get(`Car/GetAllBookings?${queryParams}`);
-        return res;
-    } catch (error) {
-        if (error.response) {
-            console.error("Failed to fetch bookings:", error.response.data);
-            throw new Error(error.response.data.message || "Failed to fetch bookings.");
-        } else if (error.request) {
-            console.error("No response from server:", error.request);
-            throw new Error("No response from the server. Please try again.");
-        } else {
-            console.error("Error setting up request:", error.message);
-            throw new Error("Error fetching bookings: " + error.message);
+    getBookedCars: async (params = {}) => {
+        try {
+            const { pageNumber = 1, pageSize = 10, bookingStatus = 'all', priceRange = 'all' } = params;
+
+            const queryParams = new URLSearchParams({
+                pageNumber: pageNumber.toString(),
+                pageSize: pageSize.toString(),
+                ...(bookingStatus !== 'all' && { bookingStatus }),
+                ...(priceRange !== 'all' && { priceRange }),
+            });
+
+            const res = await api.get(`Car/GetAllBookings?${queryParams}`);
+            return res;
+        } catch (error) {
+            if (error.response) {
+                console.error("Failed to fetch bookings:", error.response.data);
+                throw new Error(error.response.data.message || "Failed to fetch bookings.");
+            } else if (error.request) {
+                console.error("No response from server:", error.request);
+                throw new Error("No response from the server. Please try again.");
+            } else {
+                console.error("Error setting up request:", error.message);
+                throw new Error("Error fetching bookings: " + error.message);
+            }
         }
-    }
-},
+    },
     updateBookCar: async (formData) => {
 
         try {
@@ -113,18 +113,6 @@ getBookedCars: async (params = {}) => {
             }
         }
     },
-    // deleteBookCars: async (id) => {
-    //     try {
-    //         const res = await api.delete("car/CancelBooking", {
-    //             params: { id },
-    //         });
-    //         return res.data;
-    //     }
-    //     catch (ex) {
-    //         console.error("Cancel Error:", ex);
-    //         throw ex;
-    //     }
-    // },
     cancelBooking: async (id, cancellationData) => {
         try {
             const res = await api.put("car/CancelBooking", {
@@ -141,9 +129,14 @@ getBookedCars: async (params = {}) => {
             throw ex;
         }
     },
-    getReceivedCars: async () => {
+    getReceivedCars: async (page = 1, pageSize = 10) => {
         try {
-            const res = await api.get("Car/GetAllReceivedCars"); // or whatever your endpoint is
+            const res = await api.get("Car/GetAllReceivedCars", {
+                params: {
+                    pageNumber: page,
+                    pageSize: pageSize
+                }
+            });
             return res;
         }
         catch (error) {
@@ -163,7 +156,7 @@ getBookedCars: async (params = {}) => {
     },
     deleteReceiveCars: async (id) => {
         try {
-            const res = await api.delete(`car/CancelBooking/${id}`
+            const res = await api.delete(`car/DeleteReceivedCar/${id}`
             );
             return res.data;
         }

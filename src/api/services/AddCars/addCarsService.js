@@ -16,9 +16,15 @@ const addCarsService ={
          console.log("error while adding car");
         }
     },
-    getCars: async() => {
+    getCars: async(params = {}) => {
         try {
-         const res = await api.get("User/GetCars");
+          const { pageNumber = 1, pageSize = 10 } = params;
+
+            const queryParams = new URLSearchParams({
+                pageNumber: pageNumber.toString(),
+                pageSize: pageSize.toString(),
+            });
+         const res = await api.get(`User/GetCars?${queryParams}`);
          return res;
         }
         catch(error){

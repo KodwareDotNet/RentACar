@@ -1,90 +1,101 @@
 import React, { useState, useEffect } from 'react';
 import {
     Container, Typography, Card, CardContent, CardMedia, Grid, Button, Chip, Box,
-    Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText,
-    Alert, Snackbar, Divider, Paper, ImageList, ImageListItem
+    Dialog, DialogTitle, DialogContent, DialogActions,
+    Alert, Snackbar, Divider, ImageList, ImageListItem
 } from '@mui/material';
 import {
-    DirectionsCar, CalendarToday, Settings,
-    Cancel, CheckCircle, Restore, Delete, EventAvailable, PhotoLibrary
+    Cancel, Delete, EventAvailable, PhotoLibrary
 } from '@mui/icons-material';
 import bookCarsService from '../api/services/BookCars/bookCarsService';
 import { BASE_URL } from "../api/axiosConfig";
 
 const ReceivedCarsPage = () => {
     const [bookings, setBookings] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [openImageDialog, setOpenImageDialog] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [selectedImages, setSelectedImages] = useState([]);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalRecords, setTotalRecords] = useState(0);
 
-    useEffect(() => {
-        fetchBookings();
-    }, []);
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
 
-    const fetchBookings = async () => {
-        setLoading(true);
+    const fetchBookings = async (pageNumber = 1, pageSize = 10) => {
         try {
-            
-            const res = await bookCarsService.getReceivedCars();
+            const res = await bookCarsService.getReceivedCars(pageNumber, pageSize);
             if (res && res.status === 200) {
-                const receivedBookings = res.data
-                    .map((b) => ({
-                        id: b.bookingId,
-                        Id: b.receiveId,
-                        carName: b.carName || "Unknown Car",
-                        image: b.images?.imageUrl ? `${BASE_URL}${b.images.imageUrl}` : '/placeholder.png',
-                        price: b.car?.pricePerDay || 0,
-                        description: b.car?.description || '',
-                        transmission: b.car?.transmission || '',
-                        fuelType: b.car?.fuel || '',
-                        rating: '4/5',
-                        pickupDate: b.pickupDate,
-                        dropoffDate: b.dropoffDate,
-                        totalDays: calculateDays(b.pickupDate, b.dropoffDate),
-                        totalPrice: (b.car?.pricePerDay || 0) * calculateDays(b.pickupDate, b.dropoffDate),
-                        status: 'received',
-                        receivedDate: b.receivedDate || b.updatedDate || new Date().toISOString(),
-                        fullName: b.fullName || '',
-                        fatherName: b.fatherName || '',
-                        cnic: b.cnic || '',
-                        licenseNumber: b.licenseNumber || '',
-                        phone: b.phone || '',
-                        age: b.age || '',
-                        address: b.address || '',
-                        city: b.city || '',
-                        damageRemarks: b.damageRemarks || '',
-                        damageCharges: b.damageCharges || 0,
-                        remarks: b.remarks || '',
-                        // Map received images
-                        receiveImages: b.images?.map(img => ({
-                            imageId: img.imageId,
-                            imageUrl: img.imageUrl.startsWith('http') 
-                                ? img.imageUrl 
-                                : `${BASE_URL}${img.imageUrl}`,
-                            uploadedAt: img.uploadedAt
-                        })) || [],
-                        attachments: b.attachments?.map(att => ({
-                            id: att.attachmentId,
-                            attachmentId: att.attachmentId,
-                            fileName: att.fileName,
-                            filePath: `${BASE_URL}${att.filePath}`,
-                            fileSize: att.fileSize,
-                            uploadDate: att.uploadDate
-                        })) || [],
-                        carDetail: b
-                    }));
-                
+                const responseData = res.data.data || res.data;
+                const paginationData = res.data.pagination;
+
+                const receivedBookings = responseData.map((b) => ({
+                    id: b.bookingId,
+                    Id: b.receiveId,
+                    carName: b.carName || "Unknown Car",
+                    image: b.images?.imageUrl ? `${BASE_URL}${b.images.imageUrl}` : '/placeholder.png',
+                    price: b.car?.pricePerDay || 0,
+                    description: b.car?.description || '',
+                    transmission: b.car?.transmission || '',
+                    fuelType: b.car?.fuel || '',
+                    rating: '4/5',
+                    pickupDate: b.pickupDate,
+                    dropoffDate: b.dropoffDate,
+                    totalDays: calculateDays(b.pickupDate, b.dropoffDate),
+                    totalPrice: (b.car?.pricePerDay || 0) * calculateDays(b.pickupDate, b.dropoffDate),
+                    status: 'received',
+                    receivedDate: b.receivedDate || b.updatedDate || new Date().toISOString(),
+                    fullName: b.fullName || '',
+                    fatherName: b.fatherName || '',
+                    cnic: b.cnic || '',
+                    licenseNumber: b.licenseNumber || '',
+                    phone: b.phone || '',
+                    age: b.age || '',
+                    address: b.address || '',
+                    city: b.city || '',
+                    damageRemarks: b.damageRemarks || '',
+                    damageCharges: b.damageCharges || 0,
+                    remarks: b.remarks || '',
+                    receiveImages: b.images?.map(img => ({
+                        imageId: img.imageId,
+                        imageUrl: img.imageUrl.startsWith('http')
+                            ? img.imageUrl
+                            : `${BASE_URL}${img.imageUrl}`,
+                        uploadedAt: img.uploadedAt
+                    })) || [],
+                    attachments: b.attachments?.map(att => ({
+                        id: att.attachmentId,
+                        attachmentId: att.attachmentId,
+                        fileName: att.fileName,
+                        filePath: `${BASE_URL}${att.filePath}`,
+                        fileSize: att.fileSize,
+                        uploadDate: att.uploadDate
+                    })) || [],
+                    carDetail: b
+                }));
+
                 setBookings(receivedBookings);
+
+                // Update pagination state from backend response
+                if (paginationData) {
+                    setCurrentPage(paginationData.currentPage);
+                    setTotalPages(paginationData.totalPages);
+                    setTotalRecords(paginationData.totalRecords);
+                    setPageSize(paginationData.pageSize);
+                }
             }
         } catch (err) {
             console.error("Failed to fetch bookings:", err);
-        } finally {
-            setLoading(false);
         }
     };
+    useEffect(() => {
+        fetchBookings(currentPage, pageSize);
+    }, [currentPage, pageSize]);
 
     const calculateDays = (start, end) => {
         const startDate = new Date(start);
@@ -129,7 +140,6 @@ const ReceivedCarsPage = () => {
     };
 
     const handleCloseDialog = () => {
-        setOpenDeleteDialog(false);
         setOpenImageDialog(false);
         setSelectedBooking(null);
         setSelectedImages([]);
@@ -137,14 +147,6 @@ const ReceivedCarsPage = () => {
 
     const handleCloseSnackbar = () => {
         setSnackbar({ ...snackbar, open: false });
-    };
-
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
     };
 
     const formatDateTime = (dateString) => {
@@ -172,14 +174,14 @@ const ReceivedCarsPage = () => {
                 <Grid container spacing={3}>
                     {bookings.length > 0 ? bookings.map((booking) => (
                         <Grid item xs={12} sm={6} lg={4} key={booking.id}>
-                            <Card 
-                                elevation={2} 
-                                sx={{ 
+                            <Card
+                                elevation={2}
+                                sx={{
                                     height: '100%',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    overflow: 'hidden', 
-                                    '&:hover': { boxShadow: 6 }, 
+                                    overflow: 'hidden',
+                                    '&:hover': { boxShadow: 6 },
                                     transition: 'box-shadow 0.3s',
                                     border: '1px solid #e0e0e0',
                                     borderRadius: 2
@@ -188,30 +190,13 @@ const ReceivedCarsPage = () => {
                                 <Box sx={{ position: 'relative' }}>
                                     <CardMedia
                                         component="img"
-                                        sx={{ 
+                                        sx={{
                                             height: 240,
                                             objectFit: 'cover'
                                         }}
                                         image={booking.image}
                                         alt={booking.carName}
                                     />
-                                    
-                                    {/* Image Count Badge */}
-                                    {/* {booking.receiveImages.length > 0 && (
-                                        <Chip
-                                            icon={<PhotoLibrary />}
-                                            label={`${booking.receiveImages.length} Photos`}
-                                            size="small"
-                                            sx={{
-                                                position: 'absolute',
-                                                top: 12,
-                                                right: 12,
-                                                bgcolor: 'rgba(255, 255, 255, 0.95)',
-                                                fontWeight: 600,
-                                                boxShadow: 2
-                                            }}
-                                        />
-                                    )} */}
                                 </Box>
 
                                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2.5 }}>
@@ -222,40 +207,10 @@ const ReceivedCarsPage = () => {
                                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                             {booking.description}
                                         </Typography>
-                                        {/* <Typography variant="caption" sx={{ 
-                                            display: 'inline-block',
-                                            bgcolor: '#f5f5f5',
-                                            px: 1,
-                                            py: 0.5,
-                                            borderRadius: 1,
-                                            color: '#666'
-                                        }}>
-                                            {booking.rating}
-                                        </Typography> */}
                                     </Box>
 
                                     <Divider sx={{ mb: 2 }} />
 
-                                    {/* <Box sx={{ mb: 2 }}>
-                                        <Grid container spacing={1.5}>
-                                            <Grid item xs={6}>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    Transmission
-                                                </Typography>
-                                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                                    {booking.transmission}
-                                                </Typography>
-                                            </Grid>
-                                            <Grid item xs={6}>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    Fuel Type
-                                                </Typography>
-                                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                                    {booking.fuelType}
-                                                </Typography>
-                                            </Grid>
-                                        </Grid>
-                                    </Box> */}
 
                                     {/* Damage Info */}
                                     {booking.damageRemarks && (
@@ -284,14 +239,14 @@ const ReceivedCarsPage = () => {
                                         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                                             {/* View Images Button */}
                                             {booking.receiveImages.length > 0 && (
-                                                <Button 
-                                                    variant="outlined" 
-                                                    color="primary" 
+                                                <Button
+                                                    variant="outlined"
+                                                    color="primary"
                                                     size="small"
-                                                    startIcon={<PhotoLibrary />} 
-                                                    onClick={() => handleViewImages(booking)} 
-                                                    fullWidth 
-                                                    sx={{ 
+                                                    startIcon={<PhotoLibrary />}
+                                                    onClick={() => handleViewImages(booking)}
+                                                    fullWidth
+                                                    sx={{
                                                         py: 1,
                                                         fontWeight: 600,
                                                         textTransform: 'none'
@@ -300,22 +255,22 @@ const ReceivedCarsPage = () => {
                                                     View Images
                                                 </Button>
                                             )}
-                                            
-                                            <Button 
-                                                variant="outlined" 
-                                                color="error" 
+
+                                            <Button
+                                                variant="outlined"
+                                                color="error"
                                                 size="small"
-                                                startIcon={<Delete />} 
-                                                onClick={() => deleteReceiveCar(booking.id)} 
-                                                fullWidth 
-                                                sx={{ 
+                                                startIcon={<Delete />}
+                                                onClick={() => deleteReceiveCar(booking.id)}
+                                                fullWidth
+                                                sx={{
                                                     py: 1,
                                                     fontWeight: 600,
                                                     textTransform: 'none',
-                                                    '&:hover': { 
-                                                        bgcolor: 'error.light', 
-                                                        color: 'white' 
-                                                    } 
+                                                    '&:hover': {
+                                                        bgcolor: 'error.light',
+                                                        color: 'white'
+                                                    }
                                                 }}
                                             >
                                                 Delete
@@ -341,8 +296,8 @@ const ReceivedCarsPage = () => {
                 </Grid>
 
                 {/* Image Gallery Dialog */}
-                <Dialog 
-                    open={openImageDialog} 
+                <Dialog
+                    open={openImageDialog}
                     onClose={handleCloseDialog}
                     maxWidth="md"
                     fullWidth
@@ -352,9 +307,9 @@ const ReceivedCarsPage = () => {
                             <Typography variant="h6" sx={{ fontWeight: 700 }}>
                                 Car Return Images - {selectedBooking?.carName}
                             </Typography>
-                            <Chip 
-                                label={`${selectedImages.length} Photos`} 
-                                color="primary" 
+                            <Chip
+                                label={`${selectedImages.length} Photos`}
+                                color="primary"
                                 size="small"
                             />
                         </Box>
@@ -377,11 +332,11 @@ const ReceivedCarsPage = () => {
                                             }}
                                             onClick={() => window.open(img.imageUrl, '_blank')}
                                         />
-                                        <Box sx={{ 
-                                            position: 'absolute', 
-                                            bottom: 8, 
-                                            left: 8, 
-                                            bgcolor: 'rgba(0,0,0,0.6)', 
+                                        <Box sx={{
+                                            position: 'absolute',
+                                            bottom: 8,
+                                            left: 8,
+                                            bgcolor: 'rgba(0,0,0,0.6)',
                                             color: 'white',
                                             px: 1,
                                             py: 0.5,
@@ -417,8 +372,8 @@ const ReceivedCarsPage = () => {
                     onClose={handleCloseSnackbar}
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 >
-                    <Alert 
-                        onClose={handleCloseSnackbar} 
+                    <Alert
+                        onClose={handleCloseSnackbar}
                         severity={snackbar.severity}
                         variant="filled"
                         sx={{ width: '100%' }}
@@ -426,6 +381,50 @@ const ReceivedCarsPage = () => {
                         {snackbar.message}
                     </Alert>
                 </Snackbar>
+                {totalRecords > pageSize && (
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        gap: 1
+                    }}>
+                        <Button
+                            variant="outlined"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            sx={{ minWidth: 'auto', px: 2 }}
+                        >
+                            Previous
+                        </Button>
+
+                        {[...Array(totalPages)].map((_, index) => {
+                            const pageNum = index + 1;
+                            return (
+                                <Button
+                                    key={pageNum}
+                                    variant={currentPage === pageNum ? "contained" : "outlined"}
+                                    onClick={() => handlePageChange(pageNum)}
+                                    sx={{
+                                        minWidth: 40,
+                                        fontWeight: currentPage === pageNum ? 600 : 400
+                                    }}
+                                >
+                                    {pageNum}
+                                </Button>
+                            );
+                        })}
+
+                        <Button
+                            variant="outlined"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            sx={{ minWidth: 'auto', px: 2 }}
+                        >
+                            Next
+                        </Button>
+                    </Box>
+                )}
             </Container>
         </Box>
     );

@@ -6,7 +6,7 @@ import {
     FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import {
-    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, Star, FilterList
+    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, FilterList
 } from '@mui/icons-material';
 import bookCarsService from '../api/services/BookCars/bookCarsService';
 import BookACarModal from "../components/BookACarModal";
@@ -15,7 +15,6 @@ import { useNavigate } from 'react-router-dom';
 
 const BookedCarsPage = () => {
     const [bookings, setBookings] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
     const [showBookModal, setShowBookModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -34,9 +33,6 @@ const BookedCarsPage = () => {
         totalPages: 1,
         totalRecords: 0
     });
-
-
-
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     const currentBookings = bookings;
@@ -70,11 +66,7 @@ const BookedCarsPage = () => {
             return 'Invalid date';
         }
     };
-
-    const navigate = useNavigate();
     const fetchBookings = async () => {
-        console.log('🔍 Fetching bookings for page:', currentPage);
-        setLoading(true);
         try {
             const res = await bookCarsService.getBookedCars({
                 pageNumber: currentPage,
@@ -140,9 +132,7 @@ const BookedCarsPage = () => {
         } catch (err) {
             console.error("Failed to fetch bookings:", err);
 
-        } finally {
-            setLoading(false);
-        }
+        } 
     };
 
     const calculateDays = (start, end) => {
@@ -151,15 +141,6 @@ const BookedCarsPage = () => {
         const diffTime = Math.abs(endDate - startDate);
         return Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 1);
     };
-
-    const calculateHours = (start, end) => {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        const diffTime = Math.abs(endDate - startDate);
-        // Convert milliseconds to hours
-        return Math.max(Math.ceil(diffTime / (1000 * 60 * 60)), 0);
-    };
-
 
     const calculateDuration = (start, end, type) => {
         const startDate = new Date(start);
@@ -361,39 +342,6 @@ const BookedCarsPage = () => {
                                 </Select>
                             </FormControl>
                         </Grid>
-
-                        {/* Price Range Filter */}
-                        {/* <Grid item xs={12} sm={6} md={4}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel>Price Range</InputLabel>
-                                <Select
-                                    value={filterPriceRange}
-                                    label="Price Range"
-                                    onChange={(e) => setFilterPriceRange(e.target.value)}
-                                >
-                                    <MenuItem value="all">All Prices</MenuItem>
-                                    <MenuItem value="low">Under $100</MenuItem>
-                                    <MenuItem value="medium">$100 - $500</MenuItem>
-                                    <MenuItem value="high">Over $500</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid> */}
-
-                        {/* Car Type Filter */}
-                        {/* <Grid item xs={12} sm={6} md={4}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel>Transmission</InputLabel>
-                                <Select
-                                    value={filterCarType}
-                                    label="Transmission"
-                                    onChange={(e) => setFilterCarType(e.target.value)}
-                                >
-                                    <MenuItem value="all">All Types</MenuItem>
-                                    <MenuItem value="Automatic">Automatic</MenuItem>
-                                    <MenuItem value="Manual">Manual</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid> */}
                     </Grid>
 
                     {/* Clear Filters Button */}

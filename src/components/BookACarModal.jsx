@@ -86,7 +86,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             setUserData(prev => ({
                 ...prev, // Keep existing state
                 dropoffDate: bookingData.dropoffDate
-                    ? bookingData.dropoffDate.slice(0, 16)
+                    ? new Date(bookingData.dropoffDate).toISOString().slice(0, 16)
                     : "",
                 pricePerUnit: bookingData.pricePerUnit || bookingData.carDetail?.pricePerUnit || 0,
                 pricingType: bookingData.pricingType || "hourly",
@@ -109,9 +109,10 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                 address: bookingData.address || "",
                 city: bookingData.city || "",
                 pickupDate: bookingData.pickupDate
-                    ? bookingData.pickupDate.slice(0, 16) : "",
+                    ? new Date(bookingData.pickupDate).toISOString().slice(0, 16)
+                    : "",
                 dropoffDate: bookingData.dropoffDate
-                    ? bookingData.dropoffDate.slice(0, 16)
+                    ? new Date(bookingData.dropoffDate).toISOString().slice(0, 16)
                     : "",
                 carId: bookingData.carDetail?.id || bookingData.id || "",
                 pricePerUnit: bookingData.carDetail.pricePerUnit,
