@@ -161,9 +161,6 @@ export function Models() {
     navigate(location.pathname, { replace: true }); // Remove URL parameter
   };
 
-  useEffect(() => {
-    carsApi();
-  }, []);
 
   return (
     <>

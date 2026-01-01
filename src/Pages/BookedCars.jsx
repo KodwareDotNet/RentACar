@@ -188,9 +188,6 @@ const BookedCarsPage = () => {
         setOpenDialog(true);
     };
 
-
-
-
     const deleteBookCar = async (id) => {
         try {
             const cancellationData = {
@@ -226,7 +223,6 @@ const BookedCarsPage = () => {
             fetchBookings();
         }
     };
-
 
     const handleConfirmCancel = () => {
         if (selectedBooking) {
