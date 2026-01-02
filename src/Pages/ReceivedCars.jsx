@@ -9,6 +9,8 @@ import {
 } from '@mui/icons-material';
 import bookCarsService from '../api/services/BookCars/bookCarsService';
 import { BASE_URL } from "../api/axiosConfig";
+import audiBox from "../images/cars-big/audi-box.png";
+
 
 const ReceivedCarsPage = () => {
     const [bookings, setBookings] = useState([]);
@@ -36,7 +38,7 @@ const ReceivedCarsPage = () => {
 
                 const receivedBookings = responseData.map((b) => ({
                     id: b.bookingId,
-                    Id: b.receiveId,
+                    receiveId: b.receiveId,
                     carName: b.carName || "Unknown Car",
                     image: b.images?.imageUrl ? `${BASE_URL}${b.images.imageUrl}` : '/placeholder.png',
                     price: b.car?.pricePerDay || 0,
@@ -78,7 +80,6 @@ const ReceivedCarsPage = () => {
                     })) || [],
                     carDetail: b
                 }));
-
                 setBookings(receivedBookings);
 
                 // Update pagination state from backend response
@@ -194,7 +195,9 @@ const ReceivedCarsPage = () => {
                                             height: 240,
                                             objectFit: 'cover'
                                         }}
-                                        image={booking.image}
+                                        image={
+                                               audiBox
+                                        }
                                         alt={booking.carName}
                                     />
                                 </Box>
@@ -261,7 +264,7 @@ const ReceivedCarsPage = () => {
                                                 color="error"
                                                 size="small"
                                                 startIcon={<Delete />}
-                                                onClick={() => deleteReceiveCar(booking.id)}
+                                                onClick={() => deleteReceiveCar(booking.receiveId)}
                                                 fullWidth
                                                 sx={{
                                                     py: 1,

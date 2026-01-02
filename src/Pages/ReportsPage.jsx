@@ -15,29 +15,40 @@ import {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import reportsService from "../api/services/Reports/reportsService";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
+import InstitutionalReport from "../components/InstitutionalReport";
+
 
 const ReportsPage = () => {
-  const [reportType, setReportType] = useState("daily"); // daily | weekly | monthly
   const [date, setDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date()); // only for weekly reports
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState(null);
   const [reports, setReports] = useState([]);
+  const [openPdf, setOpenPdf] = useState(false);
+  const [vehicleConditions, setVehicleConditions] = useState([]);
+  const [revenueExpenses, setRevenueExpenses] = useState({});
+  const [openPdfDialog, setOpenPdfDialog] = useState(false);
+
 
   useEffect(() => {
     if (reports && reports.length > 0) {
       const totalBookings = reports.length;
       const completedBookings = reports.filter(b => b.status === "Completed").length;
-      const activeBookings = reports.filter(b => b.status !== "Completed").length;
+      const activeBookings = reports.filter(b => b.status == "Active").length;
       const cancelledBookings = reports.filter(b => b.status == "Cancelled").length;
       const totalRevenue = reports.reduce((sum, b) => sum + b.amount, 0);
-
+      const totalExpense = reports.reduce((sum, b) => sum + b.damageCharges, 0);
+      const netProfit = totalRevenue - totalExpense;
       setSummary({
         totalBookings,
         completedBookings,
         activeBookings,
         cancelledBookings,
         totalRevenue,
+        totalExpense,
+        netProfit
       });
     }
   }, [reports]);
@@ -47,87 +58,13 @@ const ReportsPage = () => {
   }, []
   )
 
-  // Watch reportType changes
-  useEffect(() => {
-    // Reset fields when report type changes
-    setDate(new Date());
-    setEndDate(new Date());
-    setReports([]);
-    setSummary(null);
-  }, [reportType]);
-
-
   // Fetch reports only on button click
   const fetchReports = async () => {
     setLoading(true);
     try {
       let params;
 
-      if (reportType === "daily") {
-        params = { type: "daily", date };
-      } else if (reportType === "weekly") {
-        // Ensure both start and end date are set for weekly reports
-        if (!date || !endDate) {
-          alert("Please select both start and end dates for weekly reports.");
-          setLoading(false);
-          return;
-        }
-
-        // Ensure minimum 7 days
-        const diffDays = Math.ceil(
-          (endDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        if (diffDays < 7) {
-          alert("Weekly reports must cover at least 7 days.");
-          setLoading(false);
-          return;
-        }
-
-        // Optional: ensure not more than a month
-        if (diffDays > 31) {
-          alert("Weekly reports cannot exceed 1 month.");
-          setLoading(false);
-          return;
-        }
-
-        params = { type: "weekly", startDate: date, endDate: endDate };
-      } else if (reportType === "monthly") {
-        // Ensure both start and end dates are selected
-        if (!date || !endDate) {
-          alert("Please select both start and end dates for monthly reports.");
-          setLoading(false);
-          return;
-        }
-
-        const start = new Date(date);
-        const end = new Date(endDate);
-
-        // Calculate month difference
-        const diffMonths =
-          (end.getFullYear() - start.getFullYear()) * 12 +
-          (end.getMonth() - start.getMonth());
-
-        // Minimum 1 month
-        if (diffMonths < 1) {
-          alert("Monthly reports must cover at least 1 month.");
-          setLoading(false);
-          return;
-        }
-
-        // Maximum 12 months (1 year)
-        if (diffMonths > 12) {
-          alert("Monthly reports cannot exceed 1 year.");
-          setLoading(false);
-          return;
-        }
-
-        params = {
-          type: "monthly",
-          startDate: start,
-          endDate: end,
-        };
-      }
-
+      params = { startDate: date, endDate: endDate };
       const res = await reportsService.getReports(params);
       setReports(res.data || []);
     } catch (err) {
@@ -147,60 +84,80 @@ const ReportsPage = () => {
 
       {/* Filters */}
       <Box display="flex" alignItems="center" gap={2} mb={4} flexWrap="wrap">
-        <Button
-          variant={reportType === "daily" ? "contained" : "outlined"}
-          onClick={() => setReportType("daily")}
-        >
-          Daily
-        </Button>
-        <Button
-          variant={reportType === "weekly" ? "contained" : "outlined"}
-          onClick={() => setReportType("weekly")}
-        >
-          Weekly
-        </Button>
-        <Button
-          variant={reportType === "monthly" ? "contained" : "outlined"}
-          onClick={() => setReportType("monthly")}
-        >
-          Monthly
-        </Button>
 
-        {/* Date Picker(s) */}
-        {reportType === "daily" && (
+        <Dialog
+          open={openPdfDialog}
+          onClose={() => setOpenPdfDialog(false)}
+          fullWidth
+          maxWidth="lg"
+        >
+          <DialogTitle>Institutional Report Preview</DialogTitle>
+
+          <DialogContent dividers>
+            <Box style={{ height: "600px" }}>
+              <PDFViewer width="100%" height="100%">
+                <InstitutionalReport
+                  reports={reports}
+                  summary={summary}
+                  startDate={date.toISOString().split("T")[0]}
+                  endDate={endDate.toISOString().split("T")[0]}
+                  revenueExpenses={revenueExpenses}
+                />
+              </PDFViewer>
+            </Box>
+          </DialogContent>
+
+          <DialogActions>
+            <PDFDownloadLink
+              document={
+                <InstitutionalReport
+                  reports={reports}
+                  summary={summary}
+                  startDate={date.toISOString().split("T")[0]}
+                  endDate={endDate.toISOString().split("T")[0]}
+                  vehicleConditions={vehicleConditions}
+                  revenueExpenses={revenueExpenses}
+                />
+              }
+              fileName="Rent_A_Car_Report.pdf"
+            >
+              {({ loading }) => (
+                <Button variant="contained" color="primary">
+                  {loading ? "Preparing PDF..." : "Download Report"}
+                </Button>
+              )}
+            </PDFDownloadLink>
+
+            <Button onClick={() => setOpenPdfDialog(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+
+
+
+        <Box display="flex" gap={1} alignItems="center">
+          <Typography>Start:</Typography>
           <DatePicker
             selected={date}
             onChange={(d) => setDate(d)}
+            selectsStart
+            startDate={date}
+            endDate={endDate}
             dateFormat="yyyy-MM-dd"
             className="date-picker"
           />
-        )}
+          <Typography>End:</Typography>
+          <DatePicker
+            selected={endDate}
+            onChange={(d) => setEndDate(d)}
+            selectsEnd
+            startDate={date}
+            endDate={endDate}
+            minDate={date}
+            dateFormat="yyyy-MM-dd"
+            className="date-picker"
+          />
+        </Box>
 
-        {reportType === "weekly" ||  "monthly" && (
-          <Box display="flex" gap={1} alignItems="center">
-            <Typography>Start:</Typography>
-            <DatePicker
-              selected={date}
-              onChange={(d) => setDate(d)}
-              selectsStart
-              startDate={date}
-              endDate={endDate}
-              dateFormat="yyyy-MM-dd"
-              className="date-picker"
-            />
-            <Typography>End:</Typography>
-            <DatePicker
-              selected={endDate}
-              onChange={(d) => setEndDate(d)}
-              selectsEnd
-              startDate={date}
-              endDate={endDate}
-              minDate={date}
-              dateFormat="yyyy-MM-dd"
-              className="date-picker"
-            />
-          </Box>
-        )}
 
         <Button
           variant="contained"
@@ -210,6 +167,16 @@ const ReportsPage = () => {
         >
           {loading ? "Fetching..." : "Fetch Reports"}
         </Button>
+
+        <Button
+          variant="outlined"
+          color="secondary"
+          disabled={!reports.length}
+          onClick={() => setOpenPdfDialog(true)}
+        >
+          Generate & View Report (PDF)
+        </Button>
+
       </Box>
 
       {/* Summary Cards */}
