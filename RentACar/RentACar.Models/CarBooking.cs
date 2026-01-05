@@ -28,5 +28,7 @@ namespace RentACar.Models
         public string PricingType { get; set; }
         public string CarImageUrl { get; set; }
         public decimal? TotalAmount { get; set; }
+        public decimal? PickupMileage { get; set; }
+        public string MileageImageUrl { get; set; }
     }
 }

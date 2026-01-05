@@ -30,6 +30,11 @@ namespace RentACar.ViewModel
         public decimal? PricePerUnit { get; set; }
         public string PricingType { get; set; }
         public decimal? TotalAmount { get; set; }
+        public decimal? PickupMileage { get; set; }
+        public IFormFile? MileageImage { get; set; }
+
+        // File Uploads
+
 
         // Car columns (flat - for Dapper mapping)
         public string CarName { get; set; }
@@ -48,10 +53,15 @@ namespace RentACar.ViewModel
         public int AttachmentId { get; set; }
         public string? FileName { get; set; }
         public string? FilePath { get; set; }
-        public long FileSize { get; set; }
-        public DateTime UploadDate { get; set; }
-       public List<int>? DeleteAttachmentIds { get; set; }
+        public long? FileSize { get; set; }
+        public DateTime? UploadDate { get; set; }
+        public decimal? ReturnMileage { get; set; }
+        public decimal? TotalMileageCovered { get; set; }
+        public decimal? MileageCharges { get; set; }
+        public string? ReturnMileageImageUrl { get; set; }
+        public List<int>? DeleteAttachmentIds { get; set; }
         public int TotalRecords { get; set; }
+        public string? MileageImageUrl { get; set; }
     }
 
     // Response ke liye (Car + its bookings)

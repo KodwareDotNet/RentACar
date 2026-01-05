@@ -111,25 +111,31 @@ namespace RentACar.Service
         }
 
         public async Task<int> ReceiveCar(
-      int bookingId,
-      bool isDamaged,
-      string? remarks,
-      string? damageRemarks,
-      decimal charges,
-      decimal lateExtraCharges,
-      DateTime? dropOffDate,
-            decimal TotalPrice
-  )
+        int bookingId,
+        bool isDamaged,
+        string? remarks,
+        string? damageRemarks,
+        decimal damageCharges,
+        decimal lateExtraCharges,
+        DateTime? dropOffDate,
+        decimal totalPrice,
+        decimal? returnMileage,           // 🆕
+        decimal? mileageCharges,          // 🆕
+        string? returnMileageImageUrl     // 🆕
+    )
         {
             return await _carRepo.ReceiveCar(
                 bookingId,
                 isDamaged,
                 remarks,
                 damageRemarks,
-                charges,
+                damageCharges,
                 lateExtraCharges,
                 dropOffDate,
-                 TotalPrice
+                totalPrice,
+                returnMileage,              // 🆕
+                mileageCharges,             // 🆕
+                returnMileageImageUrl       // 🆕
             );
         }
 
@@ -176,6 +182,10 @@ namespace RentACar.Service
         public async Task FinalizePaymentAsync(int bookingId)
         {
             await _carRepo.FinalizePayment(bookingId);
+        }
+        public async Task<IEnumerable<ReportDto>> GetReports(ReportRequestDto request)
+        {
+            return await _carRepo.GetReports(request);
         }
     }
 }

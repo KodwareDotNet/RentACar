@@ -20,11 +20,19 @@ namespace RentACar.ViewModel
         public string Phone { get; set; }
         public int Age { get; set; }
         public string Address { get; set; }
-        public string City { get; set; }
+        public string ?City { get; set; }
         public DateTime PickupDate { get; set; }
         public DateTime DropoffDate { get; set; }
         public decimal? PricePerUnit { get; set; }
         public string PricingType { get; set; }
+        public decimal? PickupMileage { get; set; }
+        public string? MileageImageUrl { get; set; }
+
+        // 🆕 Return Mileage (when car was received back)
+        public decimal? ReturnMileage { get; set; }
+        public decimal? TotalMileageCovered { get; set; }
+        public decimal? MileageCharges { get; set; }
+        public string? ReturnMileageImageUrl { get; set; }
 
         // Car Info (nested)
         public CarInfoDto Car { get; set; }
@@ -33,6 +41,8 @@ namespace RentACar.ViewModel
         public int BookingStatus { get; set; }
         public string Status { get; set; }
         public decimal? TotalAmount { get; set; }
+        //public decimal? PickupMileage { get; set; }
+        //public string? MileageImageUrl { get; set; }
     }
 
     public class CarInfoDto

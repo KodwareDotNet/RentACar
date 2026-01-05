@@ -104,15 +104,18 @@ namespace RentACar.Map
 
         // 🔥 NEW
         public async Task<int> ReceiveCar(
-        int bookingId,
-        bool isDamaged,
-        string? remarks,
-        string? damageRemarks,
-        decimal damageCharges,
-        decimal lateExtraCharges,
-        DateTime? dropOffDate,
-        decimal TotalPrice
-    )
+       int bookingId,
+       bool isDamaged,
+       string? remarks,
+       string? damageRemarks,
+       decimal damageCharges,
+       decimal lateExtraCharges,
+       DateTime? dropOffDate,
+       decimal totalPrice,
+       decimal? returnMileage,           // 🆕
+       decimal? mileageCharges,          // 🆕
+       string? returnMileageImageUrl     // 🆕
+   )
         {
             return await _rentService.ReceiveCar(
                 bookingId,
@@ -122,7 +125,10 @@ namespace RentACar.Map
                 damageCharges,
                 lateExtraCharges,
                 dropOffDate,
-                TotalPrice
+                totalPrice,
+                returnMileage,              // 🆕
+                mileageCharges,             // 🆕
+                returnMileageImageUrl       // 🆕
             );
         }
 
@@ -158,6 +164,10 @@ namespace RentACar.Map
         public async Task<List<BillingDto>> GetAllBillings(DateTime? startDate, DateTime? endDate)
         {
             return await _rentService.GetAllBillings(startDate, endDate);
+        }
+        public async Task<IEnumerable<ReportDto>> GetReports(ReportRequestDto request)
+        {
+            return await _rentService.GetReports(request);
         }
     }
 }

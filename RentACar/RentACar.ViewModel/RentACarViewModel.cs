@@ -19,3 +19,26 @@ namespace RentACar.ViewModel
         public string? CreatedBy { get; set; } = default!;
     }
 }
+public class ReportDto
+{
+    public int BookingId { get; set; }
+    public string CarName { get; set; }
+    public string Customer { get; set; }
+    public DateTime Date { get; set; }
+    public string Status { get; set; }
+    public int StatusCode { get; set; }
+    public string? DamageRemarks { get; set; }
+    public decimal Amount { get; set; }
+    public decimal DamageCharges { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class ReportRequestDto
+{
+    public int OrganizationId { get; set; }
+    //public string ReportType { get; set; } // daily, weekly, monthly
+    public DateTime? Date { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public string? Month { get; set; } // Format: 2026-01
+}

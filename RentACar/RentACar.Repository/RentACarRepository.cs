@@ -91,9 +91,11 @@ namespace RentACar.Repository
                     booking.CarId,
                     booking.OrganizationId,
                     booking.CarImageUrl,
-                    booking.PricePerUnit,      // ✅ New
+                    booking.PricePerUnit,
                     booking.PricingType,
-                    booking.TotalAmount// ✅ New
+                    booking.TotalAmount,
+                    booking.PickupMileage,      // 🆕 Mileage at pickup
+                    booking.MileageImageUrl     // 🆕 Mileage photo
                 },
                 commandType: CommandType.StoredProcedure
             );
@@ -126,18 +128,19 @@ namespace RentACar.Repository
 
         // Implementation
         public async Task<PagedResponse<PersonWithCarDto>> GetAllBookings(
-    int pageNumber,
-    int pageSize,
-    int? bookingStatus,
-    string? fullName
-)
+      int pageNumber,
+      int pageSize,
+      int? bookingStatus,
+      string? fullName
+  )
         {
             var parameters = new
             {
                 BookingStatus = bookingStatus,
                 FullName = fullName,
                 PageNumber = pageNumber,
-                PageSize = pageSize
+                PageSize = pageSize,
+
             };
 
             var result = await _connection.QueryAsync<BookCarDto>(
@@ -189,6 +192,16 @@ namespace RentACar.Repository
                         PricingType = first.PricingType,
                         TotalAmount = first.TotalAmount,
 
+                        // 🆕 Pickup Mileage
+                        PickupMileage = first.PickupMileage,
+                        MileageImageUrl = first.MileageImageUrl,
+
+                        // 🆕 Return Mileage (only available for completed bookings)
+                        ReturnMileage = first.ReturnMileage,
+                        TotalMileageCovered = first.TotalMileageCovered,
+                        MileageCharges = first.MileageCharges,
+                        ReturnMileageImageUrl = first.ReturnMileageImageUrl,
+
                         Car = new CarInfoDto
                         {
                             CarId = first.CarId,
@@ -197,7 +210,7 @@ namespace RentACar.Repository
                             PricePerHour = first.PricePerHour,
                             Transmission = first.Transmission,
                             Fuel = first.Fuel,
-                            Description = first.Description,
+                            Description =  first.Description,
 
                             // 🔥 IMAGE FIX
                             ImageUrl = !string.IsNullOrEmpty(first.ImageUrl)
@@ -212,8 +225,8 @@ namespace RentACar.Repository
                                 AttachmentId = a.AttachmentId,
                                 FileName = a.FileName,
                                 FilePath = a.FilePath,
-                                FileSize = a.FileSize,
-                                UploadDate = a.UploadDate
+                                FileSize = a.FileSize.HasValue ? a.FileSize.Value : 0,  // ✅ Fixed
+                                UploadDate = a.UploadDate.HasValue ? a.UploadDate.Value : DateTime.Now  // ✅ Fixed
                             })
                             .ToList()
                     };
@@ -236,17 +249,19 @@ namespace RentACar.Repository
 
 
 
-
         public async Task<int> ReceiveCar(
-      int bookingId,
-      bool isDamaged,
-      string? remarks,
-      string? damageRemarks,
-      decimal damageCharges,
-      decimal lateExtraCharges,
-      DateTime? dropOffDate,
-        decimal totalPrice
-  )
+         int bookingId,
+         bool isDamaged,
+         string? remarks,
+         string? damageRemarks,
+         decimal damageCharges,
+         decimal lateExtraCharges,
+         DateTime? dropOffDate,
+         decimal totalPrice,
+         decimal? returnMileage,           // 🆕
+         decimal? mileageCharges,          // 🆕
+         string? returnMileageImageUrl     // 🆕
+     )
         {
             var parameters = new DynamicParameters();
             parameters.Add("@BookingId", bookingId);
@@ -256,8 +271,12 @@ namespace RentACar.Repository
             parameters.Add("@DamageCharges", damageCharges);
             parameters.Add("@LateExtraCharges", lateExtraCharges);
             parameters.Add("@DropOffDate", dropOffDate);
-            parameters.Add("@TotalPrice", totalPrice); // totalPrice calculated in front end
+            parameters.Add("@TotalPrice", totalPrice);
 
+            // 🆕 Mileage Parameters
+            parameters.Add("@ReturnMileage", returnMileage);
+            parameters.Add("@MileageCharges", mileageCharges ?? 0);
+            parameters.Add("@ReturnMileageImageUrl", returnMileageImageUrl);
 
             return await _connection.ExecuteScalarAsync<int>(
                 "sp_ReceiveCar",
@@ -265,6 +284,7 @@ namespace RentACar.Repository
                 commandType: CommandType.StoredProcedure
             );
         }
+ 
 
         public async Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType)
         {
@@ -353,14 +373,17 @@ namespace RentACar.Repository
 
 
 
-        public async Task DeleteReceivedCar(int receiveId)
+        public async Task<bool> DeleteReceivedCar(int receiveId)
         {
-            await _connection.ExecuteAsync(
+            var rows = await _connection.ExecuteScalarAsync<int>(
                 "sp_DeleteReceiveCar",
                 new { ReceiveId = receiveId },
                 commandType: CommandType.StoredProcedure
             );
+
+            return rows > 0;
         }
+
         public async Task<BillingDto> GetBillingByBookingId(int bookingId)
         {
             var result = await _connection.QueryFirstOrDefaultAsync<BillingDto>(
@@ -423,6 +446,23 @@ namespace RentACar.Repository
             );
 
             return result;
+        }
+        public async Task<IEnumerable<ReportDto>> GetReports(ReportRequestDto request)
+        {
+            var parameters = new
+            {
+                OrganizationId = request.OrganizationId,
+                StartDate = request.StartDate,
+                EndDate = request.EndDate
+            };
+
+            var reports = await _connection.QueryAsync<ReportDto>(
+                "sp_GetReports",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return reports;
         }
     }
 }

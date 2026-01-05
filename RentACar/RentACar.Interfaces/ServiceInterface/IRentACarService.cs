@@ -24,7 +24,7 @@ namespace RentACar.Interfaces.ServiceInterface
             Task<PagedResponse<PersonWithCarDto>> GetAllBookings(int pageNumber,int pageSize,int? bookingStatus,string? fullName);
         }
         Task<int> CancelBooking(CancelBookingRequest model);
-        Task<int> ReceiveCar(int bookingId, bool isDamaged, string? remarks, string? damageRemarks, decimal charges, decimal lateExtraCharges, DateTime? dropOffDate, decimal totalPrice);
+        Task<int> ReceiveCar(int bookingId, bool isDamaged, string? remarks, string? damageRemarks, decimal charges, decimal lateExtraCharges, DateTime? dropOffDate, decimal totalPrice, decimal? returnMileage,decimal? mileageCharges,string? returnMileageImageUrl);
         Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType);
         Task<PagedResponse<ReceivedCarResponseDto>> GetAllReceivedCars(int pageNumber,int pageSize,string? fullName,DateTime? fromDate,DateTime? toDate);
         Task DeleteReceivedCar(int receiveId);
@@ -33,6 +33,7 @@ namespace RentACar.Interfaces.ServiceInterface
         Task<List<BillingDto>> GetAllBillings(DateTime? startDate, DateTime? endDate);
         Task CreatePaymentAsync(int bookingId);
         Task FinalizePaymentAsync(int bookingId);
+        Task<IEnumerable<ReportDto>> GetReports(ReportRequestDto request);
         Task<PagedResponse<PersonWithCarDto>> GetAllBookings(int pageNumber, int pageSize, int? bookingStatus, string? fullName);
     }
 }

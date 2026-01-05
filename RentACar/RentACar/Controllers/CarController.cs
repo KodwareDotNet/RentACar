@@ -64,16 +64,32 @@ namespace NewsApi.Controllers
         public async Task<IActionResult> BookCar([FromForm] BookCarDto dto)
         {
             string carImagePath = dto.CarImageUrl;
+            string mileageImagePath = null;  // 🆕
+
+            var uploadRoot = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Bookings";
+
+            if (!Directory.Exists(uploadRoot))
+                Directory.CreateDirectory(uploadRoot);
+
+            // 🆕 Upload Mileage Image
+            if (dto.MileageImage != null && dto.MileageImage.Length > 0)
+            {
+                var mileageFileName = $"mileage_{Guid.NewGuid()}{Path.GetExtension(dto.MileageImage.FileName)}";
+                var mileageFullPath = Path.Combine(uploadRoot, mileageFileName);
+
+                using (var stream = new FileStream(mileageFullPath, FileMode.Create))
+                {
+                    await dto.MileageImage.CopyToAsync(stream);
+                }
+
+                mileageImagePath = $"/Images/Bookings/{mileageFileName}";
+            }
 
             // Upload Car Image
             if (dto.CarImage != null && dto.CarImage.Length > 0)
             {
-                var rootPath = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Bookings";
-                if (!Directory.Exists(rootPath))
-                    Directory.CreateDirectory(rootPath);
-
-                var fileName = Guid.NewGuid() + Path.GetExtension(dto.CarImage.FileName);
-                var fullPath = Path.Combine(rootPath, fileName);
+                var fileName = $"car_{Guid.NewGuid()}{Path.GetExtension(dto.CarImage.FileName)}";
+                var fullPath = Path.Combine(uploadRoot, fileName);
 
                 using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
@@ -81,6 +97,12 @@ namespace NewsApi.Controllers
                 }
 
                 carImagePath = $"/Images/Bookings/{fileName}";
+            }
+
+            // 🆕 Validate Mileage
+            if (dto.PickupMileage.HasValue && dto.PickupMileage.Value < 0)
+            {
+                return BadRequest(new { success = false, message = "Mileage cannot be negative" });
             }
 
             var booking = new CarBooking
@@ -99,9 +121,11 @@ namespace NewsApi.Controllers
                 CarId = dto.CarId,
                 OrganizationId = dto.OrganizationId,
                 CarImageUrl = carImagePath,
-                PricePerUnit = dto.PricePerUnit,      // ✅ New
+                PricePerUnit = dto.PricePerUnit,
                 PricingType = dto.PricingType,
-                TotalAmount = dto.TotalAmount// ✅ New
+                TotalAmount = dto.TotalAmount,
+                PickupMileage = dto.PickupMileage,      // 🆕
+                MileageImageUrl = mileageImagePath      // 🆕
             };
 
             // Create or Update Booking
@@ -124,12 +148,8 @@ namespace NewsApi.Controllers
             {
                 foreach (var file in dto.Attachments)
                 {
-                    var folderPath = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Bookings";
-                    if (!Directory.Exists(folderPath))
-                        Directory.CreateDirectory(folderPath);
-
-                    var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-                    var fullPath = Path.Combine(folderPath, fileName);
+                    var fileName = $"attach_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                    var fullPath = Path.Combine(uploadRoot, fileName);
 
                     using (var stream = new FileStream(fullPath, FileMode.Create))
                     {
@@ -139,7 +159,7 @@ namespace NewsApi.Controllers
                     await _rentACarMap.SaveAttachment(
                         bookingId,
                         file.FileName,
-                        "/Images/Bookings/" + fileName,
+                        $"/Images/Bookings/{fileName}",
                         file.Length
                     );
                 }
@@ -150,7 +170,8 @@ namespace NewsApi.Controllers
                 success = true,
                 message = dto.Id > 0 ? "Booking updated successfully" : "Car booked successfully",
                 bookingId = bookingId,
-                totalAmount = totalAmount
+                totalAmount = dto.TotalAmount,
+                pickupMileage = dto.PickupMileage  // 🆕
             });
         }
         // Controller
@@ -173,19 +194,19 @@ namespace NewsApi.Controllers
         }
 
         [HttpPut("CancelBooking")]
-public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
-{
-    var result = await _rentACarMap.CancelBooking(model);
+        public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
+        {
+            var result = await _rentACarMap.CancelBooking(model);
 
-    if (result == 1)
-        return Ok(new { success = true, message = "Booking cancelled successfully" });
-    else if (result == -2)
-        return BadRequest(new { success = false, message = "Booking already cancelled" });
-    else if (result == 0)
-        return NotFound(new { success = false, message = "Booking not found" });
-    else
-        return StatusCode(500, new { success = false, message = "Error cancelling booking" });
-}
+            if (result == 1)
+                return Ok(new { success = true, message = "Booking cancelled successfully" });
+            else if (result == -2)
+                return BadRequest(new { success = false, message = "Booking already cancelled" });
+            else if (result == 0)
+                return NotFound(new { success = false, message = "Booking not found" });
+            else
+                return StatusCode(500, new { success = false, message = "Error cancelling booking" });
+        }
 
 
         [HttpPost("ReceiveCar")]
@@ -193,7 +214,37 @@ public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
         {
             try
             {
-                // 1️⃣ First create the receive record
+                string? returnMileageImagePath = null;
+
+                var folder = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Receives";
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+                // 🆕 Upload Return Mileage Image (if provided)
+                if (dto.ReturnMileageImage != null && dto.ReturnMileageImage.Length > 0)
+                {
+                    var mileageFileName = $"mileage_{Guid.NewGuid()}{Path.GetExtension(dto.ReturnMileageImage.FileName)}";
+                    var mileageFullPath = Path.Combine(folder, mileageFileName);
+
+                    using (var stream = new FileStream(mileageFullPath, FileMode.Create))
+                    {
+                        await dto.ReturnMileageImage.CopyToAsync(stream);
+                    }
+
+                    returnMileageImagePath = $"/Images/Receives/{mileageFileName}";
+                }
+
+                // 🆕 Validate Return Mileage
+                if (dto.ReturnMileage.HasValue && dto.ReturnMileage.Value < 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Return mileage cannot be negative"
+                    });
+                }
+
+                // 1️⃣ Create the receive record with mileage
                 int receiveId = await _rentACarMap.ReceiveCar(
                     dto.BookingId,
                     dto.IsDamaged,
@@ -202,24 +253,22 @@ public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
                     dto.DamageCharges,
                     dto.LateExtraCharges,
                     dto.DropOffDate,
-                    dto.TotalPrice
+                    dto.TotalPrice,
+                    dto.ReturnMileage,          // 🆕
+                    dto.MileageCharges ?? 0,    // 🆕
+                    returnMileageImagePath      // 🆕
                 );
 
-                // 2️⃣ Then save all images
+                // 2️⃣ Save all receive images
                 var uploadedImages = new List<ReceiveImageDto>();
 
                 if (dto.ReceiveImages != null && dto.ReceiveImages.Count > 0)
                 {
-                    var folder = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Receives";
-
-                    if (!Directory.Exists(folder))
-                        Directory.CreateDirectory(folder);
-
                     foreach (var image in dto.ReceiveImages)
                     {
                         if (image != null && image.Length > 0)
                         {
-                            var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
+                            var fileName = $"receive_{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
                             var fullPath = Path.Combine(folder, fileName);
 
                             using (var stream = new FileStream(fullPath, FileMode.Create))
@@ -227,10 +276,10 @@ public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
                                 await image.CopyToAsync(stream);
                             }
 
-                            var imagePath = "/Images/Receives/" + fileName;
+                            var imagePath = $"/Images/Receives/{fileName}";
 
                             // Save image reference in database
-                            await _rentACarMap.AddReceiveImage(receiveId, imagePath, null);
+                            await _rentACarMap.AddReceiveImage(receiveId, imagePath, "Receive");
 
                             uploadedImages.Add(new ReceiveImageDto
                             {
@@ -241,13 +290,32 @@ public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
                     }
                 }
 
+                // 3️⃣ If mileage image was uploaded, save it as a separate record
+                if (!string.IsNullOrEmpty(returnMileageImagePath))
+                {
+                    await _rentACarMap.AddReceiveImage(receiveId, returnMileageImagePath, "Mileage");
+
+                    uploadedImages.Add(new ReceiveImageDto
+                    {
+                        ImageUrl = returnMileageImagePath,
+                        ImageType = "Mileage"
+                    });
+                }
+
                 return Ok(new
                 {
                     success = true,
                     message = "Car received successfully",
                     receiveId,
                     imagesCount = uploadedImages.Count,
-                    images = uploadedImages
+                    images = uploadedImages,
+                    // 🆕 Mileage Info
+                    mileageInfo = new
+                    {
+                        returnMileage = dto.ReturnMileage,
+                        mileageCharges = dto.MileageCharges ?? 0,
+                        mileageImageUrl = returnMileageImagePath
+                    }
                 });
             }
             catch (Exception ex)
@@ -286,6 +354,7 @@ public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
         }
         [HttpGet("GetBilling/{bookingId}")]
         public async Task<IActionResult> GetBilling(int bookingId)
+
         {
             try
             {
@@ -314,8 +383,41 @@ public async Task<IActionResult> CancelBooking(CancelBookingRequest model)
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+        [HttpGet("GetReports")]
+        public async Task<IActionResult> GetReports(
+      int orgId,
+      DateTime? startDate = null,
+      DateTime? endDate = null)
+        {
+            // Validate date range
+            if (startDate == null || endDate == null)
+            {
+                return BadRequest(new { message = "StartDate and EndDate are required." });
+            }
+
+            // Normalize dates to remove time component
+            startDate = startDate.Value.Date;
+            endDate = endDate.Value.Date;
+
+            // Validate that endDate is after startDate
+            if (endDate.Value < startDate.Value)
+            {
+                return BadRequest(new { message = "EndDate must be after StartDate." });
+            }
+
+            var request = new ReportRequestDto
+            {
+                OrganizationId = orgId,
+                StartDate = startDate,
+                EndDate = endDate
+            };
+
+            var result = await _rentACarMap.GetReports(request);
+            return Ok(result);
+        }
     }
 }
+
 
 
 

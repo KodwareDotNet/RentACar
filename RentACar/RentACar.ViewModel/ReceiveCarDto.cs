@@ -20,6 +20,15 @@ namespace RentACar.ViewModel
         public decimal LateExtraCharges { get; set; }
         public DateTime? DropOffDate { get; set; }
         public decimal TotalPrice { get; set; }
+        public decimal? PickupMileage { get; set; }
+        public string? MileageImageUrl { get; set; }
+        public decimal? ReturnMileage { get; set; }
+        public decimal? TotalMileageCovered { get; set; }
+        public decimal? MileageCharges { get; set; }
+        public IFormFile? ReturnMileageImage { get; set; }
+        public decimal? BookingPrice { get; set; }
+
+
     }
     public class ReceiveImageDto
     {
@@ -46,6 +55,17 @@ namespace RentACar.ViewModel
         public string? Remarks { get; set; }
         public int TotalRecords { get; set; }
         public List<ReceiveImageDto>? Images { get; set; }
+        public decimal? PickupMileage { get; set; }
+        public string? MileageImageUrl { get; set; }
+        public decimal? ReturnMileage { get; set; }
+        public decimal? TotalMileageCovered { get; set; }
+        public decimal? MileageCharges { get; set; }
+        public string? ReturnMileageImageUrl { get; set; }
+
+        // 🆕 Pricing Details - YEH BHI ADD KARO
+        public decimal? BookingPrice { get; set; }
+        public decimal? LateExtraCharges { get; set; }
+        public decimal? TotalPrice { get; set; }
     }
     public class BillingDto
     {
@@ -61,6 +81,8 @@ namespace RentACar.ViewModel
         public DateTime PickupDate { get; set; }
         public DateTime ActualReturnDate { get; set; }
         public decimal LateExtraCharges { get; set; }
+        public decimal? MileageCharges { get; set; }
+        public decimal? TotalMileageCovered { get; set; }
         public DateTime? DropOffDate { get; set; }
 
     }
@@ -73,6 +95,8 @@ namespace RentACar.ViewModel
         public decimal TotalDamageCharges { get; set; }
         public decimal TotalProfit { get; set; }
         public int TotalBookings { get; set; }
+        public decimal? TotalMileageCharges { get; set; }
+        public decimal? TotalKmCovered { get; set; }
         public List<BillingDto> Billings { get; set; } = new List<BillingDto>();
     }
 }
