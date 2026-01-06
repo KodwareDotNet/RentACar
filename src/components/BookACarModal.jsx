@@ -26,9 +26,9 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         pricingType: "daily",
         pricePerUnit: 0,
         totalPrice: 0,
-        receiveDate: ""
+        receiveDate: "",
+        mileage: ""
     });
-
     const [receiveData, setReceiveData] = useState({
         Images: [],
         damageNotes: "",
@@ -116,6 +116,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                     : "",
                 carId: bookingData.carDetail?.id || bookingData.id || "",
                 pricePerUnit: bookingData.carDetail.pricePerUnit,
+                mileage: bookingData.carDetail.mileage,
             });
 
             if (bookingData.attachments && bookingData.attachments.length > 0) {
@@ -369,6 +370,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append('PricingType', userData.pricingType);
             formData.append('PricePerUnit', userData.pricePerUnit);
             formData.append('TotalAmount', userData.totalPrice);
+            formData.append('Mileage', userData.mileage);
             const carId = bookingData.carDetail?.car?.carId ||
                 cardetail?.carId ||
                 bookingData.id;
@@ -447,6 +449,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append("bookingStatus", 2);
             formData.append("lateExtraCharges", lateCharges);
             formData.append("totalPrice", totalAmount);
+            formData.append("ReturnMileage", userData.mileage);
 
             // Append return images
             receiveData.Images.forEach((image) => {
@@ -510,6 +513,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append('pricePerUnit', userData.pricePerUnit);
             formData.append('totalAmount', userData.totalPrice);
             formData.append('Status', 'Active');
+            formData.append('PickUpMileage', userData.mileage);
 
             // Append new uploaded images (not existing ones)
             uploadedImages.forEach((image, index) => {
@@ -689,6 +693,18 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                         </Box>
 
                         <Box sx={{ mb: 3 }}>
+                        <span>
+                            <label>Mileage </label>
+                            <input
+                                value={userData.mileage}
+                                onChange={(e) => handleInputChange("mileage", e.target.value)}
+                                type="number"
+                                placeholder="Enter mileage"
+                            />
+                        </span>
+                        </Box>
+
+                        <Box sx={{ mb: 3 }}>
                             <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
                                 Booking Charges
                             </label>
@@ -703,6 +719,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                 readOnly
                             />
                         </Box>
+                        
 
                         {/* Extra Charges */}
                         <Box sx={{ mb: 3 }}>
@@ -1011,6 +1028,15 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                             onChange={(e) =>
                                                 handleInputChange("pricePerUnit", e.target.value)
                                             }
+                                        />
+                                    </span>
+                                    <span>
+                                        <label>Mileage </label>
+                                        <input
+                                            value={userData.mileage}
+                                            onChange={(e) => handleInputChange("mileage", e.target.value)}
+                                            type="number"
+                                            placeholder="Enter mileage"
                                         />
                                     </span>
                                 </div>

@@ -3,22 +3,25 @@ import HeroPages from "../components/HeroPages";
 import CarCard from "../components/CarCard";
 import BookACarModal from "../components/BookACarModal";
 import AddCarModal from "../components/AddCarModal";
+import MaintenanceModal from "../components/MaintenanceModal";
 import { useEffect, useState } from "react";
 import addCarsService from "../api/services/AddCars/addCarsService";
 import bookCarsService from "../api/services/BookCars/bookCarsService";
 import { BASE_URL } from "../api/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Box, Button } from '@mui/material';
+import { Box, Button, Snackbar, Alert } from '@mui/material';
 
 export function Models() {
   const [carsList, setCarsList] = useState([]);
   const [showBookModal, setShowBookModal] = useState(false);
   const [showAddCarModal, setShowAddCarModal] = useState(false);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
   const [selectedCarDetail, setSelectedCarDetail] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -68,6 +71,10 @@ export function Models() {
     return !isBooked;
   }
 
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const carsApi = async () => {
     try {
       const res = await addCarsService.getCars({
@@ -106,8 +113,12 @@ export function Models() {
         setTotalRecords(paginationData.totalRecords);
         setPageSize(paginationData.pageSize);
       }
-    } catch (ex) {
-      alert("failed", ex);
+    } catch (error) {
+      setSnackbar({
+                open: true,
+                message: "Failed to get cars: ",
+                severity: "error"
+            });
     }
 
   };
@@ -155,6 +166,16 @@ export function Models() {
     }
   };
 
+  const toggleMaintenanceModal = (cardetail) => {
+    setSelectedCarDetail(cardetail);
+    setShowMaintenanceModal((prev) => !prev);
+  };
+
+  const handleMaintenanceSuccess = (data) => {
+    console.log('Maintenance request submitted:', data);
+    // Refresh your car list or show success message
+  };
+
   const handleCarAdded = () => {
     setSelectedCarDetail(null);
     setShowAddCarModal(false);
@@ -165,7 +186,6 @@ export function Models() {
   return (
     <>
       <section className="models-section">
-        <HeroPages name="Vehicles" />
         <div className="container">
           <div className="models-div">
             {carsList.map((car) => (
@@ -175,6 +195,7 @@ export function Models() {
                 onBook={() => toggleBookModal(car)}
                 onUpdate={() => handleUpdate(car)}
                 onDelete={() => handleDelete(car.id)}
+                onMaintenance={() => toggleMaintenanceModal(car)}
               />
             ))}
           </div>
@@ -194,6 +215,14 @@ export function Models() {
           onAddCar={handleCarAdded}
           refreshCarsList={carsApi}
         />
+
+        <MaintenanceModal
+        modal={showMaintenanceModal}
+        openModal={toggleMaintenanceModal}
+        carDetail={selectedCarDetail}
+        onSubmitSuccess={handleMaintenanceSuccess}
+      />
+
         {totalRecords > pageSize && (
           <Box sx={{
             display: 'flex',
@@ -239,6 +268,21 @@ export function Models() {
           </Box>
         )}
         <Footer />
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={4000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbar.severity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </section>
     </>
   );

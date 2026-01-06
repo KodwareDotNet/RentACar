@@ -6,50 +6,35 @@ import {
     FormControl, InputLabel, Select, MenuItem, IconButton
 } from '@mui/material';
 import {
-    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, FilterList
+    DirectionsCar, Build, Cancel, CheckCircle, FilterList, AccessTime
 } from '@mui/icons-material';
-import bookCarsService from '../api/services/BookCars/bookCarsService';
-import BookACarModal from "../components/BookACarModal";
-import { BASE_URL } from "../api/axiosConfig";
+import { BASE_URL } from '../api/axiosConfig';
+import maintenanceService from "../api/services/MaintainCars/maintenanceService";
 
-const BookedCarsPage = () => {
-    const [bookings, setBookings] = useState([]);
-    const [openDialog, setOpenDialog] = useState(false);
-    const [showBookModal, setShowBookModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [showReceiveModal, setShowReceiveModal] = useState(false);
-    const [selectedBooking, setSelectedBooking] = useState(null);
-    const [selectedBookingDetails, setSelectedBookingDetails] = useState(null);
+const MaintenancePage = () => {
+    const [maintenanceRecords, setMaintenanceRecords] = useState([]);
+    const [openCancelDialog, setOpenCancelDialog] = useState(false);
+    const [openCompleteDialog, setOpenCompleteDialog] = useState(false);
+    const [selectedMaintenance, setSelectedMaintenance] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage] = useState(10);
     const [filterStatus, setFilterStatus] = useState('all');
-    const [filterPriceRange, setFilterPriceRange] = useState('all');
-    const [filterCarType, setFilterCarType] = useState('all');
+    const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
     const [pagination, setPagination] = useState({
-        currentPage,
+        currentPage: 1,
         pageSize: 10,
         totalPages: 1,
         totalRecords: 0
     });
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    const currentBookings = bookings;
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [filterStatus, filterPriceRange, filterCarType]);
+    }, [filterStatus]);
 
     useEffect(() => {
-        fetchBookings();
-    }, [currentPage, filterStatus, filterPriceRange, filterCarType]);
-
-    const pricingLabels = {
-        hourly: "hour",
-        daily: "days",
-        weekly: "weeks",
-        monthly: "months",
-    };
+        fetchMaintenanceRecords();
+    }, [currentPage, filterStatus]);
 
     const formatDate = (dateString) => {
         if (!dateString || dateString === "0001-01-01T00:00:00") {
@@ -65,215 +50,127 @@ const BookedCarsPage = () => {
             return 'Invalid date';
         }
     };
-    const fetchBookings = async () => {
+
+    const fetchMaintenanceRecords = async () => {
         try {
-            const res = await bookCarsService.getBookedCars({
+            const res = await maintenanceService.getMaintenanceRecords({
                 pageNumber: currentPage,
                 pageSize: rowsPerPage,
-                bookingStatus: filterStatus,
-                priceRange: filterPriceRange,
+                status: filterStatus
             });
 
             if (res && res.status === 200) {
-                console.log('API Response:', res.data);
-
-                // Check the response structure
                 const responseData = res.data.data || res.data;
                 const paginationData = res.data.pagination;
 
-                const mappedBookings = responseData.map((b) => {
-                    // Calculate dates properly
-                    const pickup = b.pickupDate !== "0001-01-01T00:00:00" ? new Date(b.pickupDate) : null;
-                    const dropoff = b.dropoffDate !== "0001-01-01T00:00:00" ? new Date(b.dropoffDate) : null;
+                const mappedRecords = responseData.map((m) => ({
+                    id: m.maintenanceId,
+                    carId: m.car?.carId,
+                    carName: m.car?.carName || "Unknown Car",
+                    plateNumber: m.car?.plateNumber || 'N/A',
+                    image: m.car?.imageUrl ? `${BASE_URL}${m.car.imageUrl}` : '/placeholder.png',
+                    thingToMaintain: m.thingToMaintain,
+                    isRepair: m.isRepair,
+                    isReplace: m.isReplace,
+                    cost: m.cost,
+                    lastMaintenanceDate: m.lastMaintenanceDate,
+                    status: m.status || 1,
+                    statusText: m.statusText || 'Active',
+                }));
 
-                    return {
-                        id: b.bookingId,
-                        carName: b.car?.carName || "Unknown Car",
-                        image: b.car?.imageUrl ? `${BASE_URL}${b.car.imageUrl}` : '/placeholder.png',
-                        price: b.car?.pricePerHour || b.pricePerUnit || 0,
-                        description: b.car?.description || '',
-                        transmission: b.car?.transmission || 'N/A',
-                        fuelType: b.car?.fuel || 'N/A',
-                        rating: '4/5',
-                        pickupDate: pickup,
-                        dropoffDate: dropoff,
-                        totalDays: pickup && dropoff ? calculateDays(pickup, dropoff) : 0,
-                        totalPrice: b.totalAmount || 0,
-                        status: b.status || 'Pending',
-                        fullName: b.fullName || '',
-                        fatherName: b.fatherName || '',
-                        cnic: b.cnic || '',
-                        licenseNumber: b.licenseNumber || '',
-                        phone: b.phone || '',
-                        age: b.age || 0,
-                        address: b.address || '',
-                        city: b.city || '',
-                        attachments: b.attachments?.map(att => ({
-                            id: att.attachmentId,
-                            attachmentId: att.attachmentId,
-                            fileName: att.fileName,
-                            filePath: att.filePath ? `${BASE_URL}${att.filePath}` : null,
-                            fileSize: att.fileSize,
-                            uploadDate: att.uploadDate
-                        })) || [],
-                        carDetail: b
-                    };
-                });
-
-                console.log('Mapped Bookings:', mappedBookings); // Debug log
-
-                setBookings(mappedBookings);
+                setMaintenanceRecords(mappedRecords);
 
                 if (paginationData) {
                     setPagination(paginationData);
                 }
             }
         } catch (err) {
-            console.error("Failed to fetch bookings:", err);
-
+            console.error("Failed to fetch maintenance records:", err);
         }
     };
 
-    const calculateDays = (start, end) => {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        const diffTime = Math.abs(endDate - startDate);
-        return Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 1);
+    const handleCancelClick = (maintenance) => {
+        setSelectedMaintenance(maintenance);
+        setOpenCancelDialog(true);
     };
 
-    const calculateDuration = (start, end, type) => {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        const diffMs = endDate - startDate;
-
-        if (diffMs <= 0) return 0;
-
-        if (type === "hourly") {
-            return Math.ceil(diffMs / (1000 * 60 * 60));
-        }
-        if (type === "monthly") {
-            return Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 30));
-        }
-        return Math.ceil(diffMs / (1000 * 60 * 60 * 24)); // daily
+    const handleCompleteClick = (maintenance) => {
+        setSelectedMaintenance(maintenance);
+        setShowMaintenanceModal(true);
     };
 
-    const handleCancelClick = (booking) => {
-        const cancelDate = new Date();
-        const dropoffDate = new Date(booking.carDetail.dropoffDate);
-
-        // Use the earlier date between cancel date and dropoff date
-        const effectiveCancelDate = cancelDate > dropoffDate ? dropoffDate : cancelDate;
-
-        const usedUnits = calculateDuration(
-            booking.carDetail.pickupDate,
-            effectiveCancelDate,
-            booking.carDetail.pricingType
-        );
-
-        const usedAmount = usedUnits * booking.carDetail.pricePerUnit;
-
-        const refundableAmount = Math.max(
-            booking.totalPrice - usedAmount,
-            0
-        );
-
-        setSelectedBooking({
-            ...booking,
-            usedUnits,
-            usedAmount,
-            refundableAmount
-        });
-
-        setOpenDialog(true);
-    };
-
-    const deleteBookCar = async (id) => {
+    const handleConfirmCancel = async () => {
         try {
-            const cancellationData = {
-                usedUnits: selectedBooking.usedUnits,
-                usedAmount: selectedBooking.usedAmount,
-                refundableAmount: selectedBooking.refundableAmount
-            };
-
-            const res = await bookCarsService.cancelBooking(id, cancellationData);
+            const res = await maintenanceService.deleteMaintainedCars(selectedMaintenance.id);
 
             if (res?.success === true || res?.status === 200) {
                 setSnackbar({
                     open: true,
-                    message: "Booking cancelled successfully!",
-                    severity: "success"
-                });
-            } else {
-                setSnackbar({
-                    open: true,
-                    message: "Cancellation failed!",
-                    severity: "error"
+                    message: `Maintenance for ${selectedMaintenance.carName} has been cancelled`,
+                    severity: 'success'
                 });
             }
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: "Failed: " + error.message,
-                severity: "error"
+                message: 'Failed: ' + error.message,
+                severity: 'error'
             });
         } finally {
-            setOpenDialog(false);
-            setSelectedBooking(null);
-            fetchBookings();
+            setOpenCancelDialog(false);
+            setSelectedMaintenance(null);
+            fetchMaintenanceRecords();
         }
     };
 
-    const handleConfirmCancel = () => {
-        if (selectedBooking) {
-            setBookings(bookings.map(b =>
-                b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b
-            ));
+    const handleConfirmComplete = async () => {
+        try {
+            // const res = await maintenanceService.completeMaintenance(selectedMaintenance.id);
+
+            // if (res?.success === true || res?.status === 200) {
+                setSnackbar({
+                    open: true,
+                    message: `Maintenance for ${selectedMaintenance.carName} completed successfully`,
+                    severity: 'success'
+                });
+            // }
+        } catch (error) {
             setSnackbar({
                 open: true,
-                message: `Booking for ${selectedBooking.carName} has been cancelled successfully!`,
-                severity: 'success'
+                message: 'Failed: ' + error.message,
+                severity: 'error'
             });
+        } finally {
+            setOpenCompleteDialog(false);
+            setSelectedMaintenance(null);
+            fetchMaintenanceRecords();
         }
-        setOpenDialog(false);
-        setSelectedBooking(null);
     };
 
     const handleCloseDialog = () => {
-
-        setOpenDialog(false);
-        setSelectedBooking(null);
+        setOpenCancelDialog(false);
+        setOpenCompleteDialog(false);
+        setSelectedMaintenance(null);
     };
 
     const handleCloseSnackbar = () => {
         setSnackbar({ ...snackbar, open: false });
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Active': return 'success';
-            case 'Completed': return 'info';
-            case 'cancelled': return 'error';
+    const getStatusColor = (statusText) => {
+        switch (statusText) {
+            case 'Active': return 'warning';
+            case 'Completed': return 'success';
+            case 'Cancelled': return 'error';
             default: return 'default';
         }
     };
 
-    const toggleBookModal = (booking) => {
-        setSelectedBookingDetails(booking);
-        setShowBookModal((prev) => !prev);
+    const getStatusIcon = (statusText) => {
+        if (statusText === 'Active') return <AccessTime fontSize="small" />;
+        if (statusText === 'Completed') return <CheckCircle fontSize="small" />;
+        return <Cancel fontSize="small" />;
     };
-
-    const handleEditClick = (booking) => {
-        setSelectedBookingDetails(booking);
-        setShowEditModal(true);
-    };
-
-    // Handler for Receive Booking button
-    const handleReceiveClick = (booking) => {
-        setSelectedBookingDetails(booking);
-        setShowReceiveModal(true);
-    };
-
-    const getStatusIcon = (status) => (status === 'Active' || status === 'Completed') ? <CheckCircle fontSize="small" /> : <Cancel fontSize="small" />;
 
     return (
         <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: { xs: 2, sm: 3, md: 4 } }}>
@@ -291,7 +188,7 @@ const BookedCarsPage = () => {
                             fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3rem' }
                         }}
                     >
-                        My Bookings
+                        Vehicle Maintenance
                     </Typography>
                     <Typography
                         variant="body1"
@@ -300,7 +197,7 @@ const BookedCarsPage = () => {
                             fontSize: { xs: '0.875rem', sm: '1rem' }
                         }}
                     >
-                        View and manage your car rental bookings
+                        Manage and track vehicle maintenance records
                     </Typography>
                 </Box>
 
@@ -316,7 +213,7 @@ const BookedCarsPage = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                         <FilterList color="primary" />
                         <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                            Filter Bookings
+                            Filter Maintenance
                         </Typography>
                     </Box>
 
@@ -338,16 +235,12 @@ const BookedCarsPage = () => {
                         </Grid>
                     </Grid>
 
-                    {(filterStatus !== 'all' || filterPriceRange !== 'all' || filterCarType !== 'all') && (
+                    {filterStatus !== 'all' && (
                         <Box sx={{ mt: 2 }}>
                             <Button
                                 variant="outlined"
                                 size="small"
-                                onClick={() => {
-                                    setFilterStatus('all');
-                                    setFilterPriceRange('all');
-                                    setFilterCarType('all');
-                                }}
+                                onClick={() => setFilterStatus('all')}
                                 sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                             >
                                 Clear All Filters
@@ -356,14 +249,14 @@ const BookedCarsPage = () => {
                     )}
 
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                        Showing {bookings.length} of {bookings.length} bookings
+                        Showing {maintenanceRecords.length} of {maintenanceRecords.length} records
                     </Typography>
                 </Box>
 
-                {/* Bookings Grid */}
+                {/* Maintenance Grid */}
                 <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
-                    {bookings.length > 0 ? currentBookings.map((booking) => (
-                        <Grid item xs={12} sm={6} lg={4} key={booking.id}>
+                    {maintenanceRecords.length > 0 ? maintenanceRecords.map((maintenance) => (
+                        <Grid item xs={12} sm={6} lg={4} key={maintenance.id}>
                             <Card
                                 elevation={2}
                                 sx={{
@@ -383,8 +276,8 @@ const BookedCarsPage = () => {
                                 <Box sx={{ position: 'relative' }}>
                                     <CardMedia
                                         component="img"
-                                        image={booking.image}
-                                        alt={booking.carName}
+                                        image={maintenance.image}
+                                        alt={maintenance.carName}
                                         sx={{
                                             width: '100%',
                                             height: { xs: 180, sm: 200 },
@@ -392,8 +285,8 @@ const BookedCarsPage = () => {
                                         }}
                                     />
 
-                                    {/* Action Icons - Top Right Corner - Only for Active */}
-                                    {booking.status === 'Active' && (
+                                    {/* Action Icons - Only for Active */}
+                                    {maintenance.statusText === 'Active' && (
                                         <Box sx={{
                                             position: 'absolute',
                                             top: 8,
@@ -403,26 +296,7 @@ const BookedCarsPage = () => {
                                             zIndex: 2
                                         }}>
                                             <IconButton
-                                                onClick={() => handleEditClick(booking)}
-                                                sx={{
-                                                    bgcolor: 'primary.main',
-                                                    color: 'white',
-                                                    width: { xs: 32, sm: 36 },
-                                                    height: { xs: 32, sm: 36 },
-                                                    '&:hover': {
-                                                        bgcolor: 'primary.dark',
-                                                        transform: 'scale(1.1)'
-                                                    },
-                                                    transition: 'all 0.2s',
-                                                    boxShadow: 3
-                                                }}
-                                                size="small"
-                                            >
-                                                <Settings sx={{ fontSize: { xs: 16, sm: 18 } }} />
-                                            </IconButton>
-
-                                            <IconButton
-                                                onClick={() => handleCancelClick(booking)}
+                                                onClick={() => handleCancelClick(maintenance)}
                                                 sx={{
                                                     bgcolor: 'error.main',
                                                     color: 'white',
@@ -441,7 +315,7 @@ const BookedCarsPage = () => {
                                             </IconButton>
 
                                             <IconButton
-                                                onClick={() => handleReceiveClick(booking)}
+                                                onClick={() => handleCompleteClick(maintenance)}
                                                 sx={{
                                                     bgcolor: 'success.main',
                                                     color: 'white',
@@ -461,7 +335,7 @@ const BookedCarsPage = () => {
                                         </Box>
                                     )}
 
-                                    {/* Status Badge - Bottom Left Corner */}
+                                    {/* Status Badge */}
                                     <Box sx={{
                                         position: 'absolute',
                                         bottom: 0,
@@ -474,9 +348,9 @@ const BookedCarsPage = () => {
                                         gap: 1
                                     }}>
                                         <Chip
-                                            icon={getStatusIcon(booking.status)}
-                                            label={booking.status.toUpperCase()}
-                                            color={getStatusColor(booking.status)}
+                                            icon={getStatusIcon(maintenance.statusText)}
+                                            label={maintenance.statusText.toUpperCase()}
+                                            color={getStatusColor(maintenance.statusText)}
                                             size="small"
                                             sx={{
                                                 fontWeight: 700,
@@ -506,7 +380,7 @@ const BookedCarsPage = () => {
                                             fontSize: { xs: '1.1rem', sm: '1.25rem' }
                                         }}
                                     >
-                                        {booking.carName}
+                                        {maintenance.carName}
                                     </Typography>
 
                                     <Typography
@@ -514,52 +388,33 @@ const BookedCarsPage = () => {
                                         color="text.secondary"
                                         sx={{
                                             fontSize: { xs: '0.75rem', sm: '0.813rem' },
-                                            mb: 2,
-                                            display: '-webkit-box',
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: 'vertical',
-                                            overflow: 'hidden'
+                                            mb: 2
                                         }}
                                     >
-                                        {booking.description}
+                                        {maintenance.thingToMaintain}
                                     </Typography>
 
                                     <Divider sx={{ mb: 2 }} />
 
-                                    {/* Booking Dates */}
+                                    {/* Maintenance Details */}
                                     <Box sx={{ mb: 2 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                            <CalendarToday sx={{ fontSize: 16, color: 'primary.main' }} />
-                                            <Typography
-                                                variant="body2"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    fontSize: { xs: '0.813rem', sm: '0.875rem' }
-                                                }}
-                                            >
-                                                Booking Period
-                                            </Typography>
-                                        </Box>
-
-                                        <Box sx={{ pl: 3 }}>
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                                sx={{ fontSize: { xs: '0.75rem', sm: '0.813rem' }, mb: 0.5 }}
-                                            >
-                                                <strong>From:</strong> {formatDate(booking.pickupDate)}
-                                            </Typography>
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                                sx={{ fontSize: { xs: '0.75rem', sm: '0.813rem' } }}
-                                            >
-                                                <strong>To:</strong> {formatDate(booking.dropoffDate)}
-                                            </Typography>
-                                        </Box>
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{ fontSize: { xs: '0.75rem', sm: '0.813rem' }, mb: 0.5 }}
+                                        >
+                                            <strong>Type:</strong> {maintenance.isRepair && 'Repair'}{maintenance.isRepair && maintenance.isReplace && ' & '}{maintenance.isReplace && 'Replace'}
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{ fontSize: { xs: '0.75rem', sm: '0.813rem' } }}
+                                        >
+                                            <strong>Last Maintenance:</strong> {formatDate(maintenance.lastMaintenanceDate)}
+                                        </Typography>
                                     </Box>
 
-                                    {/* Price */}
+                                    {/* Cost */}
                                     <Paper
                                         elevation={0}
                                         sx={{
@@ -579,7 +434,7 @@ const BookedCarsPage = () => {
                                                 display: 'block'
                                             }}
                                         >
-                                            Total Amount
+                                            Maintenance Cost
                                         </Typography>
                                         <Typography
                                             variant="h5"
@@ -589,7 +444,7 @@ const BookedCarsPage = () => {
                                                 fontSize: { xs: '1.5rem', sm: '1.75rem' }
                                             }}
                                         >
-                                            ${booking.totalPrice}
+                                            ${maintenance.cost}
                                         </Typography>
                                     </Paper>
                                 </CardContent>
@@ -618,14 +473,14 @@ const BookedCarsPage = () => {
                                         fontSize: { xs: '1.25rem', sm: '1.5rem' }
                                     }}
                                 >
-                                    No bookings found
+                                    No maintenance records found
                                 </Typography>
                                 <Typography
                                     variant="body2"
                                     color="text.secondary"
                                     sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
                                 >
-                                    You haven't booked any cars yet
+                                    No vehicles are currently under maintenance
                                 </Typography>
                             </Box>
                         </Grid>
@@ -634,7 +489,7 @@ const BookedCarsPage = () => {
 
                 {/* Cancel Dialog */}
                 <Dialog
-                    open={openDialog}
+                    open={openCancelDialog}
                     onClose={handleCloseDialog}
                     maxWidth="sm"
                     fullWidth
@@ -650,82 +505,12 @@ const BookedCarsPage = () => {
                         fontSize: { xs: '1.125rem', sm: '1.25rem' },
                         pb: { xs: 1, sm: 2 }
                     }}>
-                        Cancel Booking?
+                        Cancel Maintenance?
                     </DialogTitle>
                     <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
                         <DialogContentText sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                            Are you sure you want to cancel your booking for <strong>{selectedBooking?.carName}</strong>?
+                            Are you sure you want to cancel the maintenance for <strong>{selectedMaintenance?.carName}</strong>?
                         </DialogContentText>
-                        {selectedBooking && (
-                            <>
-                                {bookings
-                                    ?.filter(booking => booking.id === selectedBooking?.id)
-                                    .map((booking, index) => (
-                                        <Box sx={{ mb: 1, mt: 2 }} key={index}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                <CalendarToday fontSize="small" color="primary" />
-                                                <Typography
-                                                    variant="subtitle2"
-                                                    sx={{
-                                                        fontWeight: 600,
-                                                        fontSize: { xs: '0.875rem', sm: '1rem' }
-                                                    }}
-                                                >
-                                                    Booking Details
-                                                </Typography>
-                                            </Box>
-
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                                sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
-                                            >
-                                                <strong>From:</strong> {booking?.carDetail?.pickupDate}
-                                            </Typography>
-
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                                sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
-                                            >
-                                                <strong>To:</strong> {booking?.carDetail?.dropoffDate}
-                                            </Typography>
-
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                                sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
-                                            >
-                                                <strong>Duration:</strong>{" "}
-                                                {booking.totalDays}{" "}
-                                                {booking.totalDays === 1 ? "day" : "days"}
-                                            </Typography>
-                                        </Box>
-                                    ))}
-
-                                <Box sx={{ mt: 2 }}>
-                                    <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                                        Used {selectedBooking.usedUnits}{" "}
-                                        {pricingLabels[selectedBooking?.carDetail?.pricingType?.toLowerCase()] || ""}
-                                    </Typography>
-                                    <Typography
-                                        color="error"
-                                        sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
-                                    >
-                                        Deduction: Rs {selectedBooking.usedAmount}
-                                    </Typography>
-                                    <Typography
-                                        color="success.main"
-                                        sx={{
-                                            fontWeight: 600,
-                                            fontSize: { xs: '0.875rem', sm: '1rem' }
-                                        }}
-                                    >
-                                        Refund: Rs {selectedBooking.refundableAmount}
-                                    </Typography>
-                                </Box>
-                            </>
-                        )}
                     </DialogContent>
                     <DialogActions sx={{
                         p: { xs: 2, sm: 2 },
@@ -742,10 +527,10 @@ const BookedCarsPage = () => {
                                 fontSize: { xs: '0.875rem', sm: '1rem' }
                             }}
                         >
-                            Keep Booking
+                            Keep Active
                         </Button>
                         <Button
-                            onClick={() => deleteBookCar(selectedBooking.id)}
+                            onClick={handleConfirmCancel}
                             color="error"
                             variant="contained"
                             sx={{
@@ -754,7 +539,64 @@ const BookedCarsPage = () => {
                                 fontSize: { xs: '0.875rem', sm: '1rem' }
                             }}
                         >
-                            Cancel Booking
+                            Cancel Maintenance
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Complete Dialog */}
+                <Dialog
+                    open={openCompleteDialog}
+                    onClose={handleCloseDialog}
+                    maxWidth="sm"
+                    fullWidth
+                    PaperProps={{
+                        sx: {
+                            m: { xs: 2, sm: 3 },
+                            maxHeight: { xs: '90vh', sm: 'calc(100% - 64px)' }
+                        }
+                    }}
+                >
+                    <DialogTitle sx={{
+                        fontWeight: 600,
+                        fontSize: { xs: '1.125rem', sm: '1.25rem' },
+                        pb: { xs: 1, sm: 2 }
+                    }}>
+                        Complete Maintenance?
+                    </DialogTitle>
+                    <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+                        <DialogContentText sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                            Mark the maintenance for <strong>{selectedMaintenance?.carName}</strong> as completed?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions sx={{
+                        p: { xs: 2, sm: 2 },
+                        pt: 0,
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        gap: { xs: 1, sm: 0 }
+                    }}>
+                        <Button
+                            onClick={handleCloseDialog}
+                            variant="outlined"
+                            sx={{
+                                px: 3,
+                                width: { xs: '100%', sm: 'auto' },
+                                fontSize: { xs: '0.875rem', sm: '1rem' }
+                            }}
+                        >
+                            Not Yet
+                        </Button>
+                        <Button
+                            onClick={handleConfirmComplete}
+                            color="success"
+                            variant="contained"
+                            sx={{
+                                px: 3,
+                                width: { xs: '100%', sm: 'auto' },
+                                fontSize: { xs: '0.875rem', sm: '1rem' }
+                            }}
+                        >
+                            Mark as Completed
                         </Button>
                     </DialogActions>
                 </Dialog>
@@ -847,33 +689,11 @@ const BookedCarsPage = () => {
                         fontSize: { xs: '0.75rem', sm: '0.875rem' }
                     }}
                 >
-                    Showing {bookings.length} of {pagination.totalRecords} bookings
+                    Showing {maintenanceRecords.length} of {pagination.totalRecords} records
                 </Typography>
             </Container>
-
-            {/* EDIT MODE MODAL */}
-            <BookACarModal
-                modal={showEditModal}
-                openModal={() => setShowEditModal(false)}
-                cardetail={selectedBookingDetails?.carDetail}
-                bookingData={selectedBookingDetails}
-                isEditMode={true}
-                isReceiveMode={false}
-                onUpdateSuccess={fetchBookings}
-            />
-
-            {/* RECEIVE MODE MODAL */}
-            <BookACarModal
-                modal={showReceiveModal}
-                openModal={() => setShowReceiveModal(false)}
-                cardetail={selectedBookingDetails?.carDetail}
-                bookingData={selectedBookingDetails}
-                isEditMode={false}
-                isReceiveMode={true}
-                onUpdateSuccess={fetchBookings}
-            />
         </Box>
     );
 };
 
-export default BookedCarsPage;
+export default MaintenancePage;

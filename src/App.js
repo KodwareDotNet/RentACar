@@ -10,6 +10,7 @@ import OrganizationList from "./Pages/OrganizationList";
 import BookedCarsPage from "./Pages/BookedCars";
 import ReceivedCarsPage from "./Pages/ReceivedCars";
 import ReportsPage from "./Pages/ReportsPage";
+import MaintenancePage from "./Pages/MaintenancePage";
 
 function App() {
   const location = useLocation();
@@ -35,6 +36,7 @@ function App() {
         <Route path="organizationList" element={<OrganizationList />} />
         <Route path="bookedCarsPage" element={<BookedCarsPage />} />
         <Route path="receivedCarsPage" element={<ReceivedCarsPage />} />
+        <Route path="maintenancePage" element={<MaintenancePage />} />
         <Route path="reportsPage" element={<ReportsPage />} />
       </Routes>
     </>

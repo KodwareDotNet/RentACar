@@ -5,7 +5,7 @@ import {
     Alert, Snackbar, Divider, ImageList, ImageListItem
 } from '@mui/material';
 import {
-    Cancel, Delete, EventAvailable, PhotoLibrary
+    Cancel, Delete, EventAvailable, PhotoLibrary, Speed
 } from '@mui/icons-material';
 import bookCarsService from '../api/services/BookCars/bookCarsService';
 import { BASE_URL } from "../api/axiosConfig";
@@ -35,7 +35,6 @@ const ReceivedCarsPage = () => {
             if (res && res.status === 200) {
                 const responseData = res.data.data || res.data;
                 const paginationData = res.data.pagination;
-
                 const receivedBookings = responseData.map((b) => ({
                     id: b.bookingId,
                     receiveId: b.receiveId,
@@ -63,6 +62,7 @@ const ReceivedCarsPage = () => {
                     damageRemarks: b.damageRemarks || '',
                     damageCharges: b.damageCharges || 0,
                     remarks: b.remarks || '',
+                    mileage: b.returnMileage || '',
                     receiveImages: b.images?.map(img => ({
                         imageId: img.imageId,
                         imageUrl: img.imageUrl.startsWith('http')
@@ -91,7 +91,11 @@ const ReceivedCarsPage = () => {
                 }
             }
         } catch (err) {
-            console.error("Failed to fetch bookings:", err);
+            setSnackbar({
+                open: true,
+                message: "Failed to get Received cars: ",
+                severity: "error"
+            });
         }
     };
     useEffect(() => {
@@ -163,16 +167,26 @@ const ReceivedCarsPage = () => {
     return (
         <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: 4 }}>
             <Container maxWidth="xl">
-                <Box sx={{ mb: 4, mt: 7 }}>
-                    <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+                <Box sx={{ mb: 4, mt: { xs: 2, sm: 4, md: 7 } }}>
+                    <Typography
+                        variant="h3"
+                        component="h1"
+                        gutterBottom
+                        sx={{
+                            fontWeight: 700,
+                            mb: 1,
+                            color: '#1a1a1a',
+                            fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' }
+                        }}
+                    >
                         Received Cars
                     </Typography>
-                    <Typography variant="body1" sx={{ color: '#666' }}>
+                    <Typography variant="body1" sx={{ color: '#666', fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                         View your received car rental bookings
                     </Typography>
                 </Box>
 
-                <Grid container spacing={3}>
+                <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
                     {bookings.length > 0 ? bookings.map((booking) => (
                         <Grid item xs={12} sm={6} lg={4} key={booking.id}>
                             <Card
@@ -185,62 +199,93 @@ const ReceivedCarsPage = () => {
                                     '&:hover': { boxShadow: 6 },
                                     transition: 'box-shadow 0.3s',
                                     border: '1px solid #e0e0e0',
-                                    borderRadius: 2
+                                    borderRadius: 2,
+                                    maxWidth: { xs: '100%', sm: 420 },
+                                    mx: 'auto'
                                 }}
                             >
                                 <Box sx={{ position: 'relative' }}>
                                     <CardMedia
                                         component="img"
                                         sx={{
-                                            height: 240,
+                                            height: { xs: 180, sm: 200, md: 220 },
                                             objectFit: 'cover'
                                         }}
-                                        image={
-                                               audiBox
-                                        }
+                                        image={audiBox}
                                         alt={booking.carName}
                                     />
                                 </Box>
 
-                                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2.5 }}>
+                                <CardContent sx={{
+                                    flexGrow: 1,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    p: { xs: 2, sm: 2.5 }
+                                }}>
                                     <Box sx={{ mb: 2 }}>
-                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                                        <Typography
+                                            variant="h6"
+                                            sx={{
+                                                fontWeight: 700,
+                                                mb: 0.5,
+                                                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                            }}
+                                        >
                                             {booking.carName}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{
+                                                mb: 1,
+                                                fontSize: { xs: '0.813rem', sm: '0.875rem' }
+                                            }}
+                                        >
                                             {booking.description}
                                         </Typography>
                                     </Box>
 
-                                    <Divider sx={{ mb: 2 }} />
+                                    <Divider sx={{ mb: 1.5 }} />
 
-
-                                    {/* Damage Info */}
-                                    {booking.damageRemarks && (
-                                        <Alert severity="warning" sx={{ mb: 2, py: 0.5 }}>
-                                            <Typography variant="caption">
-                                                <strong>Damage:</strong> {booking.damageRemarks}
+                                    {/* Compact Info Display */}
+                                    <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Speed sx={{ fontSize: 18, color: 'success.main' }} />
+                                            <Typography variant="body2" sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>
+                                                <strong>Mileage:</strong> {booking.mileage}
                                             </Typography>
-                                        </Alert>
-                                    )}
+                                        </Box>
 
-                                    {booking.damageCharges > 0 && (
-                                        <Alert severity="error" sx={{ mb: 2, py: 0.5 }}>
-                                            <Typography variant="caption">
-                                                <strong>Extra Charges:</strong> ${booking.damageCharges}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <EventAvailable sx={{ fontSize: 18, color: 'info.main' }} />
+                                            <Typography variant="body2" sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>
+                                                <strong>Received:</strong> {formatDateTime(booking.receivedDate)}
                                             </Typography>
-                                        </Alert>
-                                    )}
+                                        </Box>
 
-                                    <Alert severity="info" sx={{ mb: 2, py: 0.5 }} icon={<EventAvailable fontSize="small" />}>
-                                        <Typography variant="caption">
-                                            <strong>Received:</strong> {formatDateTime(booking.receivedDate)}
-                                        </Typography>
-                                    </Alert>
+                                        {booking.damageRemarks && (
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Typography variant="body2" color="warning.main" sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>
+                                                    ⚠️ <strong>Damage:</strong> {booking.damageRemarks}
+                                                </Typography>
+                                            </Box>
+                                        )}
+
+                                        {booking.damageCharges > 0 && (
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Typography variant="body2" color="error.main" sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>
+                                                    💰 <strong>Extra Charges:</strong> ${booking.damageCharges}
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                    </Box>
 
                                     <Box sx={{ mt: 'auto' }}>
-                                        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                                            {/* View Images Button */}
+                                        <Box sx={{
+                                            display: 'flex',
+                                            gap: 1,
+                                            flexDirection: { xs: 'column', sm: 'row' }
+                                        }}>
                                             {booking.receiveImages.length > 0 && (
                                                 <Button
                                                     variant="outlined"
@@ -252,7 +297,8 @@ const ReceivedCarsPage = () => {
                                                     sx={{
                                                         py: 1,
                                                         fontWeight: 600,
-                                                        textTransform: 'none'
+                                                        textTransform: 'none',
+                                                        fontSize: { xs: '0.813rem', sm: '0.875rem' }
                                                     }}
                                                 >
                                                     View Images
@@ -270,6 +316,7 @@ const ReceivedCarsPage = () => {
                                                     py: 1,
                                                     fontWeight: 600,
                                                     textTransform: 'none',
+                                                    fontSize: { xs: '0.813rem', sm: '0.875rem' },
                                                     '&:hover': {
                                                         bgcolor: 'error.light',
                                                         color: 'white'
@@ -285,12 +332,29 @@ const ReceivedCarsPage = () => {
                         </Grid>
                     )) : (
                         <Grid item xs={12}>
-                            <Box sx={{ textAlign: 'center', py: 10, bgcolor: 'white', borderRadius: 2, boxShadow: 1 }}>
-                                <Cancel sx={{ fontSize: 100, color: '#e0e0e0', mb: 2 }} />
-                                <Typography variant="h5" color="text.secondary" sx={{ mb: 1 }}>
+                            <Box sx={{
+                                textAlign: 'center',
+                                py: { xs: 6, sm: 10 },
+                                bgcolor: 'white',
+                                borderRadius: 2,
+                                boxShadow: 1
+                            }}>
+                                <Cancel sx={{ fontSize: { xs: 60, sm: 100 }, color: '#e0e0e0', mb: 2 }} />
+                                <Typography
+                                    variant="h5"
+                                    color="text.secondary"
+                                    sx={{
+                                        mb: 1,
+                                        fontSize: { xs: '1.25rem', sm: '1.5rem' }
+                                    }}
+                                >
                                     No received bookings
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}
+                                >
                                     You don't have any received car bookings
                                 </Typography>
                             </Box>
@@ -304,10 +368,28 @@ const ReceivedCarsPage = () => {
                     onClose={handleCloseDialog}
                     maxWidth="md"
                     fullWidth
+                    PaperProps={{
+                        sx: {
+                            m: { xs: 2, sm: 3 },
+                            maxHeight: { xs: '90vh', sm: '85vh' }
+                        }
+                    }}
                 >
                     <DialogTitle>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                        <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexDirection: { xs: 'column', sm: 'row' },
+                            gap: { xs: 1, sm: 0 }
+                        }}>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 700,
+                                    fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                }}
+                            >
                                 Car Return Images - {selectedBooking?.carName}
                             </Typography>
                             <Chip
@@ -319,7 +401,11 @@ const ReceivedCarsPage = () => {
                     </DialogTitle>
                     <DialogContent dividers>
                         {selectedImages.length > 0 ? (
-                            <ImageList cols={2} gap={16}>
+                            <ImageList
+                                cols={{ xs: 1, sm: 2 }}
+                                gap={{ xs: 12, sm: 16 }}
+                                sx={{ m: 0 }}
+                            >
                                 {selectedImages.map((img, index) => (
                                     <ImageListItem key={img.imageId || index}>
                                         <img
@@ -345,7 +431,7 @@ const ReceivedCarsPage = () => {
                                             py: 0.5,
                                             borderRadius: 1
                                         }}>
-                                            <Typography variant="caption">
+                                            <Typography variant="caption" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                                                 {formatDateTime(img.uploadedAt)}
                                             </Typography>
                                         </Box>
@@ -354,14 +440,14 @@ const ReceivedCarsPage = () => {
                             </ImageList>
                         ) : (
                             <Box sx={{ textAlign: 'center', py: 4 }}>
-                                <PhotoLibrary sx={{ fontSize: 60, color: '#ccc', mb: 2 }} />
-                                <Typography color="text.secondary">
+                                <PhotoLibrary sx={{ fontSize: { xs: 50, sm: 60 }, color: '#ccc', mb: 2 }} />
+                                <Typography color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                                     No images available
                                 </Typography>
                             </Box>
                         )}
                     </DialogContent>
-                    <DialogActions>
+                    <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 } }}>
                         <Button onClick={handleCloseDialog} color="primary">
                             Close
                         </Button>
@@ -384,19 +470,26 @@ const ReceivedCarsPage = () => {
                         {snackbar.message}
                     </Alert>
                 </Snackbar>
+
+                {/* Pagination */}
                 {totalRecords > pageSize && (
                     <Box sx={{
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
                         mt: 4,
-                        gap: 1
+                        gap: { xs: 0.5, sm: 1 },
+                        flexWrap: 'wrap'
                     }}>
                         <Button
                             variant="outlined"
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage === 1}
-                            sx={{ minWidth: 'auto', px: 2 }}
+                            sx={{
+                                minWidth: 'auto',
+                                px: { xs: 1.5, sm: 2 },
+                                fontSize: { xs: '0.813rem', sm: '0.875rem' }
+                            }}
                         >
                             Previous
                         </Button>
@@ -409,8 +502,9 @@ const ReceivedCarsPage = () => {
                                     variant={currentPage === pageNum ? "contained" : "outlined"}
                                     onClick={() => handlePageChange(pageNum)}
                                     sx={{
-                                        minWidth: 40,
-                                        fontWeight: currentPage === pageNum ? 600 : 400
+                                        minWidth: { xs: 36, sm: 40 },
+                                        fontWeight: currentPage === pageNum ? 600 : 400,
+                                        fontSize: { xs: '0.813rem', sm: '0.875rem' }
                                     }}
                                 >
                                     {pageNum}
@@ -422,7 +516,11 @@ const ReceivedCarsPage = () => {
                             variant="outlined"
                             onClick={() => handlePageChange(currentPage + 1)}
                             disabled={currentPage === totalPages}
-                            sx={{ minWidth: 'auto', px: 2 }}
+                            sx={{
+                                minWidth: 'auto',
+                                px: { xs: 1.5, sm: 2 },
+                                fontSize: { xs: '0.813rem', sm: '0.875rem' }
+                            }}
                         >
                             Next
                         </Button>

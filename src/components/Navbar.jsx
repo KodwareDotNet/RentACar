@@ -128,6 +128,7 @@ function Navbar() {
     { label: 'Assign Permission', onClick: toggleAddPermissionModal },
     { label: 'Booked Car', path: 'bookedCarsPage' },
     { label: 'Received Car', path: 'receivedCarspage'},
+    { label: 'Maintenance Section', path: 'maintenancePage'},
     { label: 'Reports', path: 'reportsPage'}
   ];
 
