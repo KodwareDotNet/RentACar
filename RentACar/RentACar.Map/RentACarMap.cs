@@ -169,5 +169,15 @@ namespace RentACar.Map
         {
             return await _rentService.GetReports(request);
         }
+        public async Task AddMaintenance(CarMaintenanceDto dto)
+        => await _rentService.AddMaintenance(dto);
+
+        public async Task<List<CarMaintenanceDto>> GetByCarId(int carId)
+            => await _rentService.GetByCarId(carId);
+        public async Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails()
+      => await _rentService.GetMaintenanceWithCarDetails();
+
+        public async Task DeleteMaintenance(int maintenanceId)
+            => await _rentService.DeleteMaintenance(maintenanceId);
     }
 }

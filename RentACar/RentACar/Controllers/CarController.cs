@@ -415,9 +415,36 @@ namespace NewsApi.Controllers
             var result = await _rentACarMap.GetReports(request);
             return Ok(result);
         }
+        [HttpPost("AddOrUpdateMaintenance")]
+        public async Task<IActionResult> AddOrUpdateMaintenance(CarMaintenanceDto dto)
+        {
+            await _rentACarMap.AddMaintenance(dto);
+
+            return Ok(new
+            {
+                success = true,
+                message = dto.MaintenanceId == 0
+                    ? "Maintenance added successfully"
+                    : "Maintenance updated successfully"
+            });
+        }
+
+
+        [HttpGet("AllWithCarDetails")]
+        public async Task<IActionResult> GetMaintenanceWithCarDetails()
+        {
+            var result = await _rentACarMap.GetMaintenanceWithCarDetails();
+            return Ok(result);
+        }
+
+
+        [HttpDelete("Delete/{maintenanceId}")]
+        public async Task<IActionResult> Delete(int maintenanceId)
+        {
+            await _rentACarMap.DeleteMaintenance(maintenanceId);
+            return Ok(new { success = true, message = "Maintenance deleted" });
+        }
     }
 }
-
-
 
 

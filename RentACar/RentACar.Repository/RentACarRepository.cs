@@ -464,5 +464,55 @@ namespace RentACar.Repository
 
             return reports;
         }
-    }
+        public async Task AddMaintenance(CarMaintenanceDto dto)
+        {
+            await _connection.ExecuteAsync(
+                "sp_AddCarMaintenance",
+                new
+                {
+                    MaintenanceId = dto.MaintenanceId,
+                    CarId = dto.CarId,
+                    Remarks = dto.Remarks,
+                    IsRepair = dto.IsRepair,
+                    IsReplace = dto.IsReplace,
+                    Cost = dto.Cost,
+                    LastMaintenanceDate = dto.LastMaintenanceDate
+                },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+
+
+        public async Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails()
+        {
+            var result = await _connection.QueryAsync<CarMaintenanceDto>(
+                "sp_GetCarMaintenanceWithDetails",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+        public async Task<List<CarMaintenanceDto>> GetByCarId(int carId)
+        {
+            var result = await _connection.QueryAsync<CarMaintenanceDto>(
+                "sp_GetBookedCarMaintenanceByCarId",
+                new { CarId = carId },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+
+
+        public async Task DeleteMaintenance(int maintenanceId)
+        {
+            await _connection.ExecuteAsync(
+                "sp_DeleteCarMaintenance",
+                new { MaintenanceId = maintenanceId },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+}
 }
