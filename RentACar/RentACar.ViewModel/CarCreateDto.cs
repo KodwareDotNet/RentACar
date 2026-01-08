@@ -33,6 +33,7 @@ namespace RentACar.ViewModel
         public int Seats { get; set; }
         public string Fuel { get; set; }
         public string Transmission { get; set; }
+        public int? MileageDueMaintenance { get; set; }
     }
 
 }

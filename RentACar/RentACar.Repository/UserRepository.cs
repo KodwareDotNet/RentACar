@@ -397,6 +397,7 @@ namespace MenuManagement.Repositories
                 Color = car.Color,
                 NumberPlate = car.NumberPlate,
                 Mileage = car.Mileage,
+                MileageDueMaintenance = car.MileageDueMaintenance,
                 Vin = car.Vin,
                 BodyType = car.BodyType,
                 EngineSize = car.EngineSize,

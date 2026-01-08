@@ -67,7 +67,7 @@ namespace RentACar.Service
             return await _carRepo.GetAllKeyValuePair(keyValuePair, id);
         }
 
-   
+
         public async Task<IEnumerable<Car>> GetcarsByIdAsync(long? id)
         {
             return await _carRepo.GetcarsByIdAsync(id);
@@ -187,17 +187,57 @@ namespace RentACar.Service
         {
             return await _carRepo.GetReports(request);
         }
-        public async Task AddMaintenance(CarMaintenanceDto dto)
-        => await _carRepo.AddMaintenance(dto);
+        public async Task AddOrUpdateMaintenance(CarMaintenanceDto dto)
+        {
+            await _carRepo.AddOrUpdateMaintenance(dto);
+        }
 
-        public async Task<List<CarMaintenanceDto>> GetByCarId(int carId)
-            => await _carRepo.GetByCarId(carId);
         public async Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails()
-    => await _carRepo.GetMaintenanceWithCarDetails();
+        {
+            return await _carRepo.GetMaintenanceWithCarDetails();
+        }
 
+        public async Task CancelMaintenance(int maintenanceId)
+        {
+            await _carRepo.CancelMaintenance(maintenanceId);
+        }
+        //public async Task<ApiResponse<bool>> InsertCarMileageHistoryAsync(int receiveId)
+        //{
+        //    try
+        //    {
+        //        if (receiveId <= 0)
+        //        {
+        //            return new ApiResponse<bool>
+        //            {
+        //                Success = false,
+        //                Message = "Invalid ReceiveId provided",
+        //                Data = false
+        //            };
+        //        }
 
-        public async Task DeleteMaintenance(int maintenanceId)
-            => await _carRepo.DeleteMaintenance(maintenanceId);
+        //        var result = await _carRepo.InsertCarMileageHistoryAsync(receiveId);
+
+        //        return new ApiResponse<bool>
+        //        {
+        //            Success = true,
+        //            Message = "Car mileage history inserted successfully",
+        //            Data = result
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ApiResponse<bool>
+        //        {
+        //            Success = false,
+        //            Message = $"Error: {ex.Message}",
+        //            Data = false
+        //        };
+        //    }
+
+        //}
+        public async Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync()
+        {
+            return await _carRepo.GetCarMileageDetailsAsync();
+        }
+    }
 }
-}
-

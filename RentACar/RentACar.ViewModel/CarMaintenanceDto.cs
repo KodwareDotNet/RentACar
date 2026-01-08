@@ -10,6 +10,7 @@ namespace RentACar.ViewModel
     {
         public int MaintenanceId { get; set; }
         public int CarId { get; set; }
+        public string? CarName { get; set; }
 
         public string? Remarks { get; set; }
         public bool IsRepair { get; set; }
@@ -17,5 +18,8 @@ namespace RentACar.ViewModel
 
         public decimal Cost { get; set; }
         public DateTime LastMaintenanceDate { get; set; }
-}
+        public string? ImageUrl { get; set; }
+        public EnumMaintenanceStatus Status { get; set; }
+        public string StatusText { get; set; } = string.Empty;
+    }
 }

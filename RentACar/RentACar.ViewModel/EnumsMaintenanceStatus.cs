@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace RentACar.ViewModel
 {
-    public enum BookingStatusEnum
+    public enum EnumMaintenanceStatus
     {
-         Active = 1,
+        Active = 1,
         Completed = 2,
         Canceled = 3
     }

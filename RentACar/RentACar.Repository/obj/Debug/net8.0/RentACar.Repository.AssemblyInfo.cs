@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RentACar.Repository")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5784561a76e0a3fa9f5b05d2202f166b4054d2c1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b8011b1a937dd5011ec0bb44070a8ecbe7e801fc")]
 [assembly: System.Reflection.AssemblyProductAttribute("RentACar.Repository")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RentACar.Repository")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

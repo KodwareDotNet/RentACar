@@ -415,36 +415,95 @@ namespace NewsApi.Controllers
             var result = await _rentACarMap.GetReports(request);
             return Ok(result);
         }
-        [HttpPost("AddOrUpdateMaintenance")]
-        public async Task<IActionResult> AddOrUpdateMaintenance(CarMaintenanceDto dto)
+        [HttpPost("AddOrUpdateMaintanence")]
+        public async Task<IActionResult> AddOrUpdateMaintenance(
+        [FromForm] CarMaintenanceDto dto,
+        IFormFile? image
+    )
         {
-            await _rentACarMap.AddMaintenance(dto);
-
-            return Ok(new
+            if (image != null)
             {
-                success = true,
-                message = dto.MaintenanceId == 0
-                    ? "Maintenance added successfully"
-                    : "Maintenance updated successfully"
-            });
+                var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
+                var path = Path.Combine(
+                    @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles",
+                    fileName
+                );
+
+                using var stream = new FileStream(path, FileMode.Create);
+                await image.CopyToAsync(stream);
+
+                dto.ImageUrl = "/MaintenanceImages/" + fileName;
+            }
+
+            await _rentACarMap.AddMaintenance(dto);
+            return Ok(new { success = true });
         }
 
-
-        [HttpGet("AllWithCarDetails")]
-        public async Task<IActionResult> GetMaintenanceWithCarDetails()
+        [HttpGet("GetAllMaintanence")]
+        public async Task<IActionResult> GetAll()
         {
             var result = await _rentACarMap.GetMaintenanceWithCarDetails();
             return Ok(result);
         }
 
-
-        [HttpDelete("Delete/{maintenanceId}")]
-        public async Task<IActionResult> Delete(int maintenanceId)
+        [HttpPut("CancelMaintance/{id}")]
+        public async Task<IActionResult> Cancel(int id)
         {
-            await _rentACarMap.DeleteMaintenance(maintenanceId);
-            return Ok(new { success = true, message = "Maintenance deleted" });
+            await _rentACarMap.CancelMaintenance(id);
+            return Ok(new { success = true, message = "Maintenance canceled" });
+        }
+        //[HttpPost("insert")]
+        //public async Task<IActionResult> InsertCarMileageHistory([FromBody] InsertCarMileageHistoryRequest request)
+        //{
+        //    if (request == null || request.ReceiveId <= 0)
+        //    {
+        //        return BadRequest(new ApiResponse<bool>
+        //        {
+        //            Success = false,
+        //            Message = "Invalid request. ReceiveId is required and must be greater than 0",
+        //            Data = false
+        //        });
+        //    }
+
+        //    var result = await _rentACarMap.InsertCarMileageHistoryAsync(request.ReceiveId);
+
+        //    if (result.Success)
+        //    {
+        //        return Ok(result);
+        //    }
+
+        //    return BadRequest(result);
+        //}
+
+        ////        [HttpPost("insert/{receiveId}")]
+        //        public async Task<IActionResult> InsertCarMileageHistoryByRoute(int receiveId)
+        //        {
+        //            if (receiveId <= 0)
+        //            {
+        //                return BadRequest(new ApiResponse<bool>
+        //                {
+        //                    Success = false,
+        //                    Message = "Invalid ReceiveId. Must be greater than 0",
+        //                    Data = false
+        //                });
+        //            }
+
+        //            var result = await _rentACarMap.InsertCarMileageHistoryAsync(receiveId);
+
+        //            if (result.Success)
+        //            {
+        //                return Ok(result);
+        //            }
+
+        //            return BadRequest(result);
+        //        }
+        //    }
+        //}
+        [HttpGet("GetAllMileage")]
+        public async Task<IActionResult> GetCarMileageDetails()
+        {
+            var result = await _rentACarMap.GetCarMileageDetailsAsync();
+            return Ok(result);
         }
     }
 }
-
-

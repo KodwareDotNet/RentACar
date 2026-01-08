@@ -210,7 +210,7 @@ namespace RentACar.Repository
                             PricePerHour = first.PricePerHour,
                             Transmission = first.Transmission,
                             Fuel = first.Fuel,
-                            Description =  first.Description,
+                            Description = first.Description,
 
                             // 🔥 IMAGE FIX
                             ImageUrl = !string.IsNullOrEmpty(first.ImageUrl)
@@ -284,7 +284,7 @@ namespace RentACar.Repository
                 commandType: CommandType.StoredProcedure
             );
         }
- 
+
 
         public async Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType)
         {
@@ -464,25 +464,25 @@ namespace RentACar.Repository
 
             return reports;
         }
-        public async Task AddMaintenance(CarMaintenanceDto dto)
+        public async Task AddOrUpdateMaintenance(CarMaintenanceDto dto)
         {
             await _connection.ExecuteAsync(
-                "sp_AddCarMaintenance",
+                "sp_AddOrUpdateCarMaintenance",
                 new
                 {
-                    MaintenanceId = dto.MaintenanceId,
-                    CarId = dto.CarId,
-                    Remarks = dto.Remarks,
-                    IsRepair = dto.IsRepair,
-                    IsReplace = dto.IsReplace,
-                    Cost = dto.Cost,
-                    LastMaintenanceDate = dto.LastMaintenanceDate
+                    dto.MaintenanceId,
+                    dto.CarId,
+                    dto.Remarks,
+                    dto.IsRepair,
+                    dto.IsReplace,
+                    dto.Cost,
+                    dto.LastMaintenanceDate,
+                    dto.ImageUrl,
+                    Status = (int)dto.Status
                 },
                 commandType: CommandType.StoredProcedure
             );
         }
-
-
 
         public async Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails()
         {
@@ -493,26 +493,35 @@ namespace RentACar.Repository
 
             return result.ToList();
         }
-        public async Task<List<CarMaintenanceDto>> GetByCarId(int carId)
-        {
-            var result = await _connection.QueryAsync<CarMaintenanceDto>(
-                "sp_GetBookedCarMaintenanceByCarId",
-                new { CarId = carId },
-                commandType: CommandType.StoredProcedure
-            );
 
-            return result.ToList();
-        }
-
-
-
-        public async Task DeleteMaintenance(int maintenanceId)
+        public async Task CancelMaintenance(int maintenanceId)
         {
             await _connection.ExecuteAsync(
-                "sp_DeleteCarMaintenance",
+                "sp_CancelCarMaintenance",
                 new { MaintenanceId = maintenanceId },
                 commandType: CommandType.StoredProcedure
             );
         }
-}
+
+        //        public async Task<bool> InsertCarMileageHistoryAsync(int receiveId)
+        //        {
+        //            await _connection.ExecuteAsync(
+        //                "sp_InsertCarMileageHistory",
+        //                new { ReceiveId = receiveId },
+        //                commandType: CommandType.StoredProcedure
+        //            );
+        //            return true;
+        //        }
+        //    }
+        //}   
+        public async Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync()
+        {
+            var result = await _connection.QueryAsync<CarMileageDto>(
+                "sp_GetCarMileageDetails",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
+        }
+    }
 }

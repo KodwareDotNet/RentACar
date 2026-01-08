@@ -220,11 +220,13 @@ public async Task<IActionResult> AddCar([FromForm] CarCreateDto dto)
         Color = dto.Color,
         NumberPlate = dto.NumberPlate,
         Mileage = dto.Mileage,
+        MileageDueMaintenance = dto.MileageDueMaintenance,
         Vin = dto.Vin,
         BodyType = dto.BodyType,
         EngineSize = dto.EngineSize,
         Description = dto.Description,
         ImageUrl = imagePath ?? dto.ImageUrl,  // only relative path stored
+
         OrganizationId = dto.OrganizationId
     };
 

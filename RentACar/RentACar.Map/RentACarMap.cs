@@ -150,8 +150,8 @@ namespace RentACar.Map
 
         public async Task DeleteReceivedCar(int receiveId)
             => await _rentService.DeleteReceivedCar(receiveId);
-    
-    public async Task<BillingDto> GetBillingByBookingId(int bookingId)
+
+        public async Task<BillingDto> GetBillingByBookingId(int bookingId)
         {
             return await _rentService.GetBillingByBookingId(bookingId);
         }
@@ -170,14 +170,31 @@ namespace RentACar.Map
             return await _rentService.GetReports(request);
         }
         public async Task AddMaintenance(CarMaintenanceDto dto)
-        => await _rentService.AddMaintenance(dto);
+     => await _rentService.AddOrUpdateMaintenance(dto);
 
-        public async Task<List<CarMaintenanceDto>> GetByCarId(int carId)
-            => await _rentService.GetByCarId(carId);
         public async Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails()
-      => await _rentService.GetMaintenanceWithCarDetails();
+            => await _rentService.GetMaintenanceWithCarDetails();
 
-        public async Task DeleteMaintenance(int maintenanceId)
-            => await _rentService.DeleteMaintenance(maintenanceId);
+        public async Task CancelMaintenance(int maintenanceId)
+            => await _rentService.CancelMaintenance(maintenanceId);
+        //    public async Task<ApiResponse<bool>> InsertCarMileageHistoryAsync(int receiveId)
+        //    {
+        //        return await _rentService.InsertCarMileageHistoryAsync(receiveId);
+        //    }
+        //}
+        //}
+        //        public async Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync()
+        //        {
+        //            var result = await _rentService.GetCarMileageDetailsAsync();
+        //            // mapping if needed
+        //            //return _mapper.Map<IEnumerable<CarMileageDto>>(result);
+        //        }
+        //    }
+        //}
+        public async Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync()
+        {
+            var result = await _rentService.GetCarMileageDetailsAsync();
+            return result; // ✅ Return statement add karna zaruri hai
+        }
     }
 }

@@ -26,7 +26,10 @@ namespace RentACar.Models
         public string NumberPlate { get; set; }
         public string ImageUrl { get; set; }
         public double Mileage { get; set; }
+        public int? MileageDueMaintenance { get; set; }
+
         public string Vin { get; set; }
+
         public string BodyType { get; set; }
         public double EngineSize { get; set; }
         public string Description { get; set; }

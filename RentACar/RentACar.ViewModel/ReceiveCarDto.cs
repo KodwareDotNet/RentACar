@@ -20,7 +20,7 @@ namespace RentACar.ViewModel
         public decimal LateExtraCharges { get; set; }
         public DateTime? DropOffDate { get; set; }
         public decimal TotalPrice { get; set; }
-        public decimal? PickupMileage { get; set; }
+        //public decimal? PickupMileage { get; set; }
         public string? MileageImageUrl { get; set; }
         public decimal? ReturnMileage { get; set; }
         public decimal? TotalMileageCovered { get; set; }
@@ -34,7 +34,7 @@ namespace RentACar.ViewModel
     {
         public int ImageId { get; set; }
         public int ReceiveId { get; set; }
-        public string ImageUrl { get; set; }
+        public string? ImageUrl { get; set; }
         public string? ImageType { get; set; }
         public DateTime? UploadedAt { get; set; }
         public List<ReceiveImageDto>? Images { get; set; }
@@ -42,6 +42,7 @@ namespace RentACar.ViewModel
     public class ReceivedCarResponseDto
     {
         public int ReceiveId { get; set; }
+
         public int BookingId { get; set; }
         public string FullName { get; set; }
         public string? ReceiveImageUrl { get; set; }

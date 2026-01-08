@@ -12,6 +12,7 @@ namespace RentACar.ViewModel
         public string? Title { get; set; } = default!;
         public string? Subtitle { get; set; } = default!;
         public string? Content { get; set; } = default!;
+        public int? MileageDueMaintenance { get; set; }
         public List<AttachmentViewModel> attachments { get; set; } = new List<AttachmentViewModel>();
         public DateTimeOffset? CreatedAt { get; set; }
         public int? CategoryId { get; set; }
