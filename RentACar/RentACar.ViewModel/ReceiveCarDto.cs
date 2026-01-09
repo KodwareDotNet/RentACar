@@ -78,6 +78,7 @@ namespace RentACar.ViewModel
         public int TotalDays { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal DamageCharges { get; set; }
+        public bool IsDamaged { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime PickupDate { get; set; }
         public DateTime ActualReturnDate { get; set; }

@@ -15,6 +15,7 @@ namespace RentACar.ViewModel
         public DateTime? PickupDate { get; set; }
         public DateTime? ReceivedDate { get; set; }
         public decimal PickupMileage { get; set; }
+        public string? ImageUrl { get; set; }
         public decimal ReturnMileage { get; set; }
         public decimal TotalMileageCovered { get; set; }
     }
