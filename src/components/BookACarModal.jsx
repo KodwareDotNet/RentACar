@@ -5,8 +5,9 @@ import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { Box, Typography, IconButton } from "@mui/material";
 import { Alert, Snackbar } from "@mui/material";
 import bookCarsService from "../api/services/BookCars/bookCarsService";
-import addCarsService from "../api/services/AddCars/addCarsService";
-import DatePicker from "react-datepicker";
+import maintenanceService from "../api/services/MaintainCars/maintenanceService";
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import "react-datepicker/dist/react-datepicker.css";
 import { BASE_URL } from "../api/axiosConfig";
 
@@ -27,7 +28,8 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         pricePerUnit: 0,
         totalPrice: 0,
         receiveDate: "",
-        mileage: ""
+        mileage: "",
+        receivedMileage: "",
     });
     const [receiveData, setReceiveData] = useState({
         Images: [],
@@ -39,6 +41,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
     const [uploadedImages, setUploadedImages] = useState([]);
     const [errors, setErrors] = useState({});
+    const [hasDamage, setHasDamage] = useState(false);
 
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -68,6 +71,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             pickupDate: "",
             dropoffDate: "",
             carId: "",
+            receivedMileage: "",
         });
         setUploadedImages([]);
         setReceiveData({
@@ -83,6 +87,8 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
     React.useEffect(() => {
         if (isReceiveMode && bookingData) {
+            const newMileage = bookingData.carDetail.pickupMileage;
+            console.log("Setting mileage to:", newMileage);
             setUserData(prev => ({
                 ...prev, // Keep existing state
                 dropoffDate: bookingData.dropoffDate
@@ -90,7 +96,8 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                     : "",
                 pricePerUnit: bookingData.pricePerUnit || bookingData.carDetail?.pricePerUnit || 0,
                 pricingType: bookingData.pricingType || "hourly",
-                bookingPrice: bookingData.totalPrice
+                bookingPrice: bookingData.totalPrice,
+                mileage: bookingData.carDetail.pickupMileage
             }));
         }
     }, [bookingData, isReceiveMode, modal]);
@@ -136,7 +143,8 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             // For new booking mode
             setUserData(prev => ({
                 ...prev, carId: cardetail.id, pricePerUnit: cardetail.pricePerHour || 0,
-                pricingType: "hourly"
+                pricingType: "hourly",
+                mileage: cardetail.mileage || cardetail.pickupMileage,
             }));
 
             if (cardetail.imageUrl) {
@@ -302,6 +310,16 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
         return Object.keys(newErrors).length === 0;
     };
+    const validateReceiveForm = () => {
+
+        const newErrors = {};
+
+        if (hasDamage && !receiveData.damageNotes.trim()) newErrors.damageNotes = "damageNotes are required";
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
 
     const calculateDuration = (start, end, type) => {
         if (!start || !end) return 0;
@@ -429,13 +447,19 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
     };
 
     const handleReceiveSubmit = async () => {
-
+        if (!validateReceiveForm()) 
+            return; 
         try {
-            const lateCharges = new Date(userData.receiveDate) > new Date(userData.dropoffDate)
-                ? calculateExtraCharges(userData.dropoffDate, userData.receiveDate, price)
-                : 0;
+        
+            const lateCharges =
+                new Date(userData.receiveDate) > new Date(userData.dropoffDate)
+                    ? calculateExtraCharges(userData.dropoffDate, userData.receiveDate, price)
+                    : 0;
 
             const totalAmount = calculateTotalAmount();
+            const receivedMileage = Number(userData.receivedMileage);
+            const maintenanceDueMileage = cardetail.maintenanceDueMileage;
+
             const formData = new FormData();
 
             formData.append('BookingId', bookingData.id);
@@ -446,37 +470,33 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append('ReceiveDate', userData.receiveDate);
             formData.append('DropOffDate', userData.dropoffDate);
             formData.append('status', 'Completed');
-            formData.append("bookingStatus", 2);
-            formData.append("lateExtraCharges", lateCharges);
-            formData.append("totalPrice", totalAmount);
-            formData.append("ReturnMileage", userData.mileage);
+            formData.append('bookingStatus', 2);
+            formData.append('lateExtraCharges', lateCharges);
+            formData.append('totalPrice', totalAmount);
+            formData.append('returnMileage', receivedMileage);
+            formData.append('pickupMileage', userData.mileage);
+            formData.append('isDamaged', hasDamage);
 
-            // Append return images
             receiveData.Images.forEach((image) => {
                 formData.append('ReceiveImages', image.file);
             });
 
-            // Call your API endpoint
+            // 1️⃣ Receive car API
             const res = await bookCarsService.receiveBookCar(formData);
-
 
             if (res && res.status === 200) {
                 showSnackbar("Car return recorded successfully!", "success");
             }
-            if (onUpdateSuccess) {
-                onUpdateSuccess();
-            }
+            openModal();
+            resetForm();
+            onUpdateSuccess?.();
 
         } catch (err) {
             console.error("Receive failed:", err);
-            showSnackbar("Failed to receive car !", "error");
-        }
-        finally {
-
-            openModal();
-            resetForm();
-        }
+            showSnackbar("Failed to receive car!", "error");
+        } 
     };
+
 
     const handleSubmit = async () => {
         if (isEditMode) {
@@ -672,79 +692,141 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
 
                         <Box sx={{ mb: 3 }}>
-                            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                                Damage  Remarks
-                            </label>
-                            <textarea
-                                rows="4"
-                                value={receiveData.damageNotes}
-                                onChange={(e) =>
-                                    handleReceiveInputChange("damageNotes", e.target.value)
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={hasDamage}
+                                        onChange={(e) => {
+                                            setHasDamage(e.target.checked);
+                                            if (!e.target.checked) {
+                                                // clear remarks if unchecked
+                                                handleReceiveInputChange("damageNotes", "");
+                                            }
+                                        }}
+                                    />
                                 }
-                                placeholder="Describe any scratches, dents, or damage found..."
-                                style={{
-                                    width: "100%",
-                                    padding: 12,
-                                    borderRadius: 3,
-                                    border: "1px solid #ccc",
-                                    fontSize: 14,
-                                }}
+                                label="Car has damage"
                             />
+
+                            {hasDamage && (
+                                <>
+                                    <label
+                                        style={{
+                                            display: "block",
+                                            marginBottom: 8,
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        Damage Remarks <span style={{ color: "red" }}>*</span>
+                                    </label>
+
+                                    <textarea
+                                        rows="4"
+                                        value={receiveData.damageNotes}
+                                        onChange={(e) =>
+                                            handleReceiveInputChange("damageNotes", e.target.value)
+                                        }
+                                        placeholder="Describe any scratches, dents, or damage found..."
+                                        style={{
+                                            width: "100%",
+                                            padding: 12,
+                                            borderRadius: 3,
+                                            border: "1px solid #ccc",
+                                            fontSize: 14,
+                                        }}
+                                    />
+                                    {errors.damageNotes && (
+                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                {errors.damageNotes}
+                                            </Typography>
+                                        )}
+                                </>
+                            )}
                         </Box>
 
-                        <Box sx={{ mb: 3 }}>
-                        <span>
-                            <label>Mileage </label>
-                            <input
-                                value={userData.mileage}
-                                onChange={(e) => handleInputChange("mileage", e.target.value)}
-                                type="number"
-                                placeholder="Enter mileage"
-                            />
-                        </span>
+
+                        <Box sx={{ mb: 3, display: "flex", gap: 3 }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: "block", marginBottom: 8 }}>Mileage while booking</label>
+                                <input
+                                    value={userData.mileage}
+                                    onChange={(e) => handleInputChange("mileage", e.target.value)}
+                                    type="number"
+                                    placeholder="Enter mileage"
+                                    style={{
+                                        width: "100%",
+                                        padding: 12,
+                                        borderRadius: 3,
+                                        border: "1px solid #ccc",
+                                        fontSize: 14,
+                                    }}
+                                    readOnly
+                                />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: "block", marginBottom: 8 }}>Mileage while Receiving</label>
+                                <input
+                                    value={userData.receivedMileage}
+                                    onChange={(e) => handleInputChange("receivedMileage", e.target.value)}
+                                    type="number"
+                                    placeholder="Enter receivedMileage"
+                                    style={{
+                                        width: "100%",
+                                        padding: 12,
+                                        borderRadius: 3,
+                                        border: "1px solid #ccc",
+                                        fontSize: 14,
+                                    }}
+                                />
+                            </div>
                         </Box>
 
-                        <Box sx={{ mb: 3 }}>
-                            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                                Booking Charges
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={userData.bookingPrice}
-                                onChange={(e) =>
-                                    handleReceiveInputChange("totalPrice", e.target.value)
-                                }
-                                readOnly
-                            />
+                        <Box sx={{ mb: 3, display: "flex", gap: 3 }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                                    Booking Charges
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={userData.bookingPrice}
+                                    onChange={(e) =>
+                                        handleReceiveInputChange("totalPrice", e.target.value)
+                                    }
+                                    style={{
+                                        width: "100%",
+                                        padding: 12,
+                                        borderRadius: 3,
+                                        border: "1px solid #ccc",
+                                        fontSize: 14,
+                                    }}
+                                    readOnly
+                                />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                                    Extra Charges for Damages (Optional)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={receiveData.extraCharges}
+                                    onChange={(e) =>
+                                        handleReceiveInputChange("extraCharges", e.target.value)
+                                    }
+                                    placeholder="Enter amount"
+                                    style={{
+                                        width: "100%",
+                                        padding: 12,
+                                        borderRadius: 3,
+                                        border: "1px solid #ccc",
+                                        fontSize: 14,
+                                    }}
+                                />
+                            </div>
                         </Box>
-                        
-
-                        {/* Extra Charges */}
-                        <Box sx={{ mb: 3 }}>
-                            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                                Extra Charges for Damages (Optional)
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={receiveData.extraCharges}
-                                onChange={(e) =>
-                                    handleReceiveInputChange("extraCharges", e.target.value)
-                                }
-                                placeholder="Enter amount"
-                                style={{
-                                    width: "100%",
-                                    padding: 12,
-                                    borderRadius: 3,
-                                    border: "1px solid #ccc",
-                                    fontSize: 14,
-                                }}
-                            />
-                        </Box>
-
 
                         <div className="info-form__2col">
                             <span>
@@ -1037,7 +1119,9 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                             onChange={(e) => handleInputChange("mileage", e.target.value)}
                                             type="number"
                                             placeholder="Enter mileage"
+                                            readOnly
                                         />
+
                                     </span>
                                 </div>
                                 {hours > 0 && (

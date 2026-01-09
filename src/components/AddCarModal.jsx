@@ -24,6 +24,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
         mileage: "",
         vin: "",
         bodyType: "",
+        mileageDueMaintenance: "",
         engineSize: "",
         description: ""
     });
@@ -160,8 +161,14 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
         if (!carData.mileage.trim()) newErrors.mileage = "Mileage is required";
         if (!carData.vin.trim()) newErrors.vin = "VIN is required";
         if (!carData.bodyType.trim()) newErrors.bodyType = "Body type is required";
+        if (!carData.mileageDueMaintenance.trim()) newErrors.mileageDueMaintenance = "mileageDueMaintenance is required";
         if (!carData.engineSize.trim()) newErrors.engineSize = "Engine size is required";
         if (!carData.description.trim()) newErrors.description = "Description is required";
+        if (carData.mileageDueMaintenance && carData.mileage) {
+        if (Number(carData.mileageDueMaintenance) <= Number(carData.mileage)) {
+            newErrors.mileageDueMaintenance = "Maintenance due mileage must be greater than current mileage";
+        }
+    }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -497,7 +504,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                                     value={carData.mileage}
                                     onChange={(e) => handleInputChange("mileage", e.target.value)}
                                     type="number"
-                                    placeholder="e.g., 50000"
+                                    placeholder="e.g., 50"
                                     min="0"
                                 />
                                 {errors.mileage && (
@@ -507,6 +514,24 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                                 )}
                             </span>
 
+                            <span>
+                                <label>mileageDueMaintenance</label>
+                                <input
+                                    value={carData.mileageDueMaintenance}
+                                    onChange={(e) => handleInputChange("mileageDueMaintenance", e.target.value)}
+                                    type="number"
+                                    placeholder="e.g 30"
+                                />
+                                {errors.mileageDueMaintenance && (
+                                    <Typography color="error" sx={{ mb: 2 }}>
+                                        {errors.mileageDueMaintenance}
+                                    </Typography>
+                                )}
+                            </span>
+                        </div>
+
+                        {/* Row 8: VIN */}
+                        <div className="info-form__2col">
                             <span>
                                 <label>Engine Size (L)</label>
                                 <input
@@ -521,10 +546,6 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                                     </Typography>
                                 )}
                             </span>
-                        </div>
-
-                        {/* Row 8: VIN */}
-                        <div className="info-form__1col">
                             <span>
                                 <label>VIN (Vehicle Identification Number)</label>
                                 <input

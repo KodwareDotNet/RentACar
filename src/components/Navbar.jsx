@@ -186,12 +186,12 @@ function Navbar() {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: { xs: '2rem', sm: '3rem' },
+          gap: { xs: '0.5rem', sm: '1rem' },
           textAlign: 'left',
           width: '100%',
           maxWidth: { xs: '100%', sm: '250px' },
           px: { xs: 2, sm: 4 },
-          mt: { xs: 2, sm: 70, md: 67, lg: 50, xl: 50 },
+          mt: { xs: 2, sm: 75, md: 67, lg: 75, xl: 80 },
         }}
       >
         {filterdNavItems.map((item) => (
@@ -386,9 +386,9 @@ function Navbar() {
         sx={{
           '& .MuiDrawer-paper': {
             width: {
-              xs: '75%',
-              sm: '50%',
-              md: '30%',
+              xs: '65%',
+              sm: '40%',
+              md: '20%',
               lg: '20%',
             },
             boxSizing: 'border-box',

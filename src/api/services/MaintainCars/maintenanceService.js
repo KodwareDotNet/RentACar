@@ -28,7 +28,7 @@ const maintenanceService = {
 },
     getMaintenanceRecords: async (page = 1, pageSize = 10) => {
         try {
-            const res = await api.get("Car/GetAllMaintanence", {
+            const res = await api.get("Car/GetAllMileage", {
                 params: {
                     pageNumber: page,
                     pageSize: pageSize
@@ -51,9 +51,29 @@ const maintenanceService = {
             }
         }
     },
+    receiveMaintenance: async (data) => {
+        try {
+            const res = await api.post("Car/CompleteMaintenance", data);
+            return res;
+        }
+        catch (error) {
+            if (error.response) {
+                console.error("Receive failed:", error.response.data);
+                throw new Error(
+                    error.response.data.message || "Failed to complete maintenance."
+                );
+            } else if (error.request) {
+                console.error("No response from server:", error.request);
+                throw new Error("No response from the server. Please try again.");
+            } else {
+                console.error("Error setting up request:", error.message);
+                throw new Error("Error completing maintenance: " + error.message);
+            }
+        }
+    },
     deleteMaintainedCars: async (id) => {
         try {
-            const res = await api.delete(`car/Delete/${id}`
+            const res = await api.put(`car/CancelMaintance/${id}`
             );
             return res.data;
         }
