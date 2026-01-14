@@ -133,11 +133,12 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
 
     const handleInputChange = (field, value) => {
         setCarData(prev => ({ ...prev, [field]: value }));
-
         // Remove error for this field if it exists
         setErrors(prev => {
             const newErrors = { ...prev };
-            if (value.trim() !== "" && newErrors[field]) {
+            // Check if value is not empty (works for both strings and numbers)
+            const hasValue = typeof value === 'string' ? value.trim() !== "" : value !== "" && value !== null && value !== undefined;
+            if (hasValue && newErrors[field]) {
                 delete newErrors[field];
             }
             return newErrors;
@@ -147,31 +148,38 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
     const validateForm = () => {
         const newErrors = {};
 
-        if (!carData.carName.trim()) newErrors.carName = "Car name is required";
-        if (!carData.brand.trim()) newErrors.brand = "Brand is required";
-        if (!carData.model.trim()) newErrors.model = "Model is required";
-        if (!carData.year.trim()) newErrors.year = "Year is required";
-        if (!carData.pricePerHour.trim()) newErrors.pricePerHour = "Price per Hour is required";
-        if (!carData.transmission.trim()) newErrors.transmission = "Transmission type is required";
-        if (!carData.fuel.trim()) newErrors.fuel = "Fuel type is required";
-        if (!carData.seats.trim()) newErrors.seats = "Seats field is required";
-        if (!carData.doors.trim()) newErrors.doors = "Number of doors is required";
-        if (!carData.color.trim()) newErrors.color = "Color is required";
-        if (!carData.numberPlate.trim()) newErrors.numberPlate = "Number plate is required";
-        if (!carData.mileage.trim()) newErrors.mileage = "Mileage is required";
-        if (!carData.vin.trim()) newErrors.vin = "VIN is required";
-        if (!carData.bodyType.trim()) newErrors.bodyType = "Body type is required";
-        if (!carData.mileageDueMaintenance.trim()) newErrors.mileageDueMaintenance = "mileageDueMaintenance is required";
-        if (!carData.engineSize.trim()) newErrors.engineSize = "Engine size is required";
-        if (!carData.description.trim()) newErrors.description = "Description is required";
-        if (carData.mileageDueMaintenance && carData.mileage) {
-        if (Number(carData.mileageDueMaintenance) <= Number(carData.mileage)) {
-            newErrors.mileageDueMaintenance = "Maintenance due mileage must be greater than current mileage";
-        }
-    }
+        // Helper function to check if a value is empty
+        const isEmpty = (value) => {
+            if (value === null || value === undefined) return true;
+            if (typeof value === 'string') return value.trim() === '';
+            return value === '';
+        };
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        if (isEmpty(carData.carName)) newErrors.carName = "Car name is required";
+        if (isEmpty(carData.brand)) newErrors.brand = "Brand is required";
+        if (isEmpty(carData.model)) newErrors.model = "Model is required";
+        if (isEmpty(carData.year)) newErrors.year = "Year is required";
+        if (isEmpty(carData.pricePerHour)) newErrors.pricePerHour = "Price per Hour is required";
+        if (isEmpty(carData.transmission)) newErrors.transmission = "Transmission type is required";
+        if (isEmpty(carData.fuel)) newErrors.fuel = "Fuel type is required";
+        if (isEmpty(carData.seats)) newErrors.seats = "Seats field is required";
+        if (isEmpty(carData.doors)) newErrors.doors = "Number of doors is required";
+        if (isEmpty(carData.color)) newErrors.color = "Color is required";
+        if (isEmpty(carData.numberPlate)) newErrors.numberPlate = "Number plate is required";
+        if (isEmpty(carData.mileage)) newErrors.mileage = "Mileage is required";
+        if (isEmpty(carData.vin)) newErrors.vin = "VIN is required";
+        if (isEmpty(carData.bodyType)) newErrors.bodyType = "Body type is required";
+        if (isEmpty(carData.mileageDueMaintenance)) newErrors.mileageDueMaintenance = "mileageDueMaintenance is required";
+        if (isEmpty(carData.engineSize)) newErrors.engineSize = "Engine size is required";
+        if (isEmpty(carData.description)) newErrors.description = "Description is required";
+
+        if (carData.mileageDueMaintenance && carData.mileage) {
+            if (Number(carData.mileageDueMaintenance) <= Number(carData.mileage)) {
+                newErrors.mileageDueMaintenance = "Maintenance due mileage must be greater than current mileage";
+            }
+        }
+
+        return newErrors;
     };
 
     const handleSubmit = async () => {
@@ -232,7 +240,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
 
         } catch (err) {
             console.error(isEditMode ? "Update error:" : "Add error:", err);
-            alert(`${isEditMode ? 'Update' : 'Add'} failed: ` );
+            alert(`${isEditMode ? 'Update' : 'Add'} failed: `);
         }
     };
 

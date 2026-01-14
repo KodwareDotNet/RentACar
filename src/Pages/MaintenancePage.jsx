@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Container, Typography, Card, CardContent, CardMedia, Grid, Button, Chip, Box,
-    Alert, Snackbar, Divider, Paper, Tabs, Tab, Badge
+    Alert, Snackbar, Divider,Dialog, DialogTitle, DialogContent, TextField,DialogActions
 } from '@mui/material';
 import {
     DirectionsCar, Build, CheckCircle, AccessTime, Construction
@@ -12,9 +12,13 @@ import maintenanceService from "../api/services/MaintainCars/maintenanceService"
 const MaintenancePage = () => {
     const [maintenanceRecords, setMaintenanceRecords] = useState([]);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-    const [activeTab, setActiveTab] = useState(0); // 0 = To Repair, 1 = Repaired
+    const [activeTab, setActiveTab] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage] = useState(10);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selectedMaintenance, setSelectedMaintenance] = useState(null);
+    const [formData, setFormData] = useState({});
+
 
     const [pagination, setPagination] = useState({
         currentPage: 1,
@@ -46,9 +50,9 @@ const MaintenancePage = () => {
         }
     };
 
+
     const fetchMaintenanceRecords = async () => {
         try {
-            // Fetch based on active tab: 0 = Active (status 1), 1 = Completed (status 2)
             const status = activeTab === 0 ? '1' : '2';
 
             const res = await maintenanceService.getMaintenanceRecords({
@@ -72,17 +76,11 @@ const MaintenancePage = () => {
                     isRepair: m.isRepair,
                     isReplace: m.isReplace,
                     cost: m.cost,
-                    lastMaintenanceDate: m.lastMaintenanceDate,
+                    lastMaintenanceDate: m.pickupDate,
                     status: m.status || 1,
                     statusText: m.statusText || 'Active',
                     remarks: m.remarks,
-                    // Determine repair type text based on source from backend
-                    // Assuming backend provides 'maintenanceSource' or 'repairType' field
-                    // If it comes from mileage -> "Routine Repair"
-                    // If it comes from damage -> "Damage Repair"
-                    repairType: m.maintenanceSource === 'mileage' || m.repairType === 'routine'
-                        ? 'Routine Repair'
-                        : 'Damage Repair',
+                    repairType: m.repairTypeText,
                     imageUrl: m.imageUrl,
                 }));
 
@@ -102,6 +100,66 @@ const MaintenancePage = () => {
         }
     };
 
+    const handleCompleteMaintenance = (maintenance) => {
+        setSelectedMaintenance(maintenance);
+
+        setFormData({
+            cost: maintenance.cost || '',
+            remarks: maintenance.remarks || '',
+            status: maintenance.status,
+        });
+
+        setOpenDialog(true);
+    };
+
+    const handleUpdateMaintenance = async () => {
+  if (!selectedMaintenance) return;
+
+  const payload = {};
+
+  if (formData.cost !== selectedMaintenance.cost) {
+    payload.cost = formData.cost;
+  }
+
+  if (formData.remarks !== selectedMaintenance.remarks) {
+    payload.remarks = formData.remarks;
+  }
+
+  // example: mark completed
+  payload.status = 'Completed';
+
+  if (Object.keys(payload).length === 0) {
+    setSnackbar({
+      open: true,
+      message: 'No changes detected',
+      severity: 'info'
+    });
+    return;
+  }
+
+  try {
+    await maintenanceService.receiveMaintenance(
+      selectedMaintenance.id,
+      payload
+    );
+
+    setSnackbar({
+      open: true,
+      message: 'Maintenance updated successfully',
+      severity: 'success'
+    });
+
+    setOpenDialog(false);
+    fetchMaintenanceRecords(); // refresh list
+  } catch (err) {
+    setSnackbar({
+      open: true,
+      message: 'Update failed',
+      severity: 'error'
+    });
+  }
+};
+
     const handleCloseSnackbar = () => {
         setSnackbar({ ...snackbar, open: false });
     };
@@ -110,9 +168,39 @@ const MaintenancePage = () => {
         setActiveTab(newValue);
     };
 
-    const getRepairTypeIcon = () => {
-        // Always show wrench icon for all maintenance
-        return <Build sx={{ fontSize: 24, color: '#1976d2' }} />;
+    const repairTypeStyles = {
+        'Damaged Repair': {
+            color: 'error.main',
+            fontWeight: 700,
+        },
+        'Routine Repair': {
+            color: 'warning.main',
+            fontWeight: 600,
+        },
+    };
+
+    // Get status chip color based on status value
+    const getStatusConfig = (status) => {
+        switch (status) {
+            case "Active": // Active
+                return {
+                    color: 'success',
+                    label: 'Active',
+                    showIcon: true
+                };
+            case "Completed": // Completed
+                return {
+                    color: 'info',
+                    label: 'Completed',
+                    showIcon: false
+                };
+            default:
+                return {
+                    color: 'default',
+                    label: 'Unknown',
+                    showIcon: false
+                };
+        }
     };
 
     return (
@@ -133,15 +221,6 @@ const MaintenancePage = () => {
                     >
                         Vehicle Maintenance
                     </Typography>
-                    {/* <Typography
-                        variant="body1"
-                        sx={{
-                            color: '#666',
-                            fontSize: { xs: '0.875rem', sm: '1rem' }
-                        }}
-                    >
-                        Manage and track vehicle maintenance records
-                    </Typography> */}
                 </Box>
 
                 {/* Tabs Section */}
@@ -153,194 +232,199 @@ const MaintenancePage = () => {
                     overflow: 'hidden',
                     width: '20vw'
                 }}>
-                    <Tabs
-                        value={activeTab}
-                        onChange={handleTabChange}
-                        variant="fullWidth"
-                        sx={{
-                            borderBottom: 1,
-                            borderColor: 'divider',
-                            '& .MuiTab-root': {
-                                fontSize: { xs: '0.875rem', sm: '1rem' },
-                                fontWeight: 600,
-                                py: { xs: 2, sm: 2.5 }
-                            }
-                        }}
-                    >
-                        <Tab
-                            label="Cars to Repair"
-                            icon={<Build />}
-                            iconPosition="start"
-                        />
-                        <Tab
-                            label="Repaired Cars"
-                            icon={<CheckCircle />}
-                            iconPosition="start"
-                        />
-                    </Tabs>
-                    {/* 
-                    <Box sx={{ p: { xs: 2, sm: 2.5 }, height: '0.5vh' }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                            Showing {maintenanceRecords.length} of {pagination.totalRecords} records
-                        </Typography>
-                    </Box> */}
                 </Box>
+
+                <Dialog
+                    open={openDialog}
+                    onClose={() => setOpenDialog(false)}
+                    fullWidth
+                    maxWidth="sm"
+                >
+                    <DialogTitle>Complete Maintenance</DialogTitle>
+
+                    <DialogContent dividers>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="Cost"
+                            type="number"
+                            value={formData.cost}
+                            onChange={(e) =>
+                                setFormData({ ...formData, cost: e.target.value })
+                            }
+                        />
+
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="Remarks"
+                            multiline
+                            rows={3}
+                            value={formData.remarks}
+                            onChange={(e) =>
+                                setFormData({ ...formData, remarks: e.target.value })
+                            }
+                        />
+                    </DialogContent>
+
+                    <DialogActions>
+                        <Button onClick={() => setOpenDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleUpdateMaintenance}
+                        >
+                            Update
+                        </Button>
+                    </DialogActions>
+                </Dialog>
 
                 {/* Maintenance Grid */}
                 <Grid container spacing={{ xs: 0.5, sm: 1, md: 1 }} >
-                    {maintenanceRecords.length > 0 ? maintenanceRecords.map((maintenance) => (
-                        <Grid item xs={12} sm={6} lg={4} key={maintenance.id} sx={{ height: '50vh' }} >
-                            <Card
-                                elevation={2}
-                                sx={{
-                                    display: "flex",
-                                    position: 'relative',
-                                    flexDirection: 'column',
-                                    height: '100%',
-                                    overflow: 'hidden',
-                                    '&:hover': { boxShadow: 6 },
-                                    transition: 'box-shadow 0.3s',
-                                    border: '1px solid #e0e0e0',
-                                    borderRadius: 2,
-                                    maxWidth: { xs: '100%', sm: 420 },
-                                    mx: 'auto'
-                                }}
-                            >
-                                {/* Image with Type Icon */}
-                                <Box sx={{ position: 'relative' }}>
-                                    <CardMedia
-                                        component="img"
-                                        image={maintenance.image}
-                                        alt={maintenance.carName}
-                                        sx={{
-                                            width: '100%',
-                                            height: { xs: 180, sm: 200 },
-                                            objectFit: 'cover'
-                                        }}
-                                    />
+                    {maintenanceRecords.length > 0 ? maintenanceRecords.map((maintenance) => {
+                        const statusConfig = getStatusConfig(maintenance.status);
 
-                                    {/* Repair Type Icon Badge */}
-                                    <Box sx={{
-                                        position: 'absolute',
-                                        top: 12,
-                                        right: 12,
-                                        bgcolor: 'white',
-                                        borderRadius: '50%',
-                                        width: 50,
-                                        height: 50,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        boxShadow: 3,
-                                        zIndex: 2
-                                    }}>
-                                        {getRepairTypeIcon()}
-                                    </Box>
-
-                                </Box>
-
-                                <CardContent sx={{
-                                    flex: 1,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    p: { xs: 2, sm: 2.5 }
-                                }}>
-                                    {/* Car Name */}
-                                    <Typography
-                                        variant="h6"
-                                        sx={{
-                                            fontWeight: 700,
-                                            mb: 0.5,
-                                            fontSize: { xs: '1.1rem', sm: '1.25rem' }
-                                        }}
-                                    >
-                                        {maintenance.carName}
-                                    </Typography>
-                                    {/* 
-                                    <Typography
-                                        variant="body2"
-                                        color="primary"
-                                        sx={{
-                                            fontSize: { xs: '0.75rem', sm: '0.813rem' },
-                                            fontWeight: 600,
-                                            mb: 1
-                                        }}
-                                    >
-                                        {maintenance.plateNumber}
-                                    </Typography> */}
-
-                                    {/* <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                        sx={{
-                                            fontSize: { xs: '0.75rem', sm: '0.813rem' },
-                                            mb: 2
-                                        }}
-                                    >
-                                        {maintenance.thingToMaintain}
-                                    </Typography> */}
-
-                                    <Divider sx={{ mb: 2 }} />
-
-                                    {/* Maintenance Details */}
-                                    <Box sx={{ mb: 2 }}>
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{ fontSize: { xs: '0.75rem', sm: '0.813rem' }, mb: 0.5 }}
-                                        >
-                                            <strong>Type:</strong> {maintenance.repairType}
-                                        </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{ fontSize: { xs: '0.75rem', sm: '0.813rem' } }}
-                                        >
-                                            <strong>Maintenance date:</strong> {formatDate(maintenance.lastMaintenanceDate)}
-                                        </Typography>
-                                    </Box>
-
-                                    {/* Cost */}
-                                    <Paper
-                                        elevation={0}
-                                        sx={{
-                                            position: 'absolute',
-                                            bottom: 0,
-                                            right: 0,
-                                            px: 2,
-                                            py: 1,
-                                            // borderRadius: 2,
-                                            bgcolor: 'white',
-                                            textAlign: 'center',
-                                            minWidth: 90
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="caption"
-                                            color="text.secondary"
+                        return (
+                            <Grid item xs={12} sm={6} lg={4} key={maintenance.id} sx={{ height: '50vh' }} >
+                                
+                
+                                <Card
+                                    elevation={2}
+                                    sx={{
+                                        display: "flex",
+                                        position: 'relative',
+                                        flexDirection: 'column',
+                                        height: '100%',
+                                        overflow: 'hidden',
+                                        '&:hover': { boxShadow: 6 },
+                                        transition: 'box-shadow 0.3s',
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: 2,
+                                        maxWidth: { xs: '100%', sm: 420 },
+                                        mx: 'auto'
+                                    }}
+                                >
+                                    {/* Image with Icons */}
+                                    <Box sx={{ position: 'relative' }}>
+                                        <CardMedia
+                                            component="img"
+                                            image={maintenance.image}
+                                            alt={maintenance.carName}
                                             sx={{
-                                                mb: 0.5,
-                                                fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                                                display: 'block'
+                                                width: '100%',
+                                                height: { xs: 180, sm: 200 },
+                                                objectFit: 'cover'
                                             }}
-                                        >
-                                            Maintenance Cost
-                                        </Typography>
+                                        />
+
+                                        {/* Status Chip - Top Left */}
+                                        <Box sx={{
+                                            position: 'absolute',
+                                            top: 12,
+                                            left: 12,
+                                            zIndex: 2
+                                        }}>
+                                            <Chip
+                                                label={statusConfig.label}
+                                                color={statusConfig.color}
+                                                size="small"
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    fontSize: '0.75rem',
+                                                    boxShadow: 2,
+                                                }}
+                                            />
+                                        </Box>
+
+                                        {/* Repair Icon Badge - Bottom Right - Only for Active status */}
+                                        {statusConfig.showIcon && (
+                                            <Box
+                                                onClick={() => handleCompleteMaintenance(maintenance)}
+                                                sx={{
+                                                    position: 'absolute',
+                                                    bottom: 12,
+                                                    right: 12,
+                                                    bgcolor: 'white',
+                                                    borderRadius: '50%',
+                                                    width: 40,
+                                                    height: 40,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    boxShadow: 3,
+                                                    zIndex: 2,
+                                                    cursor: 'pointer',          // 👈 important
+                                                    '&:hover': {
+                                                        boxShadow: 6,
+                                                        bgcolor: '#f5f5f5'
+                                                    }
+                                                }}
+                                            >
+                                                <Build sx={{ fontSize: 24, color: '#1bdb52' }} />
+                                            </Box>
+                                        )}
+
+                                    </Box>
+
+                                    <CardContent sx={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        p: { xs: 2, sm: 2.5 }
+                                    }}>
+                                        {/* Car Name */}
                                         <Typography
-                                            variant="h5"
+                                            variant="h6"
                                             sx={{
                                                 fontWeight: 700,
-                                                color: '#2e7d32',
-                                                fontSize: { xs: '1.5rem', sm: '1.75rem' }
+                                                mb: 0.5,
+                                                fontSize: { xs: '1.1rem', sm: '1.25rem' }
                                             }}
                                         >
-                                            ${maintenance.cost}
+                                            {maintenance.carName}
                                         </Typography>
-                                    </Paper>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    )) : (
+
+                                        <Divider sx={{ mb: 2 }} />
+
+                                        {/* Maintenance Details */}
+                                        <Box sx={{ mb: 2 }}>
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{
+                                                    fontSize: { xs: '0.75rem', sm: '0.813rem' },
+                                                    mb: 0.5,
+                                                }}
+                                            >
+                                                <strong>Type:</strong>{' '}
+                                                <Box
+                                                    component="span"
+                                                    sx={{
+                                                        display: 'inline',
+                                                        fontSize: { xs: '0.75rem', sm: '0.813rem' },
+                                                        ...(repairTypeStyles[maintenance.repairType] || {
+                                                            color: 'text.secondary',
+                                                            fontWeight: 400,
+                                                        }),
+                                                    }}
+                                                >
+                                                    {maintenance.repairType}
+                                                </Box>
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{ fontSize: { xs: '0.75rem', sm: '0.813rem' } }}
+                                            >
+                                                <strong>Maintenance date:</strong> {formatDate(maintenance.lastMaintenanceDate)}
+                                            </Typography>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        );
+                    }) : (
                         <Grid item xs={12}>
                             <Box sx={{
                                 textAlign: 'center',
@@ -434,6 +518,8 @@ const MaintenancePage = () => {
                         </Button>
                     </Box>
                 )}
+
+
 
                 {/* Snackbar */}
                 <Snackbar

@@ -11,6 +11,7 @@ import BookedCarsPage from "./Pages/BookedCars";
 import ReceivedCarsPage from "./Pages/ReceivedCars";
 import ReportsPage from "./Pages/ReportsPage";
 import MaintenancePage from "./Pages/MaintenancePage";
+import MaintenanceReport from "./Pages/MaintenanceReport";
 
 function App() {
   const location = useLocation();
@@ -38,6 +39,7 @@ function App() {
         <Route path="receivedCarsPage" element={<ReceivedCarsPage />} />
         <Route path="maintenancePage" element={<MaintenancePage />} />
         <Route path="reportsPage" element={<ReportsPage />} />
+        <Route path="maintenanceReport" element={<MaintenanceReport />} />
       </Routes>
     </>
   );

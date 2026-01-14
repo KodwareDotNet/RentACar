@@ -6,7 +6,7 @@ import {
     FormControl, InputLabel, Select, MenuItem, IconButton
 } from '@mui/material';
 import {
-    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, FilterList
+    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, FilterList,Schedule 
 } from '@mui/icons-material';
 import bookCarsService from '../api/services/BookCars/bookCarsService';
 import BookACarModal from "../components/BookACarModal";
@@ -213,7 +213,7 @@ const BookedCarsPage = () => {
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: "Failed: " + error.message,
+                message: "Failed: " + error.response,
                 severity: "error"
             });
         } finally {
@@ -252,7 +252,8 @@ const BookedCarsPage = () => {
         switch (status) {
             case 'Active': return 'success';
             case 'Completed': return 'info';
-            case 'cancelled': return 'error';
+            case 'Cancelled': return 'error';
+            case 'Upcoming': return 'warning';
             default: return 'default';
         }
     };
@@ -273,7 +274,19 @@ const BookedCarsPage = () => {
         setShowReceiveModal(true);
     };
 
-    const getStatusIcon = (status) => (status === 'Active' || status === 'Completed') ? <CheckCircle fontSize="small" /> : <Cancel fontSize="small" />;
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'Active':
+            case 'Completed':
+                return <CheckCircle fontSize="small" color="success" />;
+
+            case 'Upcoming':
+                return <Schedule fontSize="small" color="warning" />;
+
+            default:
+                return <Cancel fontSize="small" color="error" />;
+        }
+    };
 
     return (
         <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: { xs: 2, sm: 3, md: 4 } }}>
@@ -308,35 +321,36 @@ const BookedCarsPage = () => {
                 <Box sx={{
                     mb: 3,
                     bgcolor: 'white',
-                    p: { xs: 2, sm: 2.5, md: 3 },
+                    p: { xs: 0.5, sm: 1, md: 1.5 },
                     borderRadius: 2,
                     boxShadow: 1,
-                    width: { xs: '100%', sm: '80%', md: '50%', lg: '35%' }
+                    width: { xs: '100%', sm: '80%', md: '50%', lg: '15%' }
                 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                         <FilterList color="primary" />
                         <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                             Filter Bookings
                         </Typography>
+                        <Grid container spacing={2} >
+                            <Grid item xs={12} sm={6} md={4} >
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>Status</InputLabel>
+                                    <Select
+                                        value={filterStatus}
+                                        label="Status"
+                                        onChange={(e) => setFilterStatus(e.target.value)}
+                                    >
+                                        <MenuItem value="all">All Status</MenuItem>
+                                        <MenuItem value="1">Active</MenuItem>
+                                        <MenuItem value="2">Completed</MenuItem>
+                                        <MenuItem value="3">Cancelled</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        </Grid>
                     </Box>
 
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6} md={4}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel>Status</InputLabel>
-                                <Select
-                                    value={filterStatus}
-                                    label="Status"
-                                    onChange={(e) => setFilterStatus(e.target.value)}
-                                >
-                                    <MenuItem value="all">All Status</MenuItem>
-                                    <MenuItem value="1">Active</MenuItem>
-                                    <MenuItem value="2">Completed</MenuItem>
-                                    <MenuItem value="3">Cancelled</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid>
-                    </Grid>
+
 
                     {(filterStatus !== 'all' || filterPriceRange !== 'all' || filterCarType !== 'all') && (
                         <Box sx={{ mt: 2 }}>
@@ -356,7 +370,7 @@ const BookedCarsPage = () => {
                     )}
 
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                        Showing {bookings.length} of {bookings.length} bookings
+                        {bookings.length} / {bookings.length} bookings
                     </Typography>
                 </Box>
 
@@ -391,6 +405,54 @@ const BookedCarsPage = () => {
                                             objectFit: 'cover'
                                         }}
                                     />
+
+                                    {booking.status === 'Upcoming' && (
+                                        <Box sx={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: 8,
+                                            display: 'flex',
+                                            gap: 0.75,
+                                            zIndex: 2
+                                        }}>
+                                            <IconButton
+                                                onClick={() => handleEditClick(booking)}
+                                                sx={{
+                                                    bgcolor: 'primary.main',
+                                                    color: 'white',
+                                                    width: { xs: 32, sm: 36 },
+                                                    height: { xs: 32, sm: 36 },
+                                                    '&:hover': {
+                                                        bgcolor: 'primary.dark',
+                                                        transform: 'scale(1.1)'
+                                                    },
+                                                    transition: 'all 0.2s',
+                                                    boxShadow: 3
+                                                }}
+                                                size="small"
+                                            >
+                                                <Settings sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                                            </IconButton>
+                                            <IconButton
+                                                onClick={() => handleCancelClick(booking)}
+                                                sx={{
+                                                    bgcolor: 'error.main',
+                                                    color: 'white',
+                                                    width: { xs: 32, sm: 36 },
+                                                    height: { xs: 32, sm: 36 },
+                                                    '&:hover': {
+                                                        bgcolor: 'error.dark',
+                                                        transform: 'scale(1.1)'
+                                                    },
+                                                    transition: 'all 0.2s',
+                                                    boxShadow: 3
+                                                }}
+                                                size="small"
+                                            >
+                                                <Cancel sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                                            </IconButton>
+                                        </Box>
+                                    )}
 
                                     {/* Action Icons - Top Right Corner - Only for Active */}
                                     {booking.status === 'Active' && (

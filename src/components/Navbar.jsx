@@ -129,7 +129,8 @@ function Navbar() {
     { label: 'Booked Car', path: 'bookedCarsPage' },
     { label: 'Received Car', path: 'receivedCarspage'},
     { label: 'Maintenance Section', path: 'maintenancePage'},
-    { label: 'Reports', path: 'reportsPage'}
+    { label: 'Booking Reports', path: 'reportsPage'},
+    { label: 'Maintenance Report',path: 'maintenanceReport'}
   ];
 
 

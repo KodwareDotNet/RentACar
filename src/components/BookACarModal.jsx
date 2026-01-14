@@ -447,10 +447,10 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
     };
 
     const handleReceiveSubmit = async () => {
-        if (!validateReceiveForm()) 
-            return; 
+        if (!validateReceiveForm())
+            return;
         try {
-        
+
             const lateCharges =
                 new Date(userData.receiveDate) > new Date(userData.dropoffDate)
                     ? calculateExtraCharges(userData.dropoffDate, userData.receiveDate, price)
@@ -494,11 +494,12 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         } catch (err) {
             console.error("Receive failed:", err);
             showSnackbar("Failed to receive car!", "error");
-        } 
+        }
     };
 
 
     const handleSubmit = async () => {
+        debugger
         if (isEditMode) {
             handleUpdate();
             return;
@@ -562,8 +563,37 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             openModal();
             resetForm();
         }
-        catch (err) {
-            showSnackbar("Failed to book!", "error");
+        catch (error) {
+            console.log("Error while booking:", error);
+
+            // Extract error message with fallback chain
+            const rawMessage =
+                error?.response?.data ||
+                error?.response?.data?.error ||
+                error?.response?.data ||
+                error?.message ||
+                "Failed to book!";
+
+            // Clean SQL/technical exception messages
+            let cleanMessage = rawMessage;
+
+            if (typeof rawMessage === "string") {
+                // For SQL exceptions, extract the actual error message (first line)
+                if (rawMessage.includes("SqlException")) {
+                    // Get text between "SqlException (code):" and the stack trace
+                    const match = rawMessage.match(/SqlException[^:]*:\s*([^\r\n]+)/);
+                    cleanMessage = match ? match[1].trim() : rawMessage.split("\r\n")[0];
+                }
+                // For other colon-separated errors, get the part after the last colon
+                else if (rawMessage.includes(":")) {
+                    cleanMessage = rawMessage.split(":").pop().trim();
+                }
+            }
+
+            // Show error in snackbar
+            showSnackbar(cleanMessage, "error");
+
+            // Optional: Additional error handling
             openModal();
             resetForm();
         }
@@ -736,10 +766,10 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                         }}
                                     />
                                     {errors.damageNotes && (
-                                            <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
-                                                {errors.damageNotes}
-                                            </Typography>
-                                        )}
+                                        <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                            {errors.damageNotes}
+                                        </Typography>
+                                    )}
                                 </>
                             )}
                         </Box>
@@ -1072,6 +1102,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                         <label>Pickup Date <b>*</b></label>
                                         <input
                                             value={userData.pickupDate}
+                                            min={new Date().toISOString().slice(0, 16)}
                                             onChange={(e) => handleInputChange("pickupDate", e.target.value)}
                                             type="datetime-local"
                                         />
