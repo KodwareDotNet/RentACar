@@ -25,7 +25,6 @@ namespace RentACar.Interfaces.RepoInterfaces
         Task<int> AddReceiveImage(int receiveId, string imageUrl, string? imageType);
         Task<PagedResponse<ReceivedCarResponseDto>> GetAllReceivedCars(int pageNumber,int pageSize,string? fullName,DateTime? fromDate,DateTime? toDate);
 
-
         Task<bool> DeleteReceivedCar(int receiveId);
 
         Task<BillingDto> GetBillingByBookingId(int bookingId);
@@ -34,12 +33,13 @@ namespace RentACar.Interfaces.RepoInterfaces
         Task CreatePayment(int bookingId);
         Task FinalizePayment(int bookingId);
         Task<IEnumerable<ReportDto>> GetReports(ReportRequestDto request);
-        Task AddOrUpdateMaintenance(CarMaintenanceDto dto);
+        Task AddOrUpdateMaintenance(CompleteMaintenanceDto dto);
+
         Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails();
         Task CancelMaintenance(int maintenanceId);
         //Task<bool> InsertCarMileageHistoryAsync(int receiveId);
         Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync();
-
+        Task<IEnumerable<MaintenanceReportDto>> GetMaintenanceReports(MaintenanceReportRequestDto request);
 
     }
 }

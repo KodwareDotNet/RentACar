@@ -187,10 +187,11 @@ namespace RentACar.Service
         {
             return await _carRepo.GetReports(request);
         }
-        public async Task AddOrUpdateMaintenance(CarMaintenanceDto dto)
+        public async Task AddOrUpdateMaintenance(CompleteMaintenanceDto dto)
         {
             await _carRepo.AddOrUpdateMaintenance(dto);
         }
+
 
         public async Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails()
         {
@@ -238,6 +239,10 @@ namespace RentACar.Service
         public async Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync()
         {
             return await _carRepo.GetCarMileageDetailsAsync();
+        }
+        public async Task<IEnumerable<MaintenanceReportDto>> GetMaintenanceReports(MaintenanceReportRequestDto request)
+        {
+            return await _carRepo.GetMaintenanceReports(request);
         }
     }
 }

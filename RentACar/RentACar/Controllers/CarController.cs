@@ -415,29 +415,29 @@ namespace NewsApi.Controllers
             var result = await _rentACarMap.GetReports(request);
             return Ok(result);
         }
-        [HttpPost("AddOrUpdateMaintanence")]
-        public async Task<IActionResult> AddOrUpdateMaintenance(
-        [FromForm] CarMaintenanceDto dto,
-        IFormFile? image
-    )
-        {
-            if (image != null)
-            {
-                var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
-                var path = Path.Combine(
-                    @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles",
-                    fileName
-                );
+    //    [HttpPost("AddOrUpdateMaintanence")]
+    //    public async Task<IActionResult> AddOrUpdateMaintenance(
+    //    [FromForm] CarMaintenanceDto dto,
+    //    IFormFile? image
+    //)
+    //    {
+    //        if (image != null)
+    //        {
+    //            var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
+    //            var path = Path.Combine(
+    //                @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles",
+    //                fileName
+    //            );
 
-                using var stream = new FileStream(path, FileMode.Create);
-                await image.CopyToAsync(stream);
+    //            using var stream = new FileStream(path, FileMode.Create);
+    //            await image.CopyToAsync(stream);
 
-                dto.ImageUrl = "/MaintenanceImages/" + fileName;
-            }
+    //            dto.ImageUrl = "/MaintenanceImages/" + fileName;
+    //        }
 
-            await _rentACarMap.AddMaintenance(dto);
-            return Ok(new { success = true });
-        }
+    //        await _rentACarMap.AddMaintenance(dto);
+    //        return Ok(new { success = true });
+    //    }
 
         [HttpGet("GetAllMaintanence")]
         public async Task<IActionResult> GetAll()
@@ -494,16 +494,56 @@ namespace NewsApi.Controllers
         //            {
         //                return Ok(result);
         //            }
-
+            
         //            return BadRequest(result);
         //        }
         //    }
         //}
-        [HttpGet("GetAllMileage")]
+        [HttpGet("GetCarMileageDetails")]
         public async Task<IActionResult> GetCarMileageDetails()
         {
-            var result = await _rentACarMap.GetCarMileageDetailsAsync();
+            var data = await _rentACarMap.GetCarMileageDetailsAsync();
+            return Ok(data);
+        }
+
+        [HttpGet("GetMaintenanceReports")]
+        public async Task<IActionResult> GetMaintenanceReports(
+        int orgId,
+        DateTime? startDate = null,
+        DateTime? endDate = null)
+        {
+            if (startDate == null || endDate == null)
+                return BadRequest(new { message = "StartDate and EndDate are required." });
+
+            startDate = startDate.Value.Date;
+            endDate = endDate.Value.Date;
+
+            if (endDate < startDate)
+                return BadRequest(new { message = "EndDate must be after StartDate." });
+
+            var request = new MaintenanceReportRequestDto
+            {
+                OrganizationId = orgId,
+                StartDate = startDate,
+                EndDate = endDate
+            };
+
+            var result = await _rentACarMap.GetMaintenanceReports(request);
             return Ok(result);
         }
+        [HttpPut("CompleteMaintenance")]
+        public async Task<IActionResult> CompleteMaintenance(
+     [FromForm] CompleteMaintenanceDto dto)
+        {
+            await _rentACarMap.AddOrUpdateMaintenance(dto);
+
+            return Ok(new
+            {
+                message = "Maintenance completed successfully"
+            });
+        }
+
+
+
     }
 }

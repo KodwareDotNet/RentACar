@@ -464,25 +464,20 @@ namespace RentACar.Repository
 
             return reports;
         }
-        public async Task AddOrUpdateMaintenance(CarMaintenanceDto dto)
+        public async Task AddOrUpdateMaintenance(CompleteMaintenanceDto dto)
         {
             await _connection.ExecuteAsync(
                 "sp_AddOrUpdateCarMaintenance",
                 new
                 {
-                    dto.MaintenanceId,
-                    dto.CarId,
-                    dto.Remarks,
-                    dto.IsRepair,
-                    dto.IsReplace,
-                    dto.Cost,
-                    dto.LastMaintenanceDate,
-                    dto.ImageUrl,
-                    Status = (int)dto.Status
+                    Id = dto.Id,
+                    Cost = dto.Cost,
+                    Remarks = dto.Remarks
                 },
                 commandType: CommandType.StoredProcedure
             );
         }
+
 
         public async Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails()
         {
@@ -523,5 +518,24 @@ namespace RentACar.Repository
 
             return result;
         }
+        public async Task<IEnumerable<MaintenanceReportDto>> GetMaintenanceReports(MaintenanceReportRequestDto request)
+        {
+            var parameters = new
+            {
+                OrganizationId = request.OrganizationId,
+                StartDate = request.StartDate,
+                EndDate = request.EndDate
+            };
+
+            var reports = await _connection.QueryAsync<MaintenanceReportDto>(
+                "sp_GetMaintenanceReports",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return reports;
+        }
+
+
     }
 }

@@ -13,13 +13,13 @@ namespace RentACar.ViewModel
         public string? CarName { get; set; }
 
         public string? Remarks { get; set; }
-        public bool IsRepair { get; set; }
-        public bool IsReplace { get; set; }
+        public bool? IsRepair { get; set; }
+        public bool? IsReplace { get; set; }
 
-        public decimal Cost { get; set; }
-        public DateTime LastMaintenanceDate { get; set; }
+        public decimal? Cost { get; set; }
+        public DateTime? LastMaintenanceDate { get; set; }
         public string? ImageUrl { get; set; }
-        public EnumMaintenanceStatus Status { get; set; }
-        public string StatusText { get; set; } = string.Empty;
+        public EnumMaintenanceStatus? Status { get; set; }
+        public string? StatusText { get; set; } = string.Empty;
     }
 }

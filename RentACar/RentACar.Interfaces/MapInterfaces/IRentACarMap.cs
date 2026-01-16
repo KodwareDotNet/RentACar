@@ -31,11 +31,14 @@ namespace RentACar.Repositories.Services.Interfaces
         Task<MonthlyProfitDto> GetMonthlyProfit(int month, int year);
         Task<List<BillingDto>> GetAllBillings(DateTime? startDate, DateTime? endDate);
         Task<IEnumerable<ReportDto>> GetReports(ReportRequestDto request);
-        Task AddMaintenance(CarMaintenanceDto dto);
+        //Task AddMaintenance(int cost, string remarks);
         Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails();
         Task CancelMaintenance(int maintenanceId);
         //Task<ApiResponse<bool>> InsertCarMileageHistoryAsync(int receiveId);
         Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync();
+        Task<IEnumerable<MaintenanceReportDto>> GetMaintenanceReports(MaintenanceReportRequestDto request);
+        Task AddOrUpdateMaintenance(CompleteMaintenanceDto dto);
+
     }
 
 }

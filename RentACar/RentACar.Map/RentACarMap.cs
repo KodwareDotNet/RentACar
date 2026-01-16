@@ -169,8 +169,14 @@ namespace RentACar.Map
         {
             return await _rentService.GetReports(request);
         }
-        public async Task AddMaintenance(CarMaintenanceDto dto)
-     => await _rentService.AddOrUpdateMaintenance(dto);
+        public async Task AddOrUpdateMaintenance(CompleteMaintenanceDto dto)
+        {
+            await _rentService.AddOrUpdateMaintenance(dto);
+        }
+
+
+        //    public async Task AddMaintenance(int cost, string remarks)
+        //=> await _rentService.AddOrUpdateMaintenance( cost,  remarks);
 
         public async Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails()
             => await _rentService.GetMaintenanceWithCarDetails();
@@ -196,5 +202,10 @@ namespace RentACar.Map
             var result = await _rentService.GetCarMileageDetailsAsync();
             return result; // ✅ Return statement add karna zaruri hai
         }
+        public async Task<IEnumerable<MaintenanceReportDto>> GetMaintenanceReports(MaintenanceReportRequestDto request)
+        {
+            return await _rentService.GetMaintenanceReports(request);
+        }
+
     }
 }

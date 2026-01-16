@@ -26,7 +26,7 @@ namespace RentACar.ViewModel
         public string Status { get; set; }
         public int CarId { get; set; }
         public int OrganizationId { get; set; }
-        public string CarImageUrl { get; set; }
+        public string? CarImageUrl { get; set; }
         public decimal? PricePerUnit { get; set; }
         public string PricingType { get; set; }
         public decimal? TotalAmount { get; set; }
