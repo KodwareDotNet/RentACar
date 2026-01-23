@@ -17,6 +17,7 @@ namespace RentACar.ViewModel
         public long ReturnMileage { get; set; }
         public string Status { get; set; }
         public long TotalMileageCovered { get; set; }
+        public string Remarks { get; set; }
         public string RepairType { get; set; } = default!;
         public DateTime CreatedAt { get; set; }
     }

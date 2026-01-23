@@ -32,14 +32,16 @@ namespace RentACar.Interfaces.RepoInterfaces
         Task<List<BillingDto>> GetAllBillings(DateTime? startDate, DateTime? endDate);
         Task CreatePayment(int bookingId);
         Task FinalizePayment(int bookingId);
-        Task<IEnumerable<ReportDto>> GetReports(ReportRequestDto request);
+        Task<ReportPagedResponseDto> GetReports(ReportRequestDto request);
+
         Task AddOrUpdateMaintenance(CompleteMaintenanceDto dto);
 
         Task<List<CarMaintenanceDto>> GetMaintenanceWithCarDetails();
         Task CancelMaintenance(int maintenanceId);
         //Task<bool> InsertCarMileageHistoryAsync(int receiveId);
         Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync();
-        Task<IEnumerable<MaintenanceReportDto>> GetMaintenanceReports(MaintenanceReportRequestDto request);
+        Task<MaintenanceReportPagedResponseDto> GetMaintenanceReports(MaintenanceReportRequestDto request);
+
 
     }
 }

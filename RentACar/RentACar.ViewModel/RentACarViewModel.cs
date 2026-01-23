@@ -41,5 +41,12 @@ public class ReportRequestDto
     public DateTime? Date { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
     public string? Month { get; set; } // Format: 2026-01
+}
+public class ReportPagedResponseDto
+{
+    public IEnumerable<ReportDto> Data { get; set; } = new List<ReportDto>();
+    public int TotalRecords { get; set; }
 }

@@ -183,10 +183,11 @@ namespace RentACar.Service
         {
             await _carRepo.FinalizePayment(bookingId);
         }
-        public async Task<IEnumerable<ReportDto>> GetReports(ReportRequestDto request)
+        public async Task<ReportPagedResponseDto> GetReports(ReportRequestDto request)
         {
             return await _carRepo.GetReports(request);
         }
+
         public async Task AddOrUpdateMaintenance(CompleteMaintenanceDto dto)
         {
             await _carRepo.AddOrUpdateMaintenance(dto);
@@ -236,13 +237,15 @@ namespace RentACar.Service
         //    }
 
         //}
+        public async Task<MaintenanceReportPagedResponseDto> GetMaintenanceReports(MaintenanceReportRequestDto request)
+        {
+            return await _carRepo.GetMaintenanceReports(request);
+        }
+
+        // ✅ Car Mileage Details
         public async Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync()
         {
             return await _carRepo.GetCarMileageDetailsAsync();
-        }
-        public async Task<IEnumerable<MaintenanceReportDto>> GetMaintenanceReports(MaintenanceReportRequestDto request)
-        {
-            return await _carRepo.GetMaintenanceReports(request);
         }
     }
 }

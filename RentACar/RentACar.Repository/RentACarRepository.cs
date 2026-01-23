@@ -447,23 +447,35 @@ namespace RentACar.Repository
 
             return result;
         }
-        public async Task<IEnumerable<ReportDto>> GetReports(ReportRequestDto request)
+        public async Task<ReportPagedResponseDto> GetReports(ReportRequestDto request)
         {
             var parameters = new
             {
                 OrganizationId = request.OrganizationId,
                 StartDate = request.StartDate,
-                EndDate = request.EndDate
+                EndDate = request.EndDate,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize
             };
 
-            var reports = await _connection.QueryAsync<ReportDto>(
+            using var multi = await _connection.QueryMultipleAsync(
                 "sp_GetReports",
                 parameters,
                 commandType: CommandType.StoredProcedure
             );
 
-            return reports;
+            var reports = await multi.ReadAsync<ReportDto>();
+            var totalRecords = await multi.ReadSingleAsync<int>();
+
+            return new ReportPagedResponseDto
+            {
+                Data = reports,
+                TotalRecords = totalRecords
+            };
         }
+
+
+
         public async Task AddOrUpdateMaintenance(CompleteMaintenanceDto dto)
         {
             await _connection.ExecuteAsync(
@@ -518,24 +530,32 @@ namespace RentACar.Repository
 
             return result;
         }
-        public async Task<IEnumerable<MaintenanceReportDto>> GetMaintenanceReports(MaintenanceReportRequestDto request)
+        public async Task<MaintenanceReportPagedResponseDto> GetMaintenanceReports(MaintenanceReportRequestDto request)
         {
             var parameters = new
             {
                 OrganizationId = request.OrganizationId,
                 StartDate = request.StartDate,
-                EndDate = request.EndDate
+                EndDate = request.EndDate,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize
             };
 
-            var reports = await _connection.QueryAsync<MaintenanceReportDto>(
+            // SP now returns 2 result sets: data + total records
+            using var multi = await _connection.QueryMultipleAsync(
                 "sp_GetMaintenanceReports",
                 parameters,
                 commandType: CommandType.StoredProcedure
             );
 
-            return reports;
+            var reports = await multi.ReadAsync<MaintenanceReportDto>();
+            var totalRecords = await multi.ReadSingleAsync<int>();
+
+            return new MaintenanceReportPagedResponseDto
+            {
+                Data = reports,
+                TotalRecords = totalRecords
+            };
         }
-
-
     }
 }
