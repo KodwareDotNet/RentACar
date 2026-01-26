@@ -523,7 +523,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                             </span>
 
                             <span>
-                                <label>mileageDueMaintenance</label>
+                                <label>mileage Due Maintenance</label>
                                 <input
                                     value={carData.mileageDueMaintenance}
                                     onChange={(e) => handleInputChange("mileageDueMaintenance", e.target.value)}

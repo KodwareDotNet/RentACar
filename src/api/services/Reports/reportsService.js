@@ -8,6 +8,7 @@ const reportsService = {
         }
         catch (ex) {
             console.log("failed to get reports", ex);
+            throw ex;
         }
     },
     getMaintenaceReports: async (params) => {
@@ -17,6 +18,7 @@ const reportsService = {
         }
         catch (ex) {
             console.log("failed to get reports", ex);
+            throw ex;
         }
     }
 };

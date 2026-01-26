@@ -11,6 +11,9 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Paper,
+  Menu,
+  MenuItem, Pagination, FormControl, Select
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -24,13 +27,62 @@ const ReportsPage = () => {
   const [date, setDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date()); // only for weekly reports
   const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState(null);
   const [reports, setReports] = useState([]);
   const [openPdf, setOpenPdf] = useState(false);
   const [vehicleConditions, setVehicleConditions] = useState([]);
   const [revenueExpenses, setRevenueExpenses] = useState({});
   const [openPdfDialog, setOpenPdfDialog] = useState(false);
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    pageNumber: currentPage,
+    pageSize: 10,
+    totalPages: 0,
+    totalRecords: 0
+  });
+  const [summary, setSummary] = useState({
+    totalBookings: 0,
+    completedBookings: 0,
+    activeBookings: 0,
+    cancelledBookings: 0,
+    totalRevenue: 0,
+    totalExpense: 0,
+    netProfit: 0
+  });
 
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  // Handler for page changes
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, pageNumber: newPage }));
+      fetchReports(newPage);
+    }
+  };
+
+  // Handler for page size changes
+  const handlePageSizeChange = (newSize) => {
+    setPagination(prev => ({
+      ...prev,
+      pageSize: newSize,
+      pageNumber: 1
+    }));
+    fetchReports(1);
+  };
+
+  useEffect(() => {
+    if (date && endDate) {
+      fetchReports();
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     if (reports && reports.length > 0) {
@@ -53,20 +105,39 @@ const ReportsPage = () => {
     }
   }, [reports]);
 
-  useEffect(() => {
-    fetchReports();
-  }, []
-  )
 
   // Fetch reports only on button click
   const fetchReports = async () => {
     setLoading(true);
     try {
-      let params;
+      let params = {
+        startDate: date,
+        endDate: endDate,
+        pageNumber: currentPage,
+        pageSize: pagination.pageSize
+      };
 
-      params = { startDate: date, endDate: endDate };
       const res = await reportsService.getReports(params);
-      setReports(res.data || []);
+
+      // Handle the response data
+      const responseData = res.data?.data || res.data || [];
+      const paginationData = res.data?.pagination;
+
+      setReports(responseData);
+
+      // Update pagination state if backend returns pagination info
+      if (paginationData) {
+        setPagination(paginationData);
+      } else if (res.data?.totalRecords) {
+        // Alternative: if pagination data is at root level
+        setPagination({
+          pageNumber: currentPage,
+          pageSize: pagination.pageSize,
+          totalRecords: res.data.totalRecords,
+          totalPages: Math.ceil(res.data.totalRecords / pagination.pageSize)
+        });
+      }
+
     } catch (err) {
       console.error("Failed to fetch reports", err);
       alert(err.response?.data?.message || "Failed to fetch reports");
@@ -76,213 +147,617 @@ const ReportsPage = () => {
   };
 
   return (
-    <Box sx={{ p: 3, pt: 10 }}>
-      {/* Page Title */}
-      <Typography variant="h4" fontWeight={600} mb={3}>
-        Reports
-      </Typography>
-
-      {/* Filters */}
-      <Box display="flex" alignItems="center" gap={2} mb={4} flexWrap="wrap">
-
-        <Dialog
-          open={openPdfDialog}
-          onClose={() => setOpenPdfDialog(false)}
-          fullWidth
-          maxWidth="lg"
+    <Box sx={{ p: 3, pt: 10, bgcolor: '#f8f9fa', minHeight: '100vh' }}>
+      {/* Page Title with Icon */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+        <Box
+          sx={{
+            bgcolor: '#3b82f6',
+            p: 1.5,
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+          }}
         >
-          <DialogTitle>Institutional Report Preview</DialogTitle>
-
-          <DialogContent dividers>
-            <Box style={{ height: "600px" }}>
-              <PDFViewer width="100%" height="100%">
-                <InstitutionalReport
-                  reports={reports}
-                  summary={summary}
-                  startDate={date.toISOString().split("T")[0]}
-                  endDate={endDate.toISOString().split("T")[0]}
-                  revenueExpenses={revenueExpenses}
-                />
-              </PDFViewer>
-            </Box>
-          </DialogContent>
-
-          <DialogActions>
-            <PDFDownloadLink
-              document={
-                <InstitutionalReport
-                  reports={reports}
-                  summary={summary}
-                  startDate={date.toISOString().split("T")[0]}
-                  endDate={endDate.toISOString().split("T")[0]}
-                  vehicleConditions={vehicleConditions}
-                  revenueExpenses={revenueExpenses}
-                />
-              }
-              fileName="Rent_A_Car_Report.pdf"
-            >
-              {({ loading }) => (
-                <Button variant="contained" color="primary">
-                  {loading ? "Preparing PDF..." : "Download Report"}
-                </Button>
-              )}
-            </PDFDownloadLink>
-
-            <Button onClick={() => setOpenPdfDialog(false)}>Close</Button>
-          </DialogActions>
-        </Dialog>
-
-
-
-        <Box display="flex" gap={1} alignItems="center">
-          <Typography>Start:</Typography>
-          <DatePicker
-            selected={date}
-            onChange={(d) => setDate(d)}
-            selectsStart
-            startDate={date}
-            endDate={endDate}
-            dateFormat="yyyy-MM-dd"
-            className="date-picker"
-          />
-          <Typography>End:</Typography>
-          <DatePicker
-            selected={endDate}
-            onChange={(d) => setEndDate(d)}
-            selectsEnd
-            startDate={date}
-            endDate={endDate}
-            minDate={date}
-            dateFormat="yyyy-MM-dd"
-            className="date-picker"
-          />
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+          </svg>
         </Box>
-
-
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={fetchReports}
-          disabled={loading}
-        >
-          {loading ? "Fetching..." : "Fetch Reports"}
-        </Button>
-
-        <Button
-          variant="outlined"
-          color="secondary"
-          disabled={!reports.length}
-          onClick={() => setOpenPdfDialog(true)}
-        >
-          Generate & View Report (PDF)
-        </Button>
-
+        <Typography variant="h4" fontWeight={700} sx={{ color: '#1e293b' }}>
+          Booking Reports
+        </Typography>
       </Box>
 
+      {/* Filters Section */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'center' },
+          bgcolor: 'white',
+          p: { xs: 2, sm: 2.5, md: 3 },
+          mb: 1,
+          borderRadius: 3,
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          gap: { xs: 2, sm: 0 },
+          width: 'auto'
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            gap: { xs: 1.5, sm: 2 },
+            width: '100%',
+            flexWrap: 'wrap',
+          }}
+        >
+          <Typography
+            sx={{
+              fontWeight: 600,
+              color: '#64748b',
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              minWidth: { xs: '100%', sm: 'auto' }
+            }}
+          >
+            Date Range:
+          </Typography>
+
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              flexWrap: { xs: 'wrap', sm: 'nowrap' },
+              width: { xs: '100%', sm: 'auto' }
+            }}
+          >
+            <DatePicker
+              selected={date}
+              onChange={(d) => setDate(d)}
+              selectsStart
+              startDate={date}
+              endDate={endDate}
+              dateFormat="yyyy-MM-dd"
+              className="date-picker"
+            />
+            <Typography sx={{ color: '#94a3b8', px: { xs: 0.5, sm: 1 } }}>-</Typography>
+            <DatePicker
+              selected={endDate}
+              onChange={(d) => setEndDate(d)}
+              selectsEnd
+              startDate={date}
+              endDate={endDate}
+              minDate={date}
+              dateFormat="yyyy-MM-dd"
+              className="date-picker"
+            />
+          </Box>
+
+          <Button
+            variant="contained"
+            onClick={fetchReports}
+            disabled={loading}
+            sx={{
+              bgcolor: '#3b82f6',
+              color: 'white',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 1, sm: 1.2 },
+              borderRadius: 2,
+              boxShadow: '0 4px 6px rgba(59, 130, 246, 0.3)',
+              width: { xs: '50%', sm: 'auto' },
+              minWidth: { sm: '10px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              '&:hover': {
+                bgcolor: '#2563eb',
+                boxShadow: '0 6px 8px rgba(59, 130, 246, 0.4)',
+              },
+            }}
+          >
+            {loading ? 'Fetching...' : 'Fetch Reports'}
+          </Button>
+        </Box>
+      </Box>
+
+      {/* PDF Dialog */}
+      <Dialog open={openPdfDialog} onClose={() => setOpenPdfDialog(false)} fullWidth maxWidth="lg">
+        <DialogTitle>Institutional Report Preview</DialogTitle>
+        <DialogContent dividers>
+          <Box style={{ height: '600px' }}>
+            <PDFViewer width="100%" height="100%">
+              <InstitutionalReport
+                reports={reports}
+                summary={summary}
+                startDate={date.toISOString().split('T')[0]}
+                endDate={endDate.toISOString().split('T')[0]}
+                revenueExpenses={revenueExpenses}
+              />
+            </PDFViewer>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <PDFDownloadLink
+            document={
+              <InstitutionalReport
+                reports={reports}
+                summary={summary}
+                startDate={date.toISOString().split('T')[0]}
+                endDate={endDate.toISOString().split('T')[0]}
+                vehicleConditions={vehicleConditions}
+                revenueExpenses={revenueExpenses}
+              />
+            }
+            fileName="Rent_A_Car_Report.pdf"
+          >
+            {({ loading }) => (
+              <Button variant="contained" color="primary">
+                {loading ? 'Preparing PDF...' : 'Download Report'}
+              </Button>
+            )}
+          </PDFDownloadLink>
+          <Button onClick={() => setOpenPdfDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Summary Cards */}
-      {summary && (
-        <Grid container spacing={2} mb={4}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Total Bookings
-                </Typography>
-                <Typography variant="h6">{summary.totalBookings}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Active Bookings
-                </Typography>
-                <Typography variant="h6">{summary.activeBookings}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Completed Bookings
-                </Typography>
-                <Typography variant="h6">{summary.completedBookings}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Cancelled Bookings
-                </Typography>
-                <Typography variant="h6">{summary.cancelledBookings || 0}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Total Revenue
-                </Typography>
-                <Typography variant="h6">Rs {summary.totalRevenue}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      )}
-
-      {/* Reports Table */}
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Booking ID</TableCell>
-            <TableCell>Car</TableCell>
-            <TableCell>Customer</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Amount</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {reports.length > 0 ? (
-            reports.map((row) => (
-              <TableRow key={row.bookingId}>
-                <TableCell>{row.bookingId}</TableCell>
-                <TableCell>{row.carName}</TableCell>
-                <TableCell>{row.customer}</TableCell>
-                <TableCell>{row.date}</TableCell>
-                <TableCell
-                  style={{
-                    color: row.status === "Completed"
-                      ? "green"
-                      : row.status === "Active"
-                        ? "blue"
-                        : "orange",
-                    fontWeight: 600,
+      <Grid container spacing={5} mb={1} sx={{ display: 'flex', justifyContent: 'center' }}>
+        {/* Total Bookings */}
+        <Grid item sx={{ height: '100px' }}>
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 3,
+              border: '1px solid #e2e8f0',
+              transition: 'all 0.3s ease',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              width: '200px',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 10px 20px rgba(0,0,0,0.08)',
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Box
+                  sx={{
+                    bgcolor: '#dbeafe',
+                    p: 1.5,
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  {row.status}
-                </TableCell>
-                <TableCell>Rs {row.amount}</TableCell>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#3b82f6">
+                    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
+                  </svg>
+                </Box>
+                <Box>
+                  <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500, mb: 0.5 }}>
+                    Bookings
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b', display: 'flex', justifyContent: 'center' }}>
+                    {summary.totalBookings}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Completed Rides */}
+        <Grid item sx={{ height: '100px' }}>
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 3,
+              border: '1px solid #e2e8f0',
+              transition: 'all 0.3s ease',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              width: '200px',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 10px 20px rgba(0,0,0,0.08)',
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Box
+                  sx={{
+                    bgcolor: '#dcfce7',
+                    p: 1.5,
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#10b981">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                </Box>
+                <Box>
+                  <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500, mb: 0.5 }}>
+                    Completed
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b', display: 'flex', justifyContent: 'center' }}>
+                    {summary.completedBookings}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Cancelled Rides */}
+        <Grid item sx={{ height: '100px' }}>
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 3,
+              border: '1px solid #e2e8f0',
+              transition: 'all 0.3s ease',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              width: '200px',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 10px 20px rgba(0,0,0,0.08)',
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Box
+                  sx={{
+                    bgcolor: '#fee2e2',
+                    p: 1.5,
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#ef4444">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                  </svg>
+                </Box>
+                <Box>
+                  <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500, mb: 0.5 }}>
+                    Cancelled
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b', display: 'flex', justifyContent: 'center' }}>
+                    {summary.cancelledBookings || 0}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Revenue Generated */}
+        <Grid item sx={{ height: '100px' }}>
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 3,
+              border: '1px solid #e2e8f0',
+              transition: 'all 0.3s ease',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              width: '200px',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 10px 20px rgba(0,0,0,0.08)',
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Box
+                  sx={{
+                    bgcolor: '#dbeafe',
+                    p: 1.5,
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#3b82f6">
+                    <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
+                  </svg>
+                </Box>
+                <Box>
+                  <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500, mb: 0.5 }}>
+                    Revenue
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b', display: 'flex', justifyContent: 'center' }}>
+                    {summary.totalRevenue}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+
+
+      {/* Reports Table */}
+      <Box
+        sx={{
+          bgcolor: 'white',
+          borderRadius: 3,
+          border: '1px solid #e2e8f0',
+          overflow: 'hidden',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        }}
+      >
+        <Box
+          sx={{
+            p: 1,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+            borderBottom: '1px solid #e2e8f0',
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
+            Booking Report
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+
+            {/* Three-dot icon button */}
+            <Button
+              onClick={handleMenuOpen}
+              sx={{
+                minWidth: 'auto',
+                p: 1,
+                border: '1px solid #e2e8f0',
+                borderRadius: 2,
+                color: '#64748b',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+              </svg>
+            </Button>
+
+            {/* Dropdown menu */}
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleMenuClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              PaperProps={{
+                sx: {
+                  borderRadius: 2,
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                  minWidth: 180,
+                },
+              }}
+            >
+              <MenuItem
+                disabled={!reports.length}
+                onClick={() => {
+                  handleMenuClose();
+                  setOpenPdfDialog(true);
+                }}
+                sx={{ gap: 1.5 }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#ef4444">
+                  <path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                </svg>
+                Export PDF
+              </MenuItem>
+            </Menu>
+
+          </Box>
+
+
+        </Box>
+
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 2 }}>Booking ID</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Customer Name</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Car Model</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Pickup Date</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Drop-off Date</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Amount</TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} align="center">
-                {loading ? "Loading..." : "No data available"}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            </TableHead>
+            <TableBody>
+              {reports.length > 0 ? (
+                reports.map((row) => (
+                  <TableRow
+                    key={row.bookingId}
+                    sx={{
+                      '&:hover': { bgcolor: '#f8fafc' },
+                      transition: 'background-color 0.2s ease',
+                    }}
+                  >
+                    <TableCell sx={{ fontWeight: 600, color: '#1e293b' }}>{row.bookingId}</TableCell>
+                    <TableCell sx={{ color: '#475569' }}>{row.customer}</TableCell>
+                    <TableCell sx={{ color: '#475569' }}>{row.carName}</TableCell>
+                    <TableCell sx={{ color: '#475569' }}>{row.date}</TableCell>
+                    <TableCell sx={{ color: '#475569' }}>
+                      {row.dropOffDate || row.date}
+                    </TableCell>
+                    <TableCell>
+                      <Box
+                        component="span"
+                        sx={{
+                          display: 'inline-block',
+                          px: 2,
+                          py: 0.5,
+                          borderRadius: 2,
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          bgcolor:
+                            row.status === 'Completed'
+                              ? '#dcfce7'
+                              : row.status === 'Active'
+                                ? '#dbeafe'
+                                : '#fee2e2',
+                          color:
+                            row.status === 'Completed'
+                              ? '#10b981'
+                              : row.status === 'Active'
+                                ? '#3b82f6'
+                                : '#ef4444',
+                        }}
+                      >
+                        {row.status}
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#1e293b' }}>
+                      Rs {row.amount}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+                    <Typography sx={{ color: '#94a3b8' }}>
+                      {loading ? 'Loading...' : 'No data available'}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Box>
+
+        {pagination.totalRecords > pagination.pageSize && (
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            mt: 4,
+            gap: { xs: 0.5, sm: 1 },
+            flexWrap: 'wrap'
+          }}>
+            <Button
+              variant="outlined"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              sx={{
+                minWidth: { xs: 36, sm: 40 },
+                fontSize: { xs: '0.813rem', sm: '0.875rem' }
+              }}
+            >
+              First
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              sx={{
+                minWidth: 'auto',
+                px: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '0.813rem', sm: '0.875rem' }
+              }}
+            >
+              ««
+            </Button>
+
+            {(() => {
+              const maxVisible = 5;
+              const totalPages = pagination.totalPages;
+
+              let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+              let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+              // Adjust startPage if we're near the end
+              if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+              }
+
+              const pages = [];
+              for (let i = startPage; i <= endPage; i++) {
+                pages.push(i);
+              }
+
+              return pages.map((pageNum) => (
+                <Button
+                  key={pageNum}
+                  variant={currentPage === pageNum ? "contained" : "outlined"}
+                  onClick={() => setCurrentPage(pageNum)}
+                  sx={{
+                    minWidth: { xs: 36, sm: 40 },
+                    fontWeight: currentPage === pageNum ? 600 : 400,
+                    fontSize: { xs: '0.813rem', sm: '0.875rem' }
+                  }}
+                >
+                  {pageNum}
+                </Button>
+              ));
+            })()}
+
+            <Button
+              variant="outlined"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+              disabled={currentPage === pagination.totalPages}
+              sx={{
+                minWidth: 'auto',
+                px: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '0.813rem', sm: '0.875rem' }
+              }}
+            >
+              »»
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setCurrentPage(pagination.totalPages)}
+              disabled={currentPage === pagination.totalPages}
+              sx={{
+                minWidth: { xs: 36, sm: 40 },
+                fontSize: { xs: '0.813rem', sm: '0.875rem' }
+              }}
+            >
+              Last
+            </Button>
+          </Box>
+        )}
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            mt: 2,
+            textAlign: 'center',
+            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+          }}
+        >
+          Showing {reports.length} of {pagination.totalRecords} reports
+        </Typography>
+      </Box>
     </Box>
   );
 };

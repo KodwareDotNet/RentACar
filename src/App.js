@@ -12,6 +12,8 @@ import ReceivedCarsPage from "./Pages/ReceivedCars";
 import ReportsPage from "./Pages/ReportsPage";
 import MaintenancePage from "./Pages/MaintenancePage";
 import MaintenanceReport from "./Pages/MaintenanceReport";
+import { ThemeProvider, GlobalStyles, CssBaseline } from '@mui/material';
+import { theme, globalStyles } from './Theme/theme';
 
 function App() {
   const location = useLocation();
@@ -22,6 +24,9 @@ function App() {
 
   return (
     <>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <GlobalStyles styles={globalStyles} />
       {showNavbar && <Navbar />}
       <Routes>
         <Route index path="/" element={<LoginPage />} />
@@ -41,6 +46,7 @@ function App() {
         <Route path="reportsPage" element={<ReportsPage />} />
         <Route path="maintenanceReport" element={<MaintenanceReport />} />
       </Routes>
+      </ThemeProvider>
     </>
   );
 }

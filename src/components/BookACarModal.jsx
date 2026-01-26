@@ -30,6 +30,10 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         receiveDate: "",
         mileage: "",
         receivedMileage: "",
+        driverName: "",
+        driverIDCard: "",
+        driverPricePerHour: 100,
+        driverTotalPrice: "",
     });
     const [receiveData, setReceiveData] = useState({
         Images: [],
@@ -41,6 +45,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
     const [uploadedImages, setUploadedImages] = useState([]);
     const [errors, setErrors] = useState({});
+    const [hasDriver, setHasDriver] = useState(false);
     const [hasDamage, setHasDamage] = useState(false);
 
     const [snackbar, setSnackbar] = useState({
@@ -59,6 +64,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
     };
 
     const resetForm = () => {
+        setHasDriver(false);
         setUserData({
             name: "",
             fatherName: "",
@@ -72,6 +78,8 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             dropoffDate: "",
             carId: "",
             receivedMileage: "",
+            driverName: "",
+            driverIDCard: "",
         });
         setUploadedImages([]);
         setReceiveData({
@@ -171,16 +179,22 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         );
 
         const total = duration * Number(userData.pricePerUnit || 0);
-
+        const driverTotal = hasDriver
+            ? duration * parseFloat(userData.driverPricePerHour || 0)
+            : 0;
+        const grandTotal = total + driverTotal;
         setUserData(prev => ({
             ...prev,
-            totalPrice: total
+            totalPrice: grandTotal,
+            driverTotalPrice:driverTotal,
         }));
     }, [
         userData.pickupDate,
         userData.dropoffDate,
         userData.pricingType,
-        userData.pricePerUnit
+        userData.pricePerUnit,
+        hasDriver,
+        userData.driverPricePerHour,
     ]);
 
     const calculateTotalPrice = () => {
@@ -194,17 +208,23 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
             if (diffInHours > 0) {
                 const total = diffInHours * parseFloat(userData.pricePerUnit);
+                const driverTotal = hasDriver
+                    ? diffInHours * parseFloat(userData.driverPricePerHour || 0)
+                    : 0;
                 return {
                     hours: diffInHours.toFixed(2),
-                    total: total.toFixed(2)
+                    total: total.toFixed(2),
+                    driverTotal: driverTotal.toFixed(2)
                 };
             }
         }
-        return { hours: 0, total: 0 };
+        return { hours: 0, total: 0, driverTotal: 0 };
     };
 
 
     const { hours, total } = calculateTotalPrice();
+    const finalTotal =
+        Number(total) + Number(userData.driverTotalPrice || 0);
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
@@ -491,15 +511,14 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             resetForm();
             onUpdateSuccess?.();
 
-        } catch (err) {
-            console.error("Receive failed:", err);
+        } catch (error) {
+            console.error("Receive failed:", error);
             showSnackbar("Failed to receive car!", "error");
         }
     };
 
 
     const handleSubmit = async () => {
-        debugger
         if (isEditMode) {
             handleUpdate();
             return;
@@ -532,9 +551,14 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
             formData.append('carName', cardetail?.carName);
             formData.append('pricingType', userData.pricingType);
             formData.append('pricePerUnit', userData.pricePerUnit);
+            formData.append('bookingTotal', total);
+            formData.append('DriverCharges', userData.driverTotalPrice);
             formData.append('totalAmount', userData.totalPrice);
             formData.append('Status', 'Active');
             formData.append('PickUpMileage', userData.mileage);
+            formData.append('DriverName', userData.driverName);
+            formData.append('DriverCNIC', userData.driverIDCard);
+            formData.append('isDriverRequired', hasDriver);
 
             // Append new uploaded images (not existing ones)
             uploadedImages.forEach((image, index) => {
@@ -1155,23 +1179,82 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
                                     </span>
                                 </div>
+
+                                <Box sx={{ mb: 3 }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={hasDriver}
+                                                onChange={(e) => {
+                                                    setHasDriver(e.target.checked);
+                                                    if (!e.target.checked) {
+                                                        
+                                                        handleInputChange("driverName", "");
+                                                    }
+                                                }}
+                                            />
+                                        }
+                                        label="Want Driver?"
+                                    />
+
+                                    {hasDriver && (
+                                        <div className="info-form__2col">
+                                             <span >
+                                                <label>
+                                                    Driver,s Fare per Hour<b>*</b>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={userData.driverPricePerHour}
+                                                    onChange={(e) =>
+                                                        handleInputChange("driverPricePerHour", e.target.value)
+                                                    }
+                                                />
+                                            </span>
+                                            <span style={{display:'flex', justifyContent:'center'}}>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Driver: {hours} hours × ${userData.driverPricePerHour}/hour = ${userData.driverTotalPrice}
+                                                </Typography>
+                                            </span>
+
+                                            {errors.damageNotes && (
+                                                <Typography color="error" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
+                                                    {errors.damageNotes}
+                                                </Typography>
+                                            )}
+                                        </div>
+
+                                    )}
+                                </Box>
+
                                 {hours > 0 && (
                                     <div className="info-form__1col" style={{ marginTop: '10px' }}>
-                                        <div style={{
-                                            padding: '15px',
-                                            backgroundColor: '#f0f8ff',
-                                            borderRadius: '8px',
-                                            border: '1px solid #0066cc'
-                                        }}>
-                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#0066cc' }}>
-                                                Total Price: ${total}
-                                            </Typography>
+                                        <div
+                                            style={{
+                                                padding: '15px',
+                                                backgroundColor: '#f0f8ff',
+                                                borderRadius: '8px',
+                                                border: '1px solid #0066cc'
+                                            }}
+                                        >
+                                            
+
                                             <Typography variant="body2" color="text.secondary">
-                                                ({hours} hours × ${userData.pricePerUnit}/hour)
+                                                Vehicle: {hours} hours × ${userData.pricePerUnit}/hour = ${total}
+                                            </Typography>
+
+                                            { hasDriver &&(
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Driver: ${userData.driverTotalPrice}
+                                                </Typography>
+                                            )}
+                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#0066cc' }}>
+                                               Total Price: ${(userData.totalPrice ?? 0).toFixed(2)}
                                             </Typography>
                                         </div>
                                     </div>
                                 )}
+
 
 
                                 {/* Image Upload Section */}

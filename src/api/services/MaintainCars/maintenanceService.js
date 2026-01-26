@@ -28,7 +28,7 @@ const maintenanceService = {
 },
     getMaintenanceRecords: async (page = 1, pageSize = 10) => {
         try {
-            const res = await api.get("Car/GetAllMileage", {
+            const res = await api.get("Car/GetCarMileageDetails", {
                 params: {
                     pageNumber: page,
                     pageSize: pageSize
@@ -53,7 +53,7 @@ const maintenanceService = {
     },
     receiveMaintenance: async (data) => {
         try {
-            const res = await api.post("Car/CompleteMaintenance", data);
+            const res = await api.put("Car/CompleteMaintenance", data);
             return res;
         }
         catch (error) {
@@ -82,34 +82,30 @@ const maintenanceService = {
             throw ex;
         }
     },
-    completeMaintenance: async (formData) => {
-    
-            try {
-                const res = await api.post(`Car/receiveCar`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-                return res;
+    completeMaintenance: async (formDataPayload) => {
+    try {
+        const res = await api.put(`Car/CompleteMaintenance`, formDataPayload, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
             }
-            catch (error) {
-                if (error.response) {
-                    // Server responded with a status other than 2xx
-                    console.error("receive Booking failed:", error.response.data);
-                    throw new Error(
-                        error.response.data.message || "Failed to receive the car."
-                    );
-                } else if (error.request) {
-                    // Request was made but no response received
-                    console.error("No response from server:", error.request);
-                    throw new Error("No response from the server. Please try again.");
-                } else {
-                    // Something else happened while setting up the request
-                    console.error("Error setting up request:", error.message);
-                    throw new Error("Error booking the car: " + error.message);
-                }
-            }
-        },
+        });
+        return res;
+    }
+    catch (error) {
+        if (error.response) {
+            console.error("Complete Maintenance failed:", error.response.data);
+            throw new Error(
+                error.response.data.message || "Failed to complete maintenance."
+            );
+        } else if (error.request) {
+            console.error("No response from server:", error.request);
+            throw new Error("No response from the server. Please try again.");
+        } else {
+            console.error("Error setting up request:", error.message);
+            throw new Error("Error completing maintenance: " + error.message);
+        }
+    }
+},
 };
 
 export default maintenanceService;

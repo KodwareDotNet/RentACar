@@ -48,9 +48,9 @@ const MaintenancePdf = ({ reports, summary, startDate, endDate, revenueExpenses 
                     <Text style={{ flex: 1, fontSize: 10, fontWeight: "bold", borderWidth: 1, borderColor: "#000", padding: 3 }}>Maintenace ID</Text>
                     <Text style={{ flex: 1, fontSize: 10, fontWeight: "bold", borderWidth: 1, borderColor: "#000", padding: 3 }}>Car</Text>
                     <Text style={{ flex: 1, fontSize: 10, fontWeight: "bold", borderWidth: 1, borderColor: "#000", padding: 3 }}>Car Brand</Text>
-                    {/* <Text style={{ flex: 1, fontSize: 10, fontWeight: "bold", borderWidth: 1, borderColor: "#000", padding: 3 }}>Date</Text> */}
+                    {/* <Text style={{ flex: 1, fontSize: 10, fontWeight: "bold", borderWidth: 1, borderColor: "#000", padding: 3 }}>Damage</Text> */}
                     <Text style={{ flex: 1, fontSize: 10, fontWeight: "bold", borderWidth: 1, borderColor: "#000", padding: 3 }}>Status</Text>
-                    <Text style={{ flex: 1, fontSize: 10, fontWeight: "bold", borderWidth: 1, borderColor: "#000", padding: 3 }}>Amount</Text>
+                    {/* <Text style={{ flex: 1, fontSize: 10, fontWeight: "bold", borderWidth: 1, borderColor: "#000", padding: 3 }}>Amount</Text> */}
                 </View>
 
                 {/* Table Rows */}
@@ -59,11 +59,11 @@ const MaintenancePdf = ({ reports, summary, startDate, endDate, revenueExpenses 
                         <Text style={{ flex: 1, fontSize: 10, borderWidth: 1, borderColor: "#000", padding: 3 }}>{r.id}</Text>
                         <Text style={{ flex: 1, fontSize: 10, borderWidth: 1, borderColor: "#000", padding: 3 }}>{r.carName}</Text>
                         <Text style={{ flex: 1, fontSize: 10, borderWidth: 1, borderColor: "#000", padding: 3 }}>{r.carBrand}</Text>
-                        {/* <Text style={{ flex: 1, fontSize: 10, borderWidth: 1, borderColor: "rgba(0, 0, 0, 1)", padding: 3 }}>{r.date}</Text> */}
+                        {/* <Text style={{ flex: 1, fontSize: 10, borderWidth: 1, borderColor: "rgba(0, 0, 0, 1)", padding: 3 }}>{r.remarks || "-"}</Text> */}
                         <Text style={{ flex: 1, fontSize: 10, borderWidth: 1, borderColor: "#000", color: getStatusColor(r.status), fontWeight: "bold", padding: 3 }}>
                             {r.status}
                         </Text>
-                        <Text style={{ flex: 1, fontSize: 10, borderWidth: 1, borderColor: "#000", padding: 3 }}>Rs {r.amount}</Text>
+                        {/* <Text style={{ flex: 1, fontSize: 10, borderWidth: 1, borderColor: "#000", padding: 3 }}>Rs {r.amount}</Text> */}
                     </View>
                 ))}
             </View>
@@ -79,7 +79,7 @@ const MaintenancePdf = ({ reports, summary, startDate, endDate, revenueExpenses 
                 <Text style={styles.summaryItem}>Active Bookings: {summary.activeBookings}</Text>
                 <Text style={styles.summaryItem}>Completed Bookings: {summary.completedBookings}</Text>
                 <Text style={styles.summaryItem}>Cancelled Bookings: {summary.cancelledBookings}</Text>
-                <Text style={styles.summaryItem}>Total Bookings: Rs {summary.totalRevenue}</Text>
+                {/* <Text style={styles.summaryItem}>Total Bookings: Rs {summary.totalRevenue}</Text> */}
             </View>
 
             <View style={styles.header}>
@@ -98,7 +98,7 @@ const MaintenancePdf = ({ reports, summary, startDate, endDate, revenueExpenses 
                 <View style={styles.tableRow} key={idx}>
                     <Text style={styles.cell}>{v.carName}</Text>
                     <Text style={styles.cell}>{v.status}</Text>
-                    <Text style={styles.cell}>{v.damageRemarks || "-"}</Text>
+                    <Text style={styles.cell}>{v.remarks || "-"}</Text>
                     <Text style={styles.cell}>Rs {v.damageCharges || 0}</Text>
                 </View>
             ))}

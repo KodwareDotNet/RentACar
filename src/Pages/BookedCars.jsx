@@ -76,7 +76,6 @@ const BookedCarsPage = () => {
 
             if (res && res.status === 200) {
                 console.log('API Response:', res.data);
-
                 // Check the response structure
                 const responseData = res.data.data || res.data;
                 const paginationData = res.data.pagination;
