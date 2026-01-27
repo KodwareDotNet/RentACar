@@ -67,7 +67,8 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                 vin: carToEdit.vin || "",
                 bodyType: carToEdit.bodyType || "",
                 engineSize: String(carToEdit.engineSize || ""),
-                description: carToEdit.description || ""
+                description: carToEdit.description || "",
+                mileageDueMaintenance: carToEdit.mileageDueMaintenance || ""
             });
             // Handle existing images
             if (carToEdit.imageUrl) {
@@ -172,12 +173,6 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
         if (isEmpty(carData.mileageDueMaintenance)) newErrors.mileageDueMaintenance = "mileageDueMaintenance is required";
         if (isEmpty(carData.engineSize)) newErrors.engineSize = "Engine size is required";
         if (isEmpty(carData.description)) newErrors.description = "Description is required";
-
-        if (carData.mileageDueMaintenance && carData.mileage) {
-            if (Number(carData.mileageDueMaintenance) <= Number(carData.mileage)) {
-                newErrors.mileageDueMaintenance = "Maintenance due mileage must be greater than current mileage";
-            }
-        }
 
         return newErrors;
     };
@@ -528,7 +523,7 @@ function AddCarModal({ modal, openModal, carToEdit, onAddCar, refreshCarsList })
                                     value={carData.mileageDueMaintenance}
                                     onChange={(e) => handleInputChange("mileageDueMaintenance", e.target.value)}
                                     type="number"
-                                    placeholder="e.g 30"
+                                    placeholder="0"
                                 />
                                 {errors.mileageDueMaintenance && (
                                     <Typography color="error" sx={{ mb: 2 }}>

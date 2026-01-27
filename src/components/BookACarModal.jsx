@@ -186,7 +186,7 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
         setUserData(prev => ({
             ...prev,
             totalPrice: grandTotal,
-            driverTotalPrice:driverTotal,
+            driverTotalPrice: driverTotal,
         }));
     }, [
         userData.pickupDate,
@@ -265,12 +265,18 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
         setErrors(prev => {
             const newErrors = { ...prev };
-            if (value.trim() !== "" && newErrors[field]) {
+
+            const stringValue =
+                typeof value === "string" ? value.trim() : String(value).trim();
+
+            if (stringValue !== "" && newErrors[field]) {
                 delete newErrors[field];
             }
+
             return newErrors;
         });
     };
+
 
     const handleReceiveInputChange = (field, value) => {
         setReceiveData(prev => ({ ...prev, [field]: value }));
@@ -1188,8 +1194,9 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                                 onChange={(e) => {
                                                     setHasDriver(e.target.checked);
                                                     if (!e.target.checked) {
-                                                        
-                                                        handleInputChange("driverName", "");
+
+                                                        handleInputChange("driverPricePerHour", userData.driverPricePerHour);
+
                                                     }
                                                 }}
                                             />
@@ -1199,19 +1206,20 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
 
                                     {hasDriver && (
                                         <div className="info-form__2col">
-                                             <span >
+                                            <span >
                                                 <label>
                                                     Driver,s Fare per Hour<b>*</b>
                                                 </label>
                                                 <input
+                                                    readOnly
                                                     type="number"
                                                     value={userData.driverPricePerHour}
-                                                    onChange={(e) =>
-                                                        handleInputChange("driverPricePerHour", e.target.value)
-                                                    }
+                                                // onChange={(e) =>
+                                                //     handleInputChange("driverPricePerHour", e.target.value)
+                                                // }
                                                 />
                                             </span>
-                                            <span style={{display:'flex', justifyContent:'center'}}>
+                                            <span style={{ display: 'flex', justifyContent: 'center' }}>
                                                 <Typography variant="body2" color="text.secondary">
                                                     Driver: {hours} hours × ${userData.driverPricePerHour}/hour = ${userData.driverTotalPrice}
                                                 </Typography>
@@ -1237,19 +1245,19 @@ function BookACarModal({ modal, openModal, cardetail, bookingData, isEditMode = 
                                                 border: '1px solid #0066cc'
                                             }}
                                         >
-                                            
+
 
                                             <Typography variant="body2" color="text.secondary">
                                                 Vehicle: {hours} hours × ${userData.pricePerUnit}/hour = ${total}
                                             </Typography>
 
-                                            { hasDriver &&(
+                                            {hasDriver && (
                                                 <Typography variant="body2" color="text.secondary">
                                                     Driver: ${userData.driverTotalPrice}
                                                 </Typography>
                                             )}
                                             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#0066cc' }}>
-                                               Total Price: ${(userData.totalPrice ?? 0).toFixed(2)}
+                                                Total Price: ${(userData.totalPrice ?? 0).toFixed(2)}
                                             </Typography>
                                         </div>
                                     </div>

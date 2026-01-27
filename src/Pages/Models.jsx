@@ -124,6 +124,7 @@ export function Models() {
   };
 
   const handleUpdate = (car) => {
+    debugger
     setSelectedCarDetail(car);
     setShowAddCarModal(true);
     carsApi();

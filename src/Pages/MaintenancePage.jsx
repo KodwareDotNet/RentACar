@@ -288,7 +288,7 @@ const MaintenancePage = () => {
                     </DialogActions>
                 </Dialog>
 
-                <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
+                {/* <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
                         Filter:
                     </Typography>
@@ -301,7 +301,7 @@ const MaintenancePage = () => {
                         <option value="Active">Active</option>
                         <option value="Completed">Completed</option>
                     </select>
-                </Box>
+                </Box> */}
 
                 {/* Maintenance Grid */}
                 <Grid

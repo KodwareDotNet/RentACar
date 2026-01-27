@@ -323,7 +323,7 @@ const BookedCarsPage = () => {
                     p: { xs: 0.5, sm: 1, md: 1.5 },
                     borderRadius: 2,
                     boxShadow: 1,
-                    width: { xs: '100%', sm: '80%', md: '50%', lg: '15%' }
+                    width: { xs: '100%', sm: '80%', md: '50%', lg: '30%' }
                 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                         <FilterList color="primary" />

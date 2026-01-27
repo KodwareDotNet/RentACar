@@ -11,6 +11,7 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  ListItemIcon,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -50,7 +51,6 @@ function Navbar() {
     } else {
       handleNavigation("/")
     }
-
   }
 
   const toggleAddUserModal = (value) => {
@@ -78,9 +78,7 @@ function Navbar() {
   };
 
   const handleCustomerSubmit = () => {
-    // console.log("Customer data:", customerData);
     setshowAddUserModal(false);
-    // Add your API call or data handling here
   };
 
   const handleAddCarSubmit = (carData) => {
@@ -115,42 +113,38 @@ function Navbar() {
   const userType = localStorage.getItem("UserType");
 
   const navItems = [
-    { label: 'Home', path: '/home', className: 'home-link' },
-    { label: 'Vehicles', path: '/models', className: 'models-link' },
-    { label: 'Add Car', path: '/models?modal=true', className: 'models-link' },
-    // { label: 'Add Car', onClick: toggleAddCarModal },
-    { label: 'Add organization', onClick: toggleAddOrganizationModal },
-    { label: 'Add User', onClick: toggleAddUserModal },
-    { label: 'Add Role', onClick: toggleAddRoleModal },
-    { label: 'Organization List', path: 'organizationList' },
-    { label: 'User List', path: '/usersList' },
-    { label: 'Role List', path: 'rolesList' },
-    { label: 'Assign Permission', onClick: toggleAddPermissionModal },
-    { label: 'Booked Car', path: 'bookedCarsPage' },
-    { label: 'Received Car', path: 'receivedCarspage'},
-    { label: 'Maintenance Section', path: 'maintenancePage'},
-    { label: 'Booking Reports', path: 'reportsPage'},
-    { label: 'Maintenance Report',path: 'maintenanceReport'}
+    { label: 'Home', path: '/home', icon: 'bi-house-door', className: 'home-link' },
+    { label: 'Vehicles', path: '/models', icon: 'bi-car-front', className: 'models-link' },
+    { label: 'Add Car', path: '/models?modal=true', icon: 'bi-plus-circle', className: 'models-link' },
+    { label: 'Add Organization', onClick: toggleAddOrganizationModal, icon: 'bi-building-add' },
+    { label: 'Add User', onClick: toggleAddUserModal, icon: 'bi-person-plus' },
+    { label: 'Add Role', onClick: toggleAddRoleModal, icon: 'bi-shield-plus' },
+    { label: 'Organizations', path: 'organizationList', icon: 'bi-buildings' },
+    { label: 'Users', path: '/usersList', icon: 'bi-people' },
+    { label: 'Roles', path: 'rolesList', icon: 'bi-shield-check' },
+    { label: 'Permissions', onClick: toggleAddPermissionModal, icon: 'bi-key' },
+    { label: 'Booked Cars', path: 'bookedCarsPage', icon: 'bi-calendar-check' },
+    { label: 'Received Cars', path: 'receivedCarspage', icon: 'bi-clipboard-check' },
+    { label: 'Maintenance', path: 'maintenancePage', icon: 'bi-tools' },
+    { label: 'Booking Reports', path: 'reportsPage', icon: 'bi-file-earmark-bar-graph' },
+    { label: 'Maintenance Report', path: 'maintenanceReport', icon: 'bi-graph-up' }
   ];
 
-
   const filterdNavItems = navItems.filter(item => {
-
     if (item.label === "Add User" && userType === "1") {
       return false;
     }
-    else if (item.label === "Add organization" && userType === "2") {
+    else if (item.label === "Add Organization" && userType === "2") {
       return false;
     }
-    else if (userType === "3" && (item.label === "Add organization" || item.label === "Add User" ||
-      item.label === "Add Role" || item.label === "Add Car" || item.label === "User List" || item.label === "Role List")) {
+    else if (userType === "3" && (item.label === "Add Organization" || item.label === "Add User" ||
+      item.label === "Add Role" || item.label === "Add Car" || item.label === "Users" || item.label === "Roles")) {
       return false;
     }
     else {
       return true;
     }
   });
-
 
   const drawer = (
     <Box
@@ -163,16 +157,16 @@ function Navbar() {
         justifyContent: { xs: 'flex-start', sm: 'center' },
         alignItems: 'flex-start',
         position: 'relative',
-        p: { xs: 3, sm: 4 },
+        p: { xs: 2, sm: 3 },
       }}
     >
       <IconButton
         onClick={handleDrawerToggle}
         sx={{
           position: 'absolute',
-          top: '1.5rem',
+          top: '1rem',
           right: '.5rem',
-          fontSize: '3rem',
+          fontSize: '2.5rem',
           color: '#010103',
           transition: 'all 0.3s',
           '&:hover': {
@@ -180,19 +174,18 @@ function Navbar() {
           },
         }}
       >
-        <CloseIcon sx={{ fontSize: '3rem', marginRight: 0 }}
-        />
+        <CloseIcon sx={{ fontSize: '2.5rem' }} />
       </IconButton>
       <List
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: { xs: '0.5rem', sm: '1rem' },
+          gap: { xs: '0.3rem', sm: '0.5rem' },
           textAlign: 'left',
           width: '100%',
-          maxWidth: { xs: '100%', sm: '250px' },
-          px: { xs: 2, sm: 4 },
-          mt: { xs: 2, sm: 75, md: 67, lg: 75, xl: 80 },
+          maxWidth: '100%',
+          px: { xs: 1, sm: 2 },
+          mt: { xs: 6, sm: 8 },
         }}
       >
         {filterdNavItems.map((item) => (
@@ -207,15 +200,29 @@ function Navbar() {
                 }
               }}
               sx={{
-                textAlign: 'center',
-                justifyContent: 'center',
+                borderRadius: '8px',
+                py: 1,
+                px: 2,
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 77, 48, 0.08)',
+                },
               }}
             >
+              <ListItemIcon sx={{ minWidth: '40px' }}>
+                <i 
+                  className={item.icon} 
+                  style={{ 
+                    fontSize: '1.4rem', 
+                    color: '#010103',
+                    transition: 'color 0.3s'
+                  }}
+                ></i>
+              </ListItemIcon>
               <ListItemText
                 primary={item.label}
                 sx={{
                   '& .MuiTypography-root': {
-                    fontSize: '2rem',
+                    fontSize: '1.4rem',
                     fontWeight: 400,
                     color: '#010103',
                     fontFamily: '"Rubik", sans-serif',
@@ -231,27 +238,37 @@ function Navbar() {
         ))}
 
         {/* Login/Logout Button */}
-        <ListItem disablePadding>
+        <ListItem disablePadding sx={{ mt: 1 }}>
           <ListItemButton
             onClick={() => {
               handleAuthClick();
               setDrawerOpen(false);
             }}
             sx={{
-              textAlign: 'center',
-              justifyContent: 'center',
+              borderRadius: '8px',
+              py: 1,
+              px: 2,
+              '&:hover': {
+                backgroundColor: 'rgba(255, 77, 48, 0.08)',
+              },
             }}
           >
+            <ListItemIcon sx={{ minWidth: '40px' }}>
+              {isLoggedIn ? (
+                <LogoutIcon sx={{ fontSize: '1.8rem', color: '#010103' }} />
+              ) : (
+                <i className="bi-box-arrow-in-right" style={{ fontSize: '1.4rem', color: '#010103' }}></i>
+              )}
+            </ListItemIcon>
             <ListItemText
-              primary={isLoggedIn ? <LogoutIcon sx={{ fontSize: '2.4rem' }} /> : "Login"}
+              primary={isLoggedIn ? "Logout" : "Login"}
               sx={{
                 '& .MuiTypography-root': {
-                  fontSize: '2.3rem',
+                  fontSize: '1.4rem',
                   fontWeight: 500,
                   color: '#010103',
                   fontFamily: '"Rubik", sans-serif',
                   transition: 'all 0.3s',
-
                 },
                 '&:hover .MuiTypography-root': {
                   color: '#ff4d30',
@@ -379,7 +396,6 @@ function Navbar() {
         </Toolbar>
       </AppBar>
 
-
       <Drawer
         anchor="left"
         open={drawerOpen}
@@ -387,20 +403,18 @@ function Navbar() {
         sx={{
           '& .MuiDrawer-paper': {
             width: {
-              xs: '65%',
-              sm: '40%',
-              md: '20%',
-              lg: '20%',
+              xs: '70%',
+              sm: '45%',
+              md: '25%',
+              lg: '22%',
             },
             boxSizing: 'border-box',
             display: 'flex',
             alignItems: 'flex-start',
             transition: 'width 0.3s ease'
           },
-          BackdropProps: {
-            sx: {
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-            },
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
           },
         }}
         transitionDuration={500}
