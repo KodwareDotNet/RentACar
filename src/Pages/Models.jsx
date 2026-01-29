@@ -9,7 +9,7 @@ import addCarsService from "../api/services/AddCars/addCarsService";
 import bookCarsService from "../api/services/BookCars/bookCarsService";
 import { BASE_URL } from "../api/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Box, Button, Snackbar, Alert } from '@mui/material';
+import { Box, Button, Snackbar, Alert, Grid } from '@mui/material';
 
 export function Models() {
   const [carsList, setCarsList] = useState([]);
@@ -115,10 +115,10 @@ export function Models() {
       }
     } catch (error) {
       setSnackbar({
-                open: true,
-                message: "Failed to get cars: ",
-                severity: "error"
-            });
+        open: true,
+        message: "Failed to get cars: ",
+        severity: "error"
+      });
     }
 
   };
@@ -185,107 +185,132 @@ export function Models() {
 
 
   return (
-    <>
-      <section className="models-section">
-        <div className="container">
-          <div className="models-div">
-            {carsList.map((car) => (
-              <CarCard
-                key={car.id}
-                car={car}
-                onBook={() => toggleBookModal(car)}
-                onUpdate={() => handleUpdate(car)}
-                onDelete={() => handleDelete(car.id)}
-                onMaintenance={() => toggleMaintenanceModal(car)}
-              />
-            ))}
-          </div>
-        </div>
+    <Box component="section"
+      sx={{
+        
+        paddingTop: '22px',
+        paddingBottom: '32px',
+        ml:8
+      }}
+    >
+      {/* Container */}
+      {/*container centers its  content and auto add margin , padding
+      that,s why ml is 3 instead of 8 */}
+      <Grid
+        container
+        spacing={{ xs: 0.5, sm: 1, md: 1 }}
+        sx={{
+          mb: { xs: 0.5, sm: 1, md: 1 },
+          ml:3
+        }}
+      >
+        {/* Models Grid */}
+          {carsList.map((car) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={car.id}>
+            <CarCard
+              key={car.id}
+              car={car}
+              onBook={() => toggleBookModal(car)}
+              onUpdate={() => handleUpdate(car)}
+              onDelete={() => handleDelete(car.id)}
+              onMaintenance={() => toggleMaintenanceModal(car)}
+            />
+            </Grid>
+          ))}
+        
+      </Grid>
 
-        <BookACarModal
-          modal={showBookModal}
-          openModal={toggleBookModal}
-          cardetail={selectedCarDetail}
-          carsApi={carsApi}
-        />
+      {/* Modals */}
+      <BookACarModal
+        modal={showBookModal}
+        openModal={toggleBookModal}
+        cardetail={selectedCarDetail}
+        carsApi={carsApi}
+      />
 
-        <AddCarModal
-          modal={showAddCarModal}
-          openModal={toggleAddCarModal}
-          carToEdit={selectedCarDetail}
-          onAddCar={handleCarAdded}
-          refreshCarsList={carsApi}
-        />
+      <AddCarModal
+        modal={showAddCarModal}
+        openModal={toggleAddCarModal}
+        carToEdit={selectedCarDetail}
+        onAddCar={handleCarAdded}
+        refreshCarsList={carsApi}
+      />
 
-        <MaintenanceModal
+      <MaintenanceModal
         modal={showMaintenanceModal}
         openModal={toggleMaintenanceModal}
         carDetail={selectedCarDetail}
         onSubmitSuccess={handleMaintenanceSuccess}
       />
 
-        {totalRecords > pageSize && (
-          <Box sx={{
+      {/* Pagination */}
+      {totalRecords > pageSize && (
+        <Box
+          sx={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            mt: 4,
-            gap: 1
-          }}>
-            <Button
-              variant="outlined"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              sx={{ minWidth: 'auto', px: 2 }}
-            >
-              Previous
-            </Button>
-
-            {[...Array(totalPages)].map((_, index) => {
-              const pageNum = index + 1;
-              return (
-                <Button
-                  key={pageNum}
-                  variant={currentPage === pageNum ? "contained" : "outlined"}
-                  onClick={() => handlePageChange(pageNum)}
-                  sx={{
-                    minWidth: 40,
-                    fontWeight: currentPage === pageNum ? 600 : 400
-                  }}
-                >
-                  {pageNum}
-                </Button>
-              );
-            })}
-
-            <Button
-              variant="outlined"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              sx={{ minWidth: 'auto', px: 2 }}
-            >
-              Next
-            </Button>
-          </Box>
-        )}
-        <Footer />
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            marginTop: '32px',
+            gap: '8px',
+          }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            variant="filled"
-            sx={{ width: '100%' }}
+          <Button
+            variant="outlined"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            sx={{ minWidth: 'auto', paddingX: '16px' }}
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </section>
-    </>
+            Previous
+          </Button>
+
+          {[...Array(totalPages)].map((_, index) => {
+            const pageNum = index + 1;
+            return (
+              <Button
+                key={pageNum}
+                variant={currentPage === pageNum ? 'contained' : 'outlined'}
+                onClick={() => handlePageChange(pageNum)}
+                sx={{
+                  minWidth: '40px',
+                  fontWeight: currentPage === pageNum ? 600 : 400,
+                }}
+              >
+                {pageNum}
+              </Button>
+            );
+          })}
+
+          <Button
+            variant="outlined"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            sx={{ minWidth: 'auto', paddingX: '16px' }}
+          >
+            Next
+          </Button>
+        </Box>
+      )}
+
+      <Footer />
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+
   );
 }
 

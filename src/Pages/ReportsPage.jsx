@@ -13,8 +13,9 @@ import {
   TableRow,
   Paper,
   Menu,
-  MenuItem, Pagination, FormControl, Select
+  MenuItem, Pagination, FormControl, Select  , TextField
 } from "@mui/material";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import reportsService from "../api/services/Reports/reportsService";
@@ -147,7 +148,7 @@ const ReportsPage = () => {
   };
 
   return (
-    <Box sx={{ p: 3, pt: 10, bgcolor: '#f8f9fa', minHeight: '100vh' }}>
+    <Box sx={{ px: 3, pt: 1, bgcolor: '#ffffff', minHeight: '100vh', ml: 8 }}>
       {/* Page Title with Icon */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
         <Box
@@ -188,80 +189,59 @@ const ReportsPage = () => {
       >
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            alignItems: { xs: 'flex-start', sm: 'center' },
-            gap: { xs: 1.5, sm: 2 },
-            width: '100%',
-            flexWrap: 'wrap',
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            flexWrap: { xs: "wrap", sm: "nowrap" },
           }}
         >
           <Typography
             sx={{
               fontWeight: 600,
-              color: '#64748b',
-              fontSize: { xs: '0.875rem', sm: '1rem' },
-              minWidth: { xs: '100%', sm: 'auto' }
+              color: "#64748b",
+              fontSize: "0.95rem",
+              whiteSpace: "nowrap",
             }}
           >
             Date Range:
           </Typography>
 
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 1,
-              alignItems: 'center',
-              flexWrap: { xs: 'wrap', sm: 'nowrap' },
-              width: { xs: '100%', sm: 'auto' }
-            }}
-          >
-            <DatePicker
-              selected={date}
-              onChange={(d) => setDate(d)}
-              selectsStart
-              startDate={date}
-              endDate={endDate}
-              dateFormat="yyyy-MM-dd"
-              className="date-picker"
-            />
-            <Typography sx={{ color: '#94a3b8', px: { xs: 0.5, sm: 1 } }}>-</Typography>
-            <DatePicker
-              selected={endDate}
-              onChange={(d) => setEndDate(d)}
-              selectsEnd
-              startDate={date}
-              endDate={endDate}
-              minDate={date}
-              dateFormat="yyyy-MM-dd"
-              className="date-picker"
-            />
-          </Box>
+          <DatePicker
+            selected={date}
+            onChange={setDate}
+            customInput={
+              <TextField
+                size="small"
+                sx={{ width: 150 }}
+                placeholder="Start date"
+                InputProps={{
+                  startAdornment: (
+                    <CalendarMonthIcon sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+              />
+            }
+          />
 
-          <Button
-            variant="contained"
-            onClick={fetchReports}
-            disabled={loading}
-            sx={{
-              bgcolor: '#3b82f6',
-              color: 'white',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: { xs: 2.5, sm: 3 },
-              py: { xs: 1, sm: 1.2 },
-              borderRadius: 2,
-              boxShadow: '0 4px 6px rgba(59, 130, 246, 0.3)',
-              width: { xs: '50%', sm: 'auto' },
-              minWidth: { sm: '10px' },
-              fontSize: { xs: '0.875rem', sm: '1rem' },
-              '&:hover': {
-                bgcolor: '#2563eb',
-                boxShadow: '0 6px 8px rgba(59, 130, 246, 0.4)',
-              },
-            }}
-          >
-            {loading ? 'Fetching...' : 'Fetch Reports'}
-          </Button>
+          <Typography sx={{ color: "#94a3b8" }}>–</Typography>
+
+          <DatePicker
+            selected={endDate}
+            onChange={setEndDate}
+            minDate={date}
+            customInput={
+              <TextField
+                size="small"
+                sx={{ width: 150 }}
+                placeholder="End date"
+                InputProps={{
+                  startAdornment: (
+                    <CalendarMonthIcon sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+              />
+            }
+          />
         </Box>
       </Box>
 

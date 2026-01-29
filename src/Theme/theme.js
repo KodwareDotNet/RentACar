@@ -3,42 +3,54 @@ import { createTheme } from '@mui/material/styles';
 export const theme = createTheme({
   typography: {
     fontFamily: '"Rubik", sans-serif',
-    htmlFontSize: 10,
+    htmlFontSize: 10, 
+
+  
     h1: {
       fontFamily: '"Poppins", sans-serif',
-      fontSize: '5.2rem',
-      lineHeight: 1.2,
+      fontSize: '34px',  
+      lineHeight: '40px', 
+      fontWeight: 300,    
     },
     h2: {
       fontFamily: '"Poppins", sans-serif',
-      fontSize: '4.2rem',
-      lineHeight: 1.3,
+      fontSize: '26px',   
+      lineHeight: '36px', 
+      fontWeight: 300,    
     },
     h3: {
       fontFamily: '"Poppins", sans-serif',
-      fontSize: '2.4rem',
-      lineHeight: 1.4,
+      fontSize: '22px',   
+      lineHeight: '32px', 
+      fontWeight: 400,    
     },
     h4: {
       fontFamily: '"Poppins", sans-serif',
-      fontSize: '2.2rem',
-      lineHeight: 1.4,
+      fontSize: '18px',  
+      lineHeight: '26px', 
+      fontWeight: 400,    
     },
+
+    // Body text
     body1: {
-      fontSize: '1.6rem',
-      lineHeight: 1.6,
+      fontSize: '16px',   
+      lineHeight: '24px',
+      fontWeight: 400,   
     },
     body2: {
-      fontSize: '1.4rem',
-      lineHeight: 1.6,
+      fontSize: '14px',   
+      lineHeight: '20px',
+      fontWeight: 400,    
     },
   },
+
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
-          fontSize: '1.6rem',
+          fontSize: '14px',   // Google Material button text
+          fontWeight: 500,    // Medium
         },
       },
     },
@@ -46,7 +58,8 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           '& input': {
-            fontSize: '1.4rem',
+            fontSize: '16px', // standard input font size
+            fontWeight: 400,
           },
         },
       },
@@ -61,10 +74,11 @@ export const globalStyles = {
     boxSizing: 'border-box',
   },
   'html': {
-    fontSize: '62.5%',
+    fontSize: '10px',
   },
   'body': {
     fontFamily: '"Rubik", sans-serif',
-    fontSize: '1.6rem',
+    fontSize: '16px',
+    fontWeight: 400,
   },
 };

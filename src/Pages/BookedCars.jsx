@@ -6,7 +6,7 @@ import {
     FormControl, InputLabel, Select, MenuItem, IconButton
 } from '@mui/material';
 import {
-    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, FilterList,Schedule 
+    DirectionsCar, CalendarToday, Settings, Cancel, CheckCircle, FilterList, Schedule
 } from '@mui/icons-material';
 import bookCarsService from '../api/services/BookCars/bookCarsService';
 import BookACarModal from "../components/BookACarModal";
@@ -288,28 +288,28 @@ const BookedCarsPage = () => {
     };
 
     return (
-        <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: { xs: 2, sm: 3, md: 4 } }}>
+        <Box sx={{ bgcolor: '#ffffff', minHeight: '100vh', py: { xs: 2, sm: 3, md: 1 } ,ml:8 }}>
             <Container maxWidth="xl">
                 {/* Header Section */}
-                <Box sx={{ mb: { xs: 2, sm: 3, md: 4 }, mt: { xs: 2, sm: 4, md: 7 } }}>
+                <Box >
                     <Typography
                         variant="h3"
                         component="h1"
                         gutterBottom
                         sx={{
-                            fontWeight: 700,
-                            mb: 1,
+                            mb: 1, 
                             color: '#1a1a1a',
-                            fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3rem' }
+                            
                         }}
                     >
                         My Bookings
                     </Typography>
+
                     <Typography
                         variant="body1"
                         sx={{
                             color: '#666',
-                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                            
                         }}
                     >
                         View and manage your car rental bookings
@@ -318,7 +318,7 @@ const BookedCarsPage = () => {
 
                 {/* Filter Section */}
                 <Box sx={{
-                    mb: 3,
+                    mb: '8px',
                     bgcolor: 'white',
                     p: { xs: 0.5, sm: 1, md: 1.5 },
                     borderRadius: 2,

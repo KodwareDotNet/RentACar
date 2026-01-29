@@ -182,10 +182,9 @@ const MaintenancePage = () => {
 
     return (
         <Box sx={{
-            bgcolor: '#f5f5f5',
+            bgcolor: '#ffffff',
             minHeight: '100vh',
-            py: { xs: 2, sm: 3, md: 4 },
-            px: { xs: 1, sm: 2 }
+            ml: 8,
         }}>
             <Container
                 maxWidth="xl"
@@ -194,20 +193,15 @@ const MaintenancePage = () => {
                 }}
             >
                 {/* Header Section */}
-                <Box sx={{
-                    mb: { xs: 2, sm: 3, md: 4 },
-                    mt: { xs: 2, sm: 3, md: 4 }
-                }}>
+                <Box >
                     <Typography
                         variant="h3"
-                        component="h1"
+                        component="h3"
                         gutterBottom
                         sx={{
-                            fontWeight: 700,
-                            mb: 1,
+
                             color: '#1a1a1a',
-                            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem', lg: '3rem' },
-                            lineHeight: 1.2
+
                         }}
                     >
                         Vehicle Maintenance
@@ -306,9 +300,9 @@ const MaintenancePage = () => {
                 {/* Maintenance Grid */}
                 <Grid
                     container
-                    spacing={{ xs: 2, sm: 2.5, md: 3 }}
+                    spacing={{ xs: 0.5, sm: 1, md: 1.5 }}
                     sx={{
-                        mb: { xs: 3, sm: 4 }
+                        mb: { xs: 0.5, sm: 1, md: 1.5 }
                     }}
                 >
                     {filteredData.length > 0 ? filteredData.map((maintenance) => {
@@ -330,8 +324,7 @@ const MaintenancePage = () => {
                                         position: 'relative',
                                         flexDirection: 'column',
                                         height: '100%',
-                                        minHeight: { xs: 320, sm: 360, md: 380 },
-                                        maxHeight: { xs: 400, sm: 450, md: 480 },
+
                                         overflow: 'hidden',
                                         '&:hover': {
                                             boxShadow: 6,
@@ -354,7 +347,7 @@ const MaintenancePage = () => {
                                             image={maintenance.image}
                                             alt={maintenance.carName}
                                             sx={{
-                                                width: '100%',
+                                                width: { xs: 250, sm: 280, md: 240, lg: 290 },
                                                 height: { xs: 160, sm: 180, md: 200 },
                                                 objectFit: 'cover',
                                                 display: 'block'
@@ -425,12 +418,9 @@ const MaintenancePage = () => {
                                     }}>
                                         {/* Car Name */}
                                         <Typography
-                                            variant="h6"
+                                            variant="h4"
                                             sx={{
                                                 fontWeight: 700,
-                                                mb: { xs: 0.5, sm: 1 },
-                                                fontSize: { xs: '0.938rem', sm: '1.125rem', md: '1.25rem' },
-                                                lineHeight: 1.3,
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
                                                 display: '-webkit-box',
@@ -446,21 +436,20 @@ const MaintenancePage = () => {
 
                                         {/* Maintenance Details */}
                                         <Box sx={{
-                                            flex: 1,
+
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            gap: { xs: 0.5, sm: 0.75 }
+
                                         }}>
                                             <Typography
                                                 variant="body2"
                                                 color="text.secondary"
                                                 sx={{
-                                                    fontSize: { xs: '0.75rem', sm: '0.813rem', md: '0.875rem' },
-                                                    lineHeight: 1.5,
+
                                                     wordBreak: 'break-word'
                                                 }}
                                             >
-                                                <Box component="span" sx={{ fontWeight: 600 }}>
+                                                <Box component="span" >
                                                     Type:
                                                 </Box>{' '}
                                                 <Box
@@ -482,12 +471,11 @@ const MaintenancePage = () => {
                                                 variant="body2"
                                                 color="text.secondary"
                                                 sx={{
-                                                    fontSize: { xs: '0.75rem', sm: '0.813rem', md: '0.875rem' },
-                                                    lineHeight: 1.5,
+
                                                     wordBreak: 'break-word'
                                                 }}
                                             >
-                                                <Box component="span" sx={{ fontWeight: 600 }}>
+                                                <Box component="span" >
                                                     Maintenance date:
                                                 </Box>{' '}
                                                 {formatDate(maintenance.lastMaintenanceDate)}

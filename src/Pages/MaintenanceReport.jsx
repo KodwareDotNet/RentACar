@@ -13,6 +13,7 @@ import {
   TableRow,
   Menu,
   MenuItem,
+  TextField
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -20,6 +21,7 @@ import reportsService from "../api/services/Reports/reportsService";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
 import MaintenancePdf from "../components/MaintenancePdf";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 const MaintenanceReport = () => {
   const [date, setDate] = useState(new Date());
@@ -141,7 +143,7 @@ const MaintenanceReport = () => {
   };
 
   return (
-    <Box sx={{ p: 3, pt: 10, bgcolor: '#f8f9fa', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, pt: 1, bgcolor: '#ffffff', minHeight: '100vh', ml: 8 }}>
       {/* Page Title with Icon */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
         <Box
@@ -167,100 +169,97 @@ const MaintenanceReport = () => {
       {/* Filters Section */}
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'stretch', sm: 'center' },
+          display: "flex",
+          flexWrap: { xs: "wrap", md: "nowrap" },
+          alignItems: "center",
+          justifyContent: "space-between",
           bgcolor: 'white',
-          p: { xs: 2, sm: 2.5, md: 3 },
-          mb: 1,
-          borderRadius: 3,
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-          gap: { xs: 2, sm: 0 },
-          width: 'auto'
+          mb: 2,
+          gap: 2,
+          width: "100%",
         }}
       >
+        {/* Filters */}
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            alignItems: { xs: 'flex-start', sm: 'center' },
-            gap: { xs: 1.5, sm: 2 },
-            width: '100%',
-            flexWrap: 'wrap',
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            flexWrap: { xs: "wrap", sm: "nowrap" },
           }}
         >
           <Typography
             sx={{
               fontWeight: 600,
-              color: '#64748b',
-              fontSize: { xs: '0.875rem', sm: '1rem' },
-              minWidth: { xs: '100%', sm: 'auto' }
+              color: "#64748b",
+              fontSize: "0.95rem",
+              whiteSpace: "nowrap",
             }}
           >
             Date Range:
           </Typography>
 
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 1,
-              alignItems: 'center',
-              flexWrap: { xs: 'wrap', sm: 'nowrap' },
-              width: { xs: '100%', sm: 'auto' }
-            }}
-          >
-            <DatePicker
-              selected={date}
-              onChange={(d) => setDate(d)}
-              selectsStart
-              startDate={date}
-              endDate={endDate}
-              dateFormat="yyyy-MM-dd"
-              className="date-picker"
-            />
-            <Typography sx={{ color: '#94a3b8', px: { xs: 0.5, sm: 1 } }}>-</Typography>
-            <DatePicker
-              selected={endDate}
-              onChange={(d) => setEndDate(d)}
-              selectsEnd
-              startDate={date}
-              endDate={endDate}
-              minDate={date}
-              dateFormat="yyyy-MM-dd"
-              className="date-picker"
-            />
-          </Box>
+          <DatePicker
+            selected={date}
+            onChange={setDate}
+            customInput={
+              <TextField
+                size="small"
+                sx={{ width: 150 }}
+                placeholder="Start date"
+                InputProps={{
+                  startAdornment: (
+                    <CalendarMonthIcon sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+              />
+            }
+          />
 
-          <Button
-            variant="contained"
-            onClick={() => {
-              setCurrentPage(1);
-              fetchReports();
-            }}
-            disabled={loading}
-            sx={{
-              bgcolor: '#3b82f6',
-              color: 'white',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: { xs: 2.5, sm: 3 },
-              py: { xs: 1, sm: 1.2 },
-              borderRadius: 2,
-              boxShadow: '0 4px 6px rgba(59, 130, 246, 0.3)',
-              width: { xs: '50%', sm: 'auto' },
-              minWidth: { sm: '10px' },
-              fontSize: { xs: '0.875rem', sm: '1rem' },
-              '&:hover': {
-                bgcolor: '#2563eb',
-                boxShadow: '0 6px 8px rgba(59, 130, 246, 0.4)',
-              },
-            }}
-          >
-            {loading ? 'Fetching...' : 'Fetch Reports'}
-          </Button>
+          <Typography sx={{ color: "#94a3b8" }}>–</Typography>
+
+          <DatePicker
+            selected={endDate}
+            onChange={setEndDate}
+            minDate={date}
+            customInput={
+              <TextField
+                size="small"
+                sx={{ width: 150 }}
+                placeholder="End date"
+                InputProps={{
+                  startAdornment: (
+                    <CalendarMonthIcon sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+              />
+            }
+          />
         </Box>
+
+        {/* Action */}
+        <Button
+          variant="contained"
+          onClick={fetchReports}
+          disabled={loading}
+          sx={{
+            bgcolor: "#3b82f6",
+            textTransform: "none",
+            fontWeight: 600,
+            px: 3,
+            py: 1.1,
+            borderRadius: 2,
+            minWidth: 160,
+            whiteSpace: "nowrap",
+            "&:hover": {
+              bgcolor: "#2563eb",
+            },
+          }}
+        >
+          {loading ? "Fetching..." : "Fetch Reports"}
+        </Button>
       </Box>
+
 
       {/* PDF Dialog */}
       <Dialog open={openPdfDialog} onClose={() => setOpenPdfDialog(false)} fullWidth maxWidth="lg">
@@ -341,7 +340,7 @@ const MaintenanceReport = () => {
                 </Box>
                 <Box>
                   <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500, mb: 0.5 }}>
-                     Vehicles
+                    Vehicles
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
                     {summary?.totalBookings || 0}
@@ -744,7 +743,7 @@ const MaintenanceReport = () => {
         </Typography>
       </Box>
 
-     
+
     </Box>
   );
 };

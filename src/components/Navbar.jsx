@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -25,6 +25,7 @@ import AddPermissionModal from './AddPermissionModal';
 function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const [showAddUserModal, setshowAddUserModal] = useState(false);
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
@@ -119,15 +120,16 @@ function Navbar() {
     { label: 'Add Organization', onClick: toggleAddOrganizationModal, icon: 'bi-building-add' },
     { label: 'Add User', onClick: toggleAddUserModal, icon: 'bi-person-plus' },
     { label: 'Add Role', onClick: toggleAddRoleModal, icon: 'bi-shield-plus' },
-    { label: 'Organizations', path: 'organizationList', icon: 'bi-buildings' },
+    { label: 'Organizations', path: '/organizationList', icon: 'bi-buildings' },
     { label: 'Users', path: '/usersList', icon: 'bi-people' },
-    { label: 'Roles', path: 'rolesList', icon: 'bi-shield-check' },
+    { label: 'Roles', path: '/rolesList', icon: 'bi-shield-check' },
     { label: 'Permissions', onClick: toggleAddPermissionModal, icon: 'bi-key' },
-    { label: 'Booked Cars', path: 'bookedCarsPage', icon: 'bi-calendar-check' },
-    { label: 'Received Cars', path: 'receivedCarspage', icon: 'bi-clipboard-check' },
-    { label: 'Maintenance', path: 'maintenancePage', icon: 'bi-tools' },
-    { label: 'Booking Reports', path: 'reportsPage', icon: 'bi-file-earmark-bar-graph' },
-    { label: 'Maintenance Report', path: 'maintenanceReport', icon: 'bi-graph-up' }
+    { label: 'Booked Cars', path: '/bookedCarsPage', icon: 'bi-calendar-check' },
+    { label: 'Received Cars', path: '/receivedCarspage', icon: 'bi-clipboard-check' },
+    { label: 'Maintenance', path: '/maintenancePage', icon: 'bi-tools' },
+    { label: 'Booking Reports', path: '/reportsPage', icon: 'bi-file-earmark-bar-graph' },
+    { label: 'Maintenance Report', path: '/maintenanceReport', icon: 'bi-graph-up' },
+    { label: 'Customer History', path: '/customerHistory', icon: 'bi-clock-history' }
   ];
 
   const filterdNavItems = navItems.filter(item => {
@@ -154,10 +156,11 @@ function Navbar() {
         backgroundColor: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: { xs: 'flex-start', sm: 'center' },
         alignItems: 'flex-start',
         position: 'relative',
-        p: { xs: 2, sm: 3 },
+        pt: '4rem',
+        px: { xs: 2, sm: 3 },
+        overflowY: 'auto', // allows scrolling if items overflow
       }}
     >
       <IconButton
@@ -184,8 +187,7 @@ function Navbar() {
           textAlign: 'left',
           width: '100%',
           maxWidth: '100%',
-          px: { xs: 1, sm: 2 },
-          mt: { xs: 6, sm: 8 },
+
         }}
       >
         {filterdNavItems.map((item) => (
@@ -202,17 +204,18 @@ function Navbar() {
               sx={{
                 borderRadius: '8px',
                 py: 1,
-                px: 2,
+                px: 0,
+                color: location.pathname === item.path ? 'rgba(231, 40, 11, 0.63)' : 'transparent',
                 '&:hover': {
                   backgroundColor: 'rgba(255, 77, 48, 0.08)',
                 },
               }}
             >
               <ListItemIcon sx={{ minWidth: '40px' }}>
-                <i 
-                  className={item.icon} 
-                  style={{ 
-                    fontSize: '1.4rem', 
+                <i
+                  className={item.icon}
+                  style={{
+                    fontSize: '1.4rem',
                     color: '#010103',
                     transition: 'color 0.3s'
                   }}
@@ -221,10 +224,14 @@ function Navbar() {
               <ListItemText
                 primary={item.label}
                 sx={{
+                  color: location.pathname === item.path ? 'rgba(231, 40, 11, 0.63)' : 'transparent',
                   '& .MuiTypography-root': {
                     fontSize: '1.4rem',
-                    fontWeight: 400,
-                    color: '#010103',
+                    fontWeight: location.pathname === item.path ? 600 : 400,
+                    color:
+                      location.pathname === item.path
+                        ? '#ff4d30'
+                        : '#010103',
                     fontFamily: '"Rubik", sans-serif',
                     transition: 'all 0.3s',
                   },
@@ -284,21 +291,19 @@ function Navbar() {
   return (
     <>
       <AppBar
-        position="absolute"
+        position="sticky"
         elevation={0}
         sx={{
           backgroundColor: 'transparent',
           maxWidth: '133rem',
           width: '100%',
-          left: '50%',
-          transform: 'translateX(-50%)',
           top: 0,
         }}
       >
         <Toolbar
           sx={{
             justifyContent: 'space-between',
-            padding: '2.7rem 2rem',
+            padding: '16px 8px 8px 8px',
             minHeight: 'auto !important',
           }}
         >
@@ -334,7 +339,7 @@ function Navbar() {
                 fontSize: { xs: '1.4rem', md: '1.6rem' },
                 fontFamily: '"Rubik", sans-serif',
                 fontWeight: 500,
-                color: '#010103',
+                color: location.pathname === '/home' ? '#ff4d30' : '#010103',
                 textTransform: 'none',
                 padding: 0,
                 minWidth: 'auto',
@@ -355,7 +360,7 @@ function Navbar() {
                 fontSize: { xs: '1.4rem', md: '1.6rem' },
                 fontFamily: '"Rubik", sans-serif',
                 fontWeight: 500,
-                color: '#010103',
+                color: location.pathname === '/models' ? '#ff4d30' : '#010103',
                 textTransform: 'none',
                 padding: 0,
                 minWidth: 'auto',
@@ -403,10 +408,10 @@ function Navbar() {
         sx={{
           '& .MuiDrawer-paper': {
             width: {
-              xs: '70%',
-              sm: '45%',
-              md: '25%',
-              lg: '22%',
+              xs: '54%',
+              sm: '25%',
+              md: '20%',
+              lg: '15%',
             },
             boxSizing: 'border-box',
             display: 'flex',

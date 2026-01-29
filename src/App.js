@@ -12,6 +12,7 @@ import ReceivedCarsPage from "./Pages/ReceivedCars";
 import ReportsPage from "./Pages/ReportsPage";
 import MaintenancePage from "./Pages/MaintenancePage";
 import MaintenanceReport from "./Pages/MaintenanceReport";
+import CustomerHistory from "./Pages/CustomerHistory";
 import { ThemeProvider, GlobalStyles, CssBaseline } from '@mui/material';
 import { theme, globalStyles } from './Theme/theme';
 
@@ -45,6 +46,7 @@ function App() {
         <Route path="maintenancePage" element={<MaintenancePage />} />
         <Route path="reportsPage" element={<ReportsPage />} />
         <Route path="maintenanceReport" element={<MaintenanceReport />} />
+        <Route path="customerHistory" element={<CustomerHistory />} />
       </Routes>
       </ThemeProvider>
     </>

@@ -12,138 +12,140 @@ import {
 
 const CarCard = ({ car, onBook, onUpdate, onDelete, onMaintenance }) => {
     return (
-        <Card
-            sx={{
-                maxWidth: 320,
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 6
-                }
-            }}
-        >
-            <CardMedia
-                component="img"
-                height="180"
-                image={`${BASE_URL}${car.imageUrl}`}
-                alt={car.name}
-                sx={{ objectFit: 'cover' }}
-            />
-
-            <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                {/* Header with Name and Rating */}
-                <Box sx={{ mb: 1.5 }}>
-                    <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 0.5 }}>
-                        {car.carName}
-                    </Typography>
-                    <Rating value={5} size="small" readOnly />
-                </Box>
-
-                {/* Price */}
-                <Box sx={{ mb: 2, display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                    <Typography variant="h5" color="primary" sx={{ fontWeight: 700 }}>
-                        ${car.pricePerHour}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        per hour
-                    </Typography>
-                </Box>
-
-                {/* Car Details */}
-                <Grid container spacing={1} sx={{ mb: 2 }}>
-                    <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <DirectionsCar sx={{ fontSize: 16, color: 'text.secondary' }} />
-                            <Typography variant="body2" color="text.secondary">
-                                {car.brand}
-                            </Typography>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'flex-end' }}>
-                            <Typography variant="body2" color="text.secondary">
-                                4/5
-                            </Typography>
-                            <Speed sx={{ fontSize: 16, color: 'text.secondary' }} />
-                        </Box>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <DirectionsCar sx={{ fontSize: 16, color: 'text.secondary' }} />
-                            <Typography variant="body2" color="text.secondary">
-                                {car.transmission}
-                            </Typography>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'flex-end' }}>
-                            <Typography variant="body2" color="text.secondary">
-                                {car.fuel}
-                            </Typography>
-                            <LocalGasStation sx={{ fontSize: 16, color: 'text.secondary' }} />
-                        </Box>
-                    </Grid>
-                </Grid>
-
-                {/* Book Button */}
-                <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={onBook}
-                    sx={{
-                        mb: 1.5,
-                        py: 1,
-                        textTransform: 'none',
-                        fontWeight: 600
-                    }}
-                >
-                    Book Car
-                </Button>
-
-                {/* <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={onMaintenance}
-                    sx={{
-                        mb: 1.5,
-                        py: 1,
-                        textTransform: 'none',
-                        fontWeight: 600
-                    }}
-                >
-                    Send to Maintance
-                </Button> */}
-
-                {/* Action Buttons */}
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                    <IconButton
-                        size="small"
-                        onClick={onUpdate}
+        <Box sx={{ mb: 1 }}>
+            <Card
+                sx={{
+                    maxWidth: 320,
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 6
+                    }
+                }}
+            >
+                <Box sx={{ position: 'relative' }}>
+                    <CardMedia
+                        component="img"
+                        height="180"
+                        image={`${BASE_URL}${car.imageUrl}`}
+                        alt={car.name}
                         sx={{
-                            color: 'primary.main',
-                            '&:hover': { bgcolor: 'primary.lighter' }
+                            objectFit: 'cover',
+                             width: { xs: 250, sm: 280, md: 240, lg: 290 },
+                            height: { xs: 160, sm: 180, md: 200 },
                         }}
-                        title="Update"
-                    >
-                        <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                        size="small"
-                        onClick={onDelete}
+                    />
+
+                    {/* Action Buttons on Image */}
+                    <Box
                         sx={{
-                            color: 'error.main',
-                            '&:hover': { bgcolor: 'error.lighter' }
+                            position: 'absolute',
+                            top: 8,
+                            left: 8,
+                            display: 'flex',
+                            gap: 0.5,
+                            backgroundColor: 'transparent',
+                            borderRadius: 16,
+                            padding: '4px 6px',
                         }}
-                        title="Delete"
                     >
-                        <DeleteIcon fontSize="small" />
-                    </IconButton>
+                        <IconButton
+                            size="small"
+                            onClick={onUpdate}
+                            sx={{
+                                bgcolor: 'transparent',        // change per icon (primary / error / success)
+                                color: 'white',
+                                width: { xs: 32, sm: 36 },
+                                height: { xs: 32, sm: 36 },
+                                '&:hover': {
+                                    bgcolor: 'primary.dark',      // change per icon
+                                    transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s',
+                                boxShadow: 3,
+                            }}
+                            title="Update"
+                        >
+                            <EditIcon fontSize="small" />
+                        </IconButton>
+
+                        <IconButton
+                            size="small"
+                            onClick={onDelete}
+                            sx={{
+                                bgcolor: 'error.main',        // change per icon (primary / error / success)
+                                color: 'white',
+                                width: { xs: 32, sm: 36 },
+                                height: { xs: 32, sm: 36 },
+                                '&:hover': {
+                                    bgcolor: 'error.dark',      // change per icon
+                                    transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s',
+                                boxShadow: 3,
+                            }}
+                            title="Delete"
+                        >
+                            <DeleteIcon fontSize="small" />
+                        </IconButton>
+                    </Box>
                 </Box>
-            </CardContent>
-        </Card>
+
+
+                <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                    {/* Header with Name and Rating */}
+                    <Box >
+                        <Typography variant="h4" component="h3" sx={{ fontWeight: 600, mb: 0.5, display: 'flex', justifyContent: 'flex-start' }}>
+                            {car.carName}
+                        </Typography>
+                    </Box>
+
+                    {/* Price */}
+                    <Box sx={{ display: 'flex', alignItems: 'baseline' }}>
+                        <Typography variant="h5" color="primary" sx={{ fontWeight: 700 }}>
+                            {car.pricePerHour}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            per hour
+                        </Typography>
+                    </Box>
+
+                    {/* Car Details */}
+                    <Grid container spacing={1} >
+                        <Grid item xs={6}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: '2px' }}>
+                                <DirectionsCar sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                <Typography variant="body2" color="text.secondary">
+                                    {car.brand}
+                                </Typography>
+                            </Box>
+                        </Grid>
+
+                    </Grid>
+
+                    {/* Book Button */}
+                    <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={onBook}
+                        sx={{
+                            mb: 0.5,
+
+                            textTransform: 'none',
+                            fontWeight: 600
+                        }}
+                    >
+                        Book Car
+                    </Button>
+
+                    {/* Action Buttons */}
+
+                </CardContent>
+            </Card>
+        </Box>
     );
 };
 
