@@ -1,0 +1,304 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\controllers\\roomcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\controllers\\roomcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\views\\rooms.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\views\\rooms.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\views\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\views\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\models\\room.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\models\\room.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\views\\admin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\views\\admin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\views\\booking.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\views\\booking.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\views\\home.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\views\\home.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\repositories\\roomrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\repositories\\roomrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\repositories\\iroomrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\repositories\\iroomrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\models\\booking.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\models\\booking.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\controllers\\bookingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\controllers\\bookingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|c:\\users\\kodwa\\source\\repos\\rent-a-car\\rentacarapi\\hotel booking system\\hotel booking system\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{659264A5-FFA8-4E53-8152-FB9AE8CBDBEF}|Hotel Booking system\\Hotel Booking system.csproj|solutionrelative:hotel booking system\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:635697022:0:{83107a3e-496a-485e-b455-16ddb978e55e}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Details.cshtml",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Details.cshtml",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Views\\Details.cshtml",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Details.cshtml",
+              "RelativeToolTip": "Hotel Booking system\\Views\\Details.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-01-29T06:51:05.805Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Home\\Index.cshtml",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Views\\Home\\Index.cshtml",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Home\\Index.cshtml",
+              "RelativeToolTip": "Hotel Booking system\\Views\\Home\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACQAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-01-29T06:47:28.795Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Data\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Data\\ApplicationDbContext.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Data\\ApplicationDbContext.cs",
+              "RelativeToolTip": "Hotel Booking system\\Data\\ApplicationDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:39:13.83Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Admin.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Admin.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Views\\Admin.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Admin.cs",
+              "RelativeToolTip": "Hotel Booking system\\Views\\Admin.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:32:30.862Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Booking.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Booking.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Views\\Booking.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Booking.cs",
+              "RelativeToolTip": "Hotel Booking system\\Views\\Booking.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:32:19.231Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Rooms.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Rooms.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Views\\Rooms.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Rooms.cs",
+              "RelativeToolTip": "Hotel Booking system\\Views\\Rooms.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:31:30.646Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Home.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Home.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Views\\Home.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Views\\Home.cs",
+              "RelativeToolTip": "Hotel Booking system\\Views\\Home.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:28:05.987Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "RoomRepository.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Repositories\\RoomRepository.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Repositories\\RoomRepository.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Repositories\\RoomRepository.cs",
+              "RelativeToolTip": "Hotel Booking system\\Repositories\\RoomRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:27:48.388Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "IRoomRepository.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Repositories\\IRoomRepository.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Repositories\\IRoomRepository.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Repositories\\IRoomRepository.cs",
+              "RelativeToolTip": "Hotel Booking system\\Repositories\\IRoomRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:27:36.513Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Room.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Models\\Room.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Models\\Room.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Models\\Room.cs",
+              "RelativeToolTip": "Hotel Booking system\\Models\\Room.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:21:58.767Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "RoomController.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Controllers\\RoomController.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Controllers\\RoomController.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Controllers\\RoomController.cs",
+              "RelativeToolTip": "Hotel Booking system\\Controllers\\RoomController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:20:46.566Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Booking.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Models\\Booking.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Models\\Booking.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Models\\Booking.cs",
+              "RelativeToolTip": "Hotel Booking system\\Models\\Booking.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:22:11.497Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "User.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Models\\User.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Models\\User.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Models\\User.cs",
+              "RelativeToolTip": "Hotel Booking system\\Models\\User.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:21:42.03Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "AdminController.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Controllers\\AdminController.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Controllers\\AdminController.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Controllers\\AdminController.cs",
+              "RelativeToolTip": "Hotel Booking system\\Controllers\\AdminController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:21:23.913Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "BookingController.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Controllers\\BookingController.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Controllers\\BookingController.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Controllers\\BookingController.cs",
+              "RelativeToolTip": "Hotel Booking system\\Controllers\\BookingController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:21:04.292Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "Hotel Booking system\\Controllers\\AccountController.cs",
+              "ToolTip": "C:\\Users\\kodwa\\source\\repos\\Rent-a-car\\RentACarAPi\\Hotel Booking system\\Hotel Booking system\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "Hotel Booking system\\Controllers\\AccountController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T06:20:28.225Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

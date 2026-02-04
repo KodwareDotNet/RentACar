@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Hammad Hotel";
+}
+
+<style>
+    /* Shine effect for heading */
+    .shine {
+        font-size: 3rem;
+        font-weight: bold;
+        background: linear-gradient(90deg, #ffd700, #ffffff, #ffd700);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 200% auto;
+        animation: shine 2s linear infinite;
+    }
+
+    /* Glow effect for button */
+    .btn-glow {
+        background-color: #ffc107;
+        color: #fff;
+        font-weight: bold;
+        box-shadow: 0 0 10px #ffc107, 0 0 20px #ffc107;
+        transition: all 0.3s ease-in-out;
+    }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 20px #ffc107, 0 0 40px #ffd700;
+            transform: scale(1.1);
+        }
+</style>
+
+<div class="text-center mt-5">
+    <h1 class="shine">Welcome to LuxuryStay 5-Star Hotel</h1>
+    <p class="lead">Book your perfect stay with our luxurious rooms and facilities.</p>
+    <a href="/Room/Index" class="btn btn-glow btn-lg mt-3">View All Rooms</a>
+</div>
+}

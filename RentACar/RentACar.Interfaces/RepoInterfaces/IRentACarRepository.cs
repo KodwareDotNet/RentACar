@@ -41,6 +41,8 @@ namespace RentACar.Interfaces.RepoInterfaces
         //Task<bool> InsertCarMileageHistoryAsync(int receiveId);
         Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync();
         Task<MaintenanceReportPagedResponseDto> GetMaintenanceReports(MaintenanceReportRequestDto request);
+        Task<DefaulterDto> CheckDefaulterByCnic(string cnic);
+        Task<CustomerHistoryResponseDto> GetCustomerHistory(string cnic);
 
 
     }

@@ -78,6 +78,7 @@ namespace RentACar.Repository
                 new
                 {
                     Id = booking.Id == 0 ? (int?)null : booking.Id,
+
                     booking.FullName,
                     booking.FatherName,
                     booking.CNIC,
@@ -94,12 +95,21 @@ namespace RentACar.Repository
                     booking.PricePerUnit,
                     booking.PricingType,
                     booking.TotalAmount,
-                    booking.PickupMileage,      // 🆕 Mileage at pickup
-                    booking.MileageImageUrl     // 🆕 Mileage photo
+
+                    // 🆕 BOOKING TOTAL
+                    booking.BookingTotal,
+
+                    booking.PickupMileage,
+                    booking.MileageImageUrl,
+
+                    IsDriverRequired = booking.IsDriverRequired,
+                    DriverId = booking.DriverId,
+                    booking.DriverCharges
                 },
                 commandType: CommandType.StoredProcedure
             );
         }
+
 
         public async Task SaveAttachment(int bookingId, string fileName, string filePath, long fileSize)
         {
@@ -466,13 +476,18 @@ namespace RentACar.Repository
 
             var reports = await multi.ReadAsync<ReportDto>();
             var totalRecords = await multi.ReadSingleAsync<int>();
+            var summary = await multi.ReadSingleOrDefaultAsync<ReportSummaryDto>();
 
             return new ReportPagedResponseDto
             {
                 Data = reports,
-                TotalRecords = totalRecords
+                TotalRecords = totalRecords,
+                Summary = summary
             };
         }
+
+
+
 
 
 
@@ -555,6 +570,47 @@ namespace RentACar.Repository
             {
                 Data = reports,
                 TotalRecords = totalRecords
+            };
+        }
+        public async Task<DefaulterDto> CheckDefaulterByCnic(string cnic)
+        {
+            var result = await _connection.QueryFirstOrDefaultAsync(
+                "sp_CheckDefaulter",
+                new { CNIC = cnic },
+                commandType: CommandType.StoredProcedure
+            );
+
+            if (result == null)
+                return new DefaulterDto
+                {
+                    CNIC = cnic,
+                    IsDefaulter = false,
+                    Message = "Customer not found"
+                };
+
+            return new DefaulterDto
+            {
+                CNIC = cnic,
+                IsDefaulter = result.IsDefaulter,
+                Message = result.Message
+            };
+        }
+        public async Task<CustomerHistoryResponseDto> GetCustomerHistory(string cnic)
+        {
+            using var multi = await _connection.QueryMultipleAsync(
+                "sp_GetCustomerHistory",
+                new { CNIC = cnic },
+                commandType: CommandType.StoredProcedure
+            );
+
+            var summary = await multi.ReadFirstOrDefaultAsync<CustomerHistorySummaryDto>();
+            var history = (await multi.ReadAsync<CustomerBookingHistoryDto>()).ToList();
+
+            return new CustomerHistoryResponseDto
+            {
+                CNIC = cnic,
+                Summary = summary,
+                History = history
             };
         }
     }

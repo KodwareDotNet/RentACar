@@ -247,5 +247,14 @@ namespace RentACar.Service
         {
             return await _carRepo.GetCarMileageDetailsAsync();
         }
+
+        public async Task<DefaulterDto> CheckDefaulter(string cnic)
+        {
+            return await _carRepo.CheckDefaulterByCnic(cnic);
+        }
+     public async Task<CustomerHistoryResponseDto> GetCustomerHistory(string cnic)
+        {
+            return await _carRepo.GetCustomerHistory(cnic);
+        }
     }
 }

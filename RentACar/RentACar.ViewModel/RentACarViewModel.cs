@@ -32,6 +32,7 @@ public class ReportDto
     public decimal Amount { get; set; }
     public decimal DamageCharges { get; set; }
     public DateTime CreatedAt { get; set; }
+    public decimal DriverCharges { get; set; }
 }
 
 public class ReportRequestDto
@@ -45,8 +46,16 @@ public class ReportRequestDto
     public int PageSize { get; set; } = 10;
     public string? Month { get; set; } // Format: 2026-01
 }
+
+public class ReportSummaryDto
+{
+    public decimal TotalBookingAmount { get; set; }
+    public decimal TotalDriverCharges { get; set; }
+}
+
 public class ReportPagedResponseDto
 {
     public IEnumerable<ReportDto> Data { get; set; } = new List<ReportDto>();
     public int TotalRecords { get; set; }
+    public ReportSummaryDto? Summary { get; set; }
 }

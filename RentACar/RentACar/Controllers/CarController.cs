@@ -18,6 +18,7 @@ namespace NewsApi.Controllers
         private readonly IConfiguration _configuration;
         private readonly IRentACarMap _rentACarMap;
         private object totalAmount;
+        private decimal? driverCharges;
 
         public CarController(IConfiguration configuration, IRentACarMap rentACarMap)
         {
@@ -64,14 +65,14 @@ namespace NewsApi.Controllers
         public async Task<IActionResult> BookCar([FromForm] BookCarDto dto)
         {
             string carImagePath = dto.CarImageUrl;
-            string mileageImagePath = null;  // 🆕
+            string mileageImagePath = null;
 
             var uploadRoot = @"C:\Users\kodwa\source\repos\Rent-a-car\RentACarAPi\RentACar\RentACar\bin\Debug\net8.0\UploadedFiles\Bookings";
 
             if (!Directory.Exists(uploadRoot))
                 Directory.CreateDirectory(uploadRoot);
 
-            // 🆕 Upload Mileage Image
+            // Upload Mileage Image
             if (dto.MileageImage != null && dto.MileageImage.Length > 0)
             {
                 var mileageFileName = $"mileage_{Guid.NewGuid()}{Path.GetExtension(dto.MileageImage.FileName)}";
@@ -99,12 +100,18 @@ namespace NewsApi.Controllers
                 carImagePath = $"/Images/Bookings/{fileName}";
             }
 
-            // 🆕 Validate Mileage
+            // Validate Mileage
             if (dto.PickupMileage.HasValue && dto.PickupMileage.Value < 0)
-            {
                 return BadRequest(new { success = false, message = "Mileage cannot be negative" });
-            }
 
+            // Handle DriverId safely
+            int? driverId = dto.IsDriverRequired ? dto.DriverId : null;
+
+            // ✅ HANDLE DRIVER CHARGES (THIS WAS MISSING)
+            decimal? driverCharges = dto.IsDriverRequired ? dto.DriverCharges : null;
+            decimal? bookingTotal = dto.BookingTotal;
+
+            // Map DTO to Model
             var booking = new CarBooking
             {
                 Id = dto.Id,
@@ -124,9 +131,18 @@ namespace NewsApi.Controllers
                 PricePerUnit = dto.PricePerUnit,
                 PricingType = dto.PricingType,
                 TotalAmount = dto.TotalAmount,
-                PickupMileage = dto.PickupMileage,      // 🆕
-                MileageImageUrl = mileageImagePath      // 🆕
+                PickupMileage = dto.PickupMileage,
+                MileageImageUrl = mileageImagePath,
+                IsDriverRequired = dto.IsDriverRequired,
+                DriverId = driverId,
+                BookingTotal = bookingTotal,
+
+                // ✅ NOW IT WILL COME
+                DriverCharges = driverCharges
+
             };
+
+
 
             // Create or Update Booking
             int bookingId = await _rentACarMap.BookCarAndReturnId(booking);
@@ -134,13 +150,11 @@ namespace NewsApi.Controllers
             if (bookingId <= 0)
                 return BadRequest(new { success = false, message = "Operation failed" });
 
-            // Delete Old Attachments (for Update only)
+            // Delete Old Attachments (for Update)
             if (dto.DeleteAttachmentIds != null && dto.DeleteAttachmentIds.Any())
             {
                 foreach (var attachmentId in dto.DeleteAttachmentIds)
-                {
                     await _rentACarMap.DeleteAttachment(attachmentId);
-                }
             }
 
             // Upload New Attachments
@@ -152,9 +166,7 @@ namespace NewsApi.Controllers
                     var fullPath = Path.Combine(uploadRoot, fileName);
 
                     using (var stream = new FileStream(fullPath, FileMode.Create))
-                    {
                         await file.CopyToAsync(stream);
-                    }
 
                     await _rentACarMap.SaveAttachment(
                         bookingId,
@@ -169,11 +181,15 @@ namespace NewsApi.Controllers
             {
                 success = true,
                 message = dto.Id > 0 ? "Booking updated successfully" : "Car booked successfully",
-                bookingId = bookingId,
+                bookingId,
                 totalAmount = dto.TotalAmount,
-                pickupMileage = dto.PickupMileage  // 🆕
+                pickupMileage = dto.PickupMileage,
+                isDriverRequired = dto.IsDriverRequired,
+                driverId = driverId
             });
         }
+
+
         // Controller
         [HttpGet("GetAllBookings")]
         public async Task<IActionResult> GetAllBookings(
@@ -533,6 +549,31 @@ namespace NewsApi.Controllers
             };
 
             var result = await _rentACarMap.GetMaintenanceReports(request);
+            return Ok(result);
+        }
+        [HttpGet("CheckDefaulter")]
+        public async Task<IActionResult> CheckDefaulter([FromQuery] string cnic)
+        {
+            if (string.IsNullOrEmpty(cnic))
+                return BadRequest(new { success = false, message = "CNIC is required" });
+
+            var result = await _rentACarMap.CheckDefaulter(cnic);
+
+            return Ok(new
+            {
+                success = true,
+                cnic,
+                isDefaulter = result.IsDefaulter,
+                message = result.Message
+            });
+        }
+        [HttpGet("CustomerHistory")]
+        public async Task<IActionResult> GetHistory([FromQuery] string cnic)
+        {
+            if (string.IsNullOrWhiteSpace(cnic))
+                return BadRequest("CNIC is required");
+
+            var result = await _rentACarMap.GetCustomerHistory(cnic);
             return Ok(result);
         }
     }

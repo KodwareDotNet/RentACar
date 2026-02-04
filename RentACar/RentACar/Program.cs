@@ -51,6 +51,7 @@ builder.Services.AddScoped<IRentACarMap, RentACarMap>();
 
 
 
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

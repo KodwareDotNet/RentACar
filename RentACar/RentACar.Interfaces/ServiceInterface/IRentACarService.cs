@@ -43,6 +43,8 @@ namespace RentACar.Interfaces.ServiceInterface
         //Task<ApiResponse<bool>> InsertCarMileageHistoryAsync(int receiveId);
         Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync();
         Task<MaintenanceReportPagedResponseDto> GetMaintenanceReports(MaintenanceReportRequestDto request);
+        Task<DefaulterDto> CheckDefaulter(string cnic);
+        Task<CustomerHistoryResponseDto> GetCustomerHistory(string cnic);
 
 
     }

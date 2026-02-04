@@ -30,5 +30,17 @@ namespace RentACar.Models
         public decimal? TotalAmount { get; set; }
         public decimal? PickupMileage { get; set; }
         public string MileageImageUrl { get; set; }
+        public bool IsDriverRequired { get; set; }
+
+        public string? DriverName { get; set; }
+        public string? DriverCNIC { get; set; }
+        public bool? HasLicense { get; set; }
+        public int? DriverId { get; set; }
+        public decimal? DriverCharges { get; set; }
+        public decimal? BookingTotal { get; set; }   // 🆕
+
+
+
+
     }
 }

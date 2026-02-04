@@ -69,6 +69,7 @@ namespace RentACar.Map
             return await _rentService.BookCarAndReturnId(booking);
         }
 
+
         public async Task SaveAttachment(int bookingId, string fileName, string filePath, long fileSize)
         {
             await _rentService.SaveAttachment(bookingId, fileName, filePath, fileSize);
@@ -184,20 +185,7 @@ namespace RentACar.Map
 
         public async Task CancelMaintenance(int maintenanceId)
             => await _rentService.CancelMaintenance(maintenanceId);
-        //    public async Task<ApiResponse<bool>> InsertCarMileageHistoryAsync(int receiveId)
-        //    {
-        //        return await _rentService.InsertCarMileageHistoryAsync(receiveId);
-        //    }
-        //}
-        //}
-        //        public async Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync()
-        //        {
-        //            var result = await _rentService.GetCarMileageDetailsAsync();
-        //            // mapping if needed
-        //            //return _mapper.Map<IEnumerable<CarMileageDto>>(result);
-        //        }
-        //    }
-        //}
+
         public async Task<IEnumerable<CarMileageDto>> GetCarMileageDetailsAsync()
         {
             var result = await _rentService.GetCarMileageDetailsAsync();
@@ -207,5 +195,13 @@ namespace RentACar.Map
         {
             return await _rentService.GetMaintenanceReports(request);
         }
-    }
+        public async Task<DefaulterDto> CheckDefaulter(string cnic)
+        {
+            return await _rentService.CheckDefaulter(cnic);
+        }
+        public async Task<CustomerHistoryResponseDto> GetCustomerHistory(string cnic)
+        {
+            return await _rentService.GetCustomerHistory(cnic);
+        }
+}
 }

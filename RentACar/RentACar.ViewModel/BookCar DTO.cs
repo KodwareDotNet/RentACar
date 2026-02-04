@@ -32,6 +32,17 @@ namespace RentACar.ViewModel
         public decimal? TotalAmount { get; set; }
         public decimal? PickupMileage { get; set; }
         public IFormFile? MileageImage { get; set; }
+        // Driver related fields
+        public bool IsDriverRequired { get; set; } = false;
+        public string? DriverName { get; set; }
+        public string? DriverCNIC { get; set; }
+        public bool? HasLicense { get; set; } = false;
+        public int? DriverId { get; set; } // optional, agar update ho rahi ho to
+        public decimal? DriverCharges { get; set; }
+        public decimal? BookingTotal { get; set; }
+
+
+
 
         // File Uploads
 

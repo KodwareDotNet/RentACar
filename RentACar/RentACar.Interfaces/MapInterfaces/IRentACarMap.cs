@@ -40,6 +40,8 @@ namespace RentACar.Repositories.Services.Interfaces
         Task<MaintenanceReportPagedResponseDto> GetMaintenanceReports(MaintenanceReportRequestDto request);
 
         Task AddOrUpdateMaintenance(CompleteMaintenanceDto dto);
+        Task<DefaulterDto> CheckDefaulter(string cnic);
+        Task<CustomerHistoryResponseDto> GetCustomerHistory(string cnic);
 
     }
 
