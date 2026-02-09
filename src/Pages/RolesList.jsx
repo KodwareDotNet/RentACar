@@ -81,7 +81,7 @@ function RolesList() {
       sx={{
         padding: { xs: '2rem 1rem', md: '3rem 2rem' },
         maxWidth: '1400px',
-        margin: '0 auto',
+        ml:8
       }}
     >
       <Box
@@ -89,8 +89,6 @@ function RolesList() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '3rem',
-          marginTop: '5rem',
         }}
       >
         <Typography

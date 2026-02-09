@@ -7,25 +7,25 @@ export const theme = createTheme({
 
   
     h1: {
-      fontFamily: '"Poppins", sans-serif',
+      fontFamily: '"Rubik", sans-serif',
       fontSize: '34px',  
       lineHeight: '40px', 
       fontWeight: 300,    
     },
     h2: {
-      fontFamily: '"Poppins", sans-serif',
+      fontFamily: '"Rubik", sans-serif',
       fontSize: '26px',   
       lineHeight: '36px', 
       fontWeight: 300,    
     },
     h3: {
-      fontFamily: '"Poppins", sans-serif',
+      fontFamily: '"Rubik", sans-serif',
       fontSize: '22px',   
       lineHeight: '32px', 
       fontWeight: 400,    
     },
     h4: {
-      fontFamily: '"Poppins", sans-serif',
+      fontFamily: '"Rubik", sans-serif',
       fontSize: '18px',  
       lineHeight: '26px', 
       fontWeight: 400,    

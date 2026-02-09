@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -10,9 +10,9 @@ import {
     Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import addUserService from "../api/services/AddUser/addUserService";
+import userService from "../api/services/AddUser/userService";
 
-function AddUserModal({ modal, openModal, confirmAdding }) {
+function AddUserModal({ modal, openModal, confirmAdding, editingUser }) {
     const [userData, setUserData] = useState({
         username: "",
         email: "",
@@ -21,6 +21,17 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
         role: "",
     });
     const [errors, setErrors] = useState({});
+    useEffect(() => {
+    if (editingUser) {
+      setUserData({
+        username: editingUser.name || "",
+        email: editingUser.email || "",
+        password: "", // leave empty or handle separately
+        organizationId: editingUser.organizationId || "",
+        role: editingUser.role || "",
+      });
+    }
+  }, [editingUser]);
 
     const handleChange = (field, value) => {
         setUserData({ ...userData, [field]: value });
@@ -43,36 +54,33 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async () => {
-        if (validateForm()) {
-            try {
-                const res = await addUserService.addUser(userData);
-                console.log("user added Successfully", res);
-                confirmAdding(userData);
-                
-                alert("User Added");
-                setUserData({
-                    username: "",
-                    email: "",
-                    password: "",
-                    organizationId: "",
-                    role: "",
-                });
-                openModal(false);
-            } catch (err) {
-                alert("Error Adding User: " + err.message);
-                
-                setUserData({
-                    username: "",
-                    email: "",
-                    password: "",
-                    organizationId: "",
-                    role: "",
-                });
-                openModal(false);
-            }
+     const handleSubmit = async () => {
+    if (validateForm()) {
+      try {
+        if (editingUser) {
+          // Update user
+          await userService.updateUser(editingUser.id, userData);
+          alert("User updated successfully");
+        } else {
+          // Add new user
+          await userService.addUser(userData);
+          alert("User added successfully");
         }
-    };
+
+        confirmAdding(userData);
+        setUserData({
+          username: "",
+          email: "",
+          password: "",
+          organizationId: "",
+          role: "",
+        });
+        openModal(false);
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+  };
 
     // Shared TextField styles
     const textFieldStyles = {
@@ -119,7 +127,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                         fontFamily: '"Rubik", sans-serif',
                     }}
                 >
-                    Add New User
+                   {editingUser ? "Edit User" : "Add New User"}
                 </Typography>
                 <IconButton
                     onClick={() => openModal(false)}
@@ -262,7 +270,7 @@ function AddUserModal({ modal, openModal, confirmAdding }) {
                                 },
                             }}
                         >
-                            Add User
+                            {editingUser ? "Update User" : "Add User"}
                         </Button>
                     </Box>
                 </Box>

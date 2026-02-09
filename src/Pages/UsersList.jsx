@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -14,77 +14,73 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import userService from "../api/services/AddUser/userService";
+import AddUserModal from "../components/AddUserModal"
 
 function UsersList() {
-  const users = [
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      phone: '+1 234 567 8900',
-      role: 'Admin',
-      avatar: 'JS'
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@example.com',
-      phone: '+1 234 567 8901',
-      role: 'Manager',
-      avatar: 'SJ'
-    },
-    {
-      id: 3,
-      name: 'Michael Brown',
-      email: 'michael.b@example.com',
-      phone: '+1 234 567 8902',
-      role: 'User',
-      avatar: 'MB'
-    },
-    {
-      id: 4,
-      name: 'Emily Davis',
-      email: 'emily.davis@example.com',
-      phone: '+1 234 567 8903',
-      role: 'User',
-      avatar: 'ED'
-    },
-    {
-      id: 5,
-      name: 'David Wilson',
-      email: 'david.w@example.com',
-      phone: '+1 234 567 8904',
-      role: 'Manager',
-      avatar: 'DW'
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+  });
+  const [editId, setEditId] = useState(null);
+ 
+  // 🔹 Fetch all users
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await userService.getUsers();
+      setUsers(data); // store all users here
+    } catch (err) {
+      console.error(err.message);
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const handleEdit = (userId) => {
-    console.log('Edit user:', userId);
-    // Add your edit logic here
   };
 
-  const handleDelete = (userId) => {
-    console.log('Delete user:', userId);
-    // Add your delete logic here
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // 🔹 Delete user
+  const handleDelete = async (id) => {
+    try {
+      await userService.deleteUser(id);
+      fetchUsers(); // refresh list after delete
+    } catch (err) {
+      console.error(err.message);
+    }
   };
+  const handleEditClick = (user) => {
+    setEditingUser(user);
+    setModalOpen(true);
+  };
+
+  const handleUserUpdated = (updatedUserData) => {
+    setModalOpen(false);
+    fetchUsers(); // refresh table
+    setEditingUser(null);
+  };
+
 
   return (
     <Box
       sx={{
-        padding: { xs: '2rem 1rem', md: '3rem 2rem' },
+        padding: 1,
         maxWidth: '1400px',
-        margin: '0 auto',
+        ml: 10,
       }}
     >
       <Typography
+        varaiant={"h3"}
+        component={"h1"}
         sx={{
-          fontSize: { xs: '2.5rem', md: '3rem' },
-          fontWeight: 600,
           color: '#010103',
           fontFamily: '"Rubik", sans-serif',
-          marginBottom: '3rem',
-          marginTop: '5rem',
+          mb: 1
         }}
       >
         Users List
@@ -115,7 +111,7 @@ function UsersList() {
                   fontWeight: 600,
                   color: '#010103',
                   fontFamily: '"Rubik", sans-serif',
-                  padding: '2rem 1.5rem',
+                  padding: 1,
                 }}
               >
                 User
@@ -126,7 +122,7 @@ function UsersList() {
                   fontWeight: 600,
                   color: '#010103',
                   fontFamily: '"Rubik", sans-serif',
-                  padding: '2rem 1.5rem',
+                  padding: 1,
                   display: { xs: 'none', sm: 'table-cell' },
                 }}
               >
@@ -138,7 +134,7 @@ function UsersList() {
                   fontWeight: 600,
                   color: '#010103',
                   fontFamily: '"Rubik", sans-serif',
-                  padding: '2rem 1.5rem',
+                  padding: 1,
                   display: { xs: 'none', md: 'table-cell' },
                 }}
               >
@@ -150,7 +146,7 @@ function UsersList() {
                   fontWeight: 600,
                   color: '#010103',
                   fontFamily: '"Rubik", sans-serif',
-                  padding: '2rem 1.5rem',
+                  padding: 1,
                 }}
               >
                 Role
@@ -162,7 +158,7 @@ function UsersList() {
                   fontWeight: 600,
                   color: '#010103',
                   fontFamily: '"Rubik", sans-serif',
-                  padding: '2rem 1.5rem',
+                  padding: 1,
                 }}
               >
                 Actions
@@ -184,7 +180,7 @@ function UsersList() {
               >
                 <TableCell
                   sx={{
-                    padding: '1.5rem',
+                    padding: 1,
                   }}
                 >
                   <Box
@@ -264,7 +260,7 @@ function UsersList() {
                     }}
                   >
                     <IconButton
-                      onClick={() => handleEdit(user.id)}
+                      onClick={() => handleEditClick(user)}
                       sx={{
                         color: '#2196f3',
                         transition: 'all 0.3s',
@@ -296,6 +292,12 @@ function UsersList() {
           </TableBody>
         </Table>
       </TableContainer>
+      <AddUserModal
+        modal={modalOpen}
+        openModal={setModalOpen}
+        confirmAdding={handleUserUpdated}
+         editingUser={editingUser}
+      />
     </Box>
   );
 }

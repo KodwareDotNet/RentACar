@@ -15,6 +15,8 @@ import MaintenanceReport from "./Pages/MaintenanceReport";
 import CustomerHistory from "./Pages/CustomerHistory";
 import { ThemeProvider, GlobalStyles, CssBaseline } from '@mui/material';
 import { theme, globalStyles } from './Theme/theme';
+import ProtectedLayout from "./routes/ProtectedLayout";
+
 
 function App() {
   const location = useLocation();
@@ -32,6 +34,8 @@ function App() {
       <Routes>
         <Route index path="/" element={<LoginPage />} />
         <Route index path="/loginPage" element={<LoginPage />} />
+
+        <Route element={<ProtectedLayout />}>
         <Route path="/home" element={<Home />} />
         {/* <Route path="about" element={<About />} /> */}
         <Route path="models" element={<Models />} />
@@ -47,6 +51,7 @@ function App() {
         <Route path="reportsPage" element={<ReportsPage />} />
         <Route path="maintenanceReport" element={<MaintenanceReport />} />
         <Route path="customerHistory" element={<CustomerHistory />} />
+        </Route>
       </Routes>
       </ThemeProvider>
     </>
