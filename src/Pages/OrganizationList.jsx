@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import AddOrganizationModal from '../components/AddOrganizationModal';
 import {
   Box,
   Typography,
@@ -13,36 +14,47 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import addOrganizationService from '../api/services/AddOrganization/addOrganizationService'; 
+import addOrganizationService from '../api/services/AddOrganization/addOrganizationService';
 
 
 
 function OrganizationList() {
 
-  const [organizationsList, setOrganizationsList]= useState([]);
+  const [organizationsList, setOrganizationsList] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [selectedOrg, setSelectedOrg] = useState(null); // for edit
+  const [isEdit, setIsEdit] = useState(false);
 
   const Organizations = async () => {
     try {
       const res = await addOrganizationService.getOrganization();
-      setOrganizationsList (res.data || []);
-}
-catch(err){
-  console.error("failed ",err)
-}
+      setOrganizationsList(res.data || []);
+    }
+    catch (err) {
+      console.error("failed ", err)
+    }
   }
 
- useEffect(() => {
-    Organizations();  
+  useEffect(() => {
+    Organizations();
   }, []);
 
-  const handleEdit = (userId) => {
-    console.log('Edit user:', userId);
-    // Add your edit logic here
+  const openAddModal = () => {
+    setSelectedOrg(null);
+    setIsEdit(false);
+    setModal(true);
   };
 
-  const handleDelete = (userId) => {
-    console.log('Delete user:', userId);
-    // Add your delete logic here
+  const handleEdit = (org) => {
+    setSelectedOrg(org);
+    setIsEdit(true);
+    setModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    await addOrganizationService.deleteOrganization(id);
+    alert("Deleted");
+    Organizations();
   };
 
   return (
@@ -164,7 +176,7 @@ catch(err){
                     }}
                   >
                     <IconButton
-                      onClick={() => handleEdit(organizations.id)}
+                      onClick={() => handleEdit(organizations)}
                       sx={{
                         color: '#2196f3',
                         transition: 'all 0.3s',
@@ -196,6 +208,14 @@ catch(err){
           </TableBody>
         </Table>
       </TableContainer>
+      <AddOrganizationModal
+        modal={modal}
+        openModal={() => setModal(false)}
+        confirmAdding={Organizations}
+        selectedOrg={selectedOrg}
+        isEdit={isEdit}
+      />
+
     </Box>
   );
 }

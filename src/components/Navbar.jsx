@@ -123,7 +123,7 @@ function Navbar() {
     { label: 'Organizations', path: '/organizationList', icon: 'bi-buildings' },
     { label: 'Users', path: '/usersList', icon: 'bi-people' },
     { label: 'Roles', path: '/rolesList', icon: 'bi-shield-check' },
-    { label: 'Permissions', onClick: toggleAddPermissionModal, icon: 'bi-key' },
+    // { label: 'Permissions', onClick: toggleAddPermissionModal, icon: 'bi-key' },
     { label: 'Booked Cars', path: '/bookedCarsPage', icon: 'bi-calendar-check' },
     { label: 'Received Cars', path: '/receivedCarspage', icon: 'bi-clipboard-check' },
     { label: 'Maintenance', path: '/maintenancePage', icon: 'bi-tools' },
@@ -136,11 +136,12 @@ function Navbar() {
     if (item.label === "Add User" && userType === "1") {
       return false;
     }
-    else if (item.label === "Add Organization" && userType === "2") {
+    else if (  userType === "2"&& (item.label === "Add Organization" || item.label === "Organizations"|| item.label === "Roles" )) {
       return false;
     }
     else if (userType === "3" && (item.label === "Add Organization" || item.label === "Add User" ||
-      item.label === "Add Role" || item.label === "Add Car" || item.label === "Users" || item.label === "Roles")) {
+      item.label === "Add Role" || item.label === "Add Car" || item.label === "Users" || item.label === "Roles" 
+      || item.label === "Permissions" || item.label === "Organizations")) {
       return false;
     }
     else {

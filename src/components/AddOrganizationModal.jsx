@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -11,14 +11,20 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import addOrganizationService from "../api/services/AddOrganization/addOrganizationService";
+import addRoleService from '../api/services/AddRole/addRoleService';
+import addPermissionService from "../api/services/AddPermission/addPermissionService";
 
-function AddOrganizationModal({ modal, openModal, confirmAdding }) {
+function AddOrganizationModal({ modal, openModal, confirmAdding, selectedOrg, isEdit }) {
+    const [roles, setRoles] = useState([]);
+    const [permissions, setPermissions] = useState([]);
     const [organizationData, setOrganizationData] = useState({
         name: "",
         email: "",
         password: "",
         phone: "",
         address: "",
+        roles: [],
+        permissionIds: [],
     });
     const [errors, setErrors] = useState({});
 
@@ -28,6 +34,47 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
             setErrors({ ...errors, [field]: "" });
         }
     };
+
+    useEffect(() => {
+        if (modal) {
+            const fetchRoles = async () => {
+                try {
+                    const res = await addRoleService.getRoles();
+                    setRoles(res.data);
+                } catch (err) {
+                    console.log("Error fetching roles", err);
+                }
+            };
+
+            fetchRoles();
+        }
+    }, [modal]);
+
+    const handleRoleToggle = (role) => {
+        const exists = organizationData.roles.some(r => r.key === role.roleId);
+
+        if (exists) {
+            // Remove role
+            setOrganizationData({
+                ...organizationData,
+                roles: organizationData.roles.filter(r => r.key !== role.roleId),
+            });
+        } else {
+            // Add role in KeyValue format
+            setOrganizationData({
+                ...organizationData,
+                roles: [
+                    ...organizationData.roles,
+                    {
+                        key: role.roleId,
+                        value: role.roleName,
+                    },
+                ],
+            });
+        }
+    };
+
+
 
     const validateForm = () => {
         const newErrors = {};
@@ -43,29 +90,35 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
         return Object.keys(newErrors).length === 0;
     };
 
+    useEffect(() => {
+        if (isEdit && selectedOrg) {
+            setOrganizationData({
+                name: selectedOrg.name || "",
+                email: selectedOrg.email || "",
+                password: "", // usually not sent back
+                phone: selectedOrg.phone || "",
+                address: selectedOrg.address || "",
+            });
+        }
+    }, [selectedOrg, isEdit]);
+
+
     const handleSubmit = async () => {
         if (validateForm()) {
             try {
-                const res = await addOrganizationService.addOrganization(organizationData);
-                console.log("Organization added ", res);
-                if (res) {
-                    openModal();
-                    alert("Added");
+                if (isEdit) {
+                    await addOrganizationService.updateOrganization(
+                        selectedOrg.id,
+                        organizationData
+                    );
+                    alert("Organization Updated");
+                } else {
+                    await addOrganizationService.addOrganization(organizationData);
+                    alert("Organization Added");
                 }
-                confirmAdding(organizationData);
-                
-                setOrganizationData({
-                    name: "",
-                    email: "",
-                    password: "",
-                    phone: "",
-                    address: "",
-                });
-            } catch (err) {
-                console.error("error", err);
+
+                confirmAdding(); // refresh list
                 openModal();
-                alert("Error Adding");
-                
                 setOrganizationData({
                     name: "",
                     email: "",
@@ -73,9 +126,13 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
                     phone: "",
                     address: "",
                 });
+
+            } catch (err) {
+                alert("Error");
             }
         }
     };
+
 
     // Shared TextField styles
     const textFieldStyles = {
@@ -122,7 +179,7 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
                         fontFamily: '"Rubik", sans-serif',
                     }}
                 >
-                    Add Organization
+                    {isEdit ? "Edit Organization" : "Add Organization"}
                 </Typography>
                 <IconButton
                     onClick={openModal}
@@ -218,6 +275,33 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
                         />
                     </Box>
 
+                    <Box sx={{ marginBottom: "16px" }}>
+                        <Typography
+                            variant="subtitle1"
+                            sx={{ fontWeight: 600, marginBottom: "8px" }}
+                        >
+                            Select Roles
+                        </Typography>
+
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            {roles.map((role) => (
+                                <Box
+                                    key={role.roleId}
+                                    sx={{ display: "flex", alignItems: "center" }}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={organizationData.roles.some(r => r.key === role.roleId)}
+                                        onChange={() => handleRoleToggle(role)}
+                                    />
+                                    <Typography sx={{ marginLeft: "8px" }}>
+                                        {role.roleName}
+                                    </Typography>
+                                </Box>
+                            ))}
+                        </Box>
+                    </Box>
+
                     {/* Action Buttons */}
                     <Box
                         sx={{
@@ -266,7 +350,7 @@ function AddOrganizationModal({ modal, openModal, confirmAdding }) {
                                 },
                             }}
                         >
-                            Add Organization
+                            {isEdit ? "Update Organization" : "Add Organization"}
                         </Button>
                     </Box>
                 </Box>

@@ -15,7 +15,7 @@ const userService = {
   // ✅ Get All Users
   getUsers: async () => {
     try {
-      const res = await api.get("User/GetUsers");
+      const res = await api.get("User/GetAllUsers");
       return res.data;
     } catch (err) {
       throw err.response?.data || { message: "Failed to fetch users" };
@@ -35,7 +35,13 @@ const userService = {
   // ✅ Edit / Update User
   updateUser: async (id, userData) => {
     try {
-      const res = await api.put(`User/UpdateUser/${id}`, userData);
+      const res = await api.put(
+      "User/UpdateUser",
+      userData,
+      {
+        params: { id }   // 👈 sends ?id=5
+      }
+    );
       return res.data;
     } catch (err) {
       throw err.response?.data || { message: "Failed to update user" };

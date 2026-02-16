@@ -27,7 +27,7 @@ function UsersList() {
     email: "",
   });
   const [editId, setEditId] = useState(null);
- 
+
   // 🔹 Fetch all users
   const fetchUsers = async () => {
     try {
@@ -63,6 +63,19 @@ function UsersList() {
     setModalOpen(false);
     fetchUsers(); // refresh table
     setEditingUser(null);
+  };
+
+  const getRole = (userType) => {
+    switch (userType) {
+      case 1:
+        return "Super Admin";
+      case 2:
+        return "Admin";
+      case 3:
+        return "User";
+      default:
+        return "Unknown";
+    }
   };
 
 
@@ -244,7 +257,7 @@ function UsersList() {
                     padding: '1.5rem',
                   }}
                 >
-                  {user.role}
+                  {getRole(user.userType)}
                 </TableCell>
                 <TableCell
                   align="center"
@@ -296,7 +309,7 @@ function UsersList() {
         modal={modalOpen}
         openModal={setModalOpen}
         confirmAdding={handleUserUpdated}
-         editingUser={editingUser}
+        editingUser={editingUser}
       />
     </Box>
   );

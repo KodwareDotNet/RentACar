@@ -174,6 +174,7 @@ function AddPermissionModal({ modal, openModal, confirmAdding }) {
     };
 
     const handleSubmit = async () => {
+        debugger
         if (!validateForm()) return;
 
         setSubmitting(true);

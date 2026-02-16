@@ -25,7 +25,7 @@ const addRoleService = {
 
   getRoles: async () =>{
    try{
-    const res = await api.get("user/GetRolesByOrganization");
+    const res = await api.get("user/GetAllRoles");
     return res;
    }
    catch (err) {

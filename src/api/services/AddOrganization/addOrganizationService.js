@@ -1,26 +1,33 @@
 import api from "../../axiosConfig";
+// addOrganizationService.js
 
-const addOrganizationService ={
+const addOrganizationService = {
 
-    addOrganization: async (organizationData)=>{
-    try{
-        const res = await api.post("User/CreateOrganization", organizationData)
-        return res;
+  addOrganization: async (organizationData) => {
+    const res = await api.post("User/CreateOrganization", organizationData);
+    return res;
+  },
 
-    }
-    catch(err){
-        throw err.response?.data || { message: "Failed " };
-    }
-    },
-     getOrganization: async () => {
-        try {
-    
-          const res = await api.get("User/GetAllOrganizations");
-          return res;
-        }
-        catch (err) {
-          throw err.response?.data || { message: "Failed " };
-        }
-      }
+  getOrganization: async () => {
+    const res = await api.get("User/GetAllOrganizations");
+    return res;
+  },
+
+  updateOrganization: async (id, organizationData) => {
+    const payload = {
+      id: id,
+      ...organizationData,
+    };
+
+    const res = await api.put("User/UpdateOrganization", payload);
+    return res;
+  },
+
+
+  deleteOrganization: async (id) => {
+    const res = await api.delete(`User/DeleteOrganization/${id}`);
+    return res;
+  }
 };
+
 export default addOrganizationService;
