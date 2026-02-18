@@ -27,6 +27,16 @@ function AddOrganizationModal({ modal, openModal, confirmAdding, selectedOrg, is
         permissionIds: [],
     });
     const [errors, setErrors] = useState({});
+    const resetForm = () => {
+        setOrganizationData({
+            name: "",
+            email: "",
+            password: "",
+            phone: "",
+            address: "",
+        });
+        setRoles([]);
+    };
 
     const handleChange = (field, value) => {
         setOrganizationData({ ...organizationData, [field]: value });
@@ -51,13 +61,13 @@ function AddOrganizationModal({ modal, openModal, confirmAdding, selectedOrg, is
     }, [modal]);
 
     const handleRoleToggle = (role) => {
-        const exists = organizationData.roles.some(r => r.key === role.roleId);
+        const exists = organizationData.roles.some(r => r.roleId === role.roleId);
 
         if (exists) {
             // Remove role
             setOrganizationData({
                 ...organizationData,
-                roles: organizationData.roles.filter(r => r.key !== role.roleId),
+                roles: organizationData.roles.filter(r => r.roleId !== role.roleId),
             });
         } else {
             // Add role in KeyValue format
@@ -66,8 +76,8 @@ function AddOrganizationModal({ modal, openModal, confirmAdding, selectedOrg, is
                 roles: [
                     ...organizationData.roles,
                     {
-                        key: role.roleId,
-                        value: role.roleName,
+                        roleId: role.roleId,
+                        displayName: role.roleName,
                     },
                 ],
             });
@@ -119,16 +129,12 @@ function AddOrganizationModal({ modal, openModal, confirmAdding, selectedOrg, is
 
                 confirmAdding(); // refresh list
                 openModal();
-                setOrganizationData({
-                    name: "",
-                    email: "",
-                    password: "",
-                    phone: "",
-                    address: "",
-                });
+                resetForm();
 
             } catch (err) {
                 alert("Error");
+                resetForm();
+                openModal();
             }
         }
     };
@@ -182,7 +188,7 @@ function AddOrganizationModal({ modal, openModal, confirmAdding, selectedOrg, is
                     {isEdit ? "Edit Organization" : "Add Organization"}
                 </Typography>
                 <IconButton
-                    onClick={openModal}
+                    onClick={() => { resetForm(); openModal(); }}
                     sx={{
                         color: "#666",
                         "&:hover": {
@@ -291,7 +297,7 @@ function AddOrganizationModal({ modal, openModal, confirmAdding, selectedOrg, is
                                 >
                                     <input
                                         type="checkbox"
-                                        checked={organizationData.roles.some(r => r.key === role.roleId)}
+                                        checked={organizationData.roles.some(r => r.roleId === role.roleId)}
                                         onChange={() => handleRoleToggle(role)}
                                     />
                                     <Typography sx={{ marginLeft: "8px" }}>
@@ -315,7 +321,7 @@ function AddOrganizationModal({ modal, openModal, confirmAdding, selectedOrg, is
                     >
                         <Button
                             variant="outlined"
-                            onClick={openModal}
+                            onClick={() => { resetForm(); openModal(); }}
                             sx={{
                                 padding: "10px 24px",
                                 fontSize: "15px",
