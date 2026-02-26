@@ -10,6 +10,8 @@ namespace RentACar.Models
     public class Organization
     {
         public int Id { get; set; }
+        public long? UserId { get; set; }
+
         public string OrganizationName { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }
@@ -19,5 +21,6 @@ namespace RentACar.Models
         public string Name { get; set; }
         public int OrganizationId { get; set; }
         public UserType? UserType { get; set; }
+        public List<RoleAndUserIdViewModel>? Roles { get; set; }
     }
 }

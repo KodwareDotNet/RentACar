@@ -15,7 +15,10 @@ namespace RentACar.Map
         /// <param name="pageNumber">Page number (1-based)</param>
         /// <param name="pageSize">Number of users per page</param>
         /// <returns>List of UserViewModel</returns>
-        Task<IEnumerable<UserViewModel>> GetAll(string name, int pageNumber, int pageSize);
+        Task<List<UserViewModel>> GetAll(string name, int pageNumber, int pageSize);
+        Task Update(UserViewModel model);
+        Task Delete(int id);
+
 
         /// <summary>
         /// Create a new user

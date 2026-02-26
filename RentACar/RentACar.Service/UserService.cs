@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Formats.Asn1;
 using System.Threading.Tasks;
 using MenuManagement.Repositories;
@@ -25,8 +26,8 @@ namespace RentACar.Services
 
         public async Task<User?> GetByEmailOrGoogleIdAsync(string email, string? googleId)
         {
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Email cannot be null or empty.", nameof(email));
+            //if (string.IsNullOrWhiteSpace(email))
+            //    throw new ArgumentException("Email cannot be null or empty.", nameof(email));
 
             return await _userRepo.GetByEmailOrGoogleIdAsync(email, googleId);
         }
@@ -89,7 +90,26 @@ namespace RentACar.Services
             if (organization == null)
                 throw new ArgumentNullException(nameof(organization));
 
-            return await _userRepo.CreateOrganization(organization);
+            int OrganizationId = await _userRepo.CreateOrganization(organization);
+            List<RoleAndUserIdViewModel> roles = new List<RoleAndUserIdViewModel>();
+
+            if (organization.Roles.Count > 0)
+            {
+                foreach (var role in organization.Roles)
+                {
+                    roles.Add(new RoleAndUserIdViewModel { RoleId = role.RoleId, DisplayName = role.DisplayName});
+                }
+
+            }
+            var adminUser = new Organization
+            {
+                OrganizationId = OrganizationId,
+                Roles = roles,
+                UserType = UserType.Admin
+            };
+            bool userId = await _userRepo.CreateOrganizationRole(adminUser);
+
+            return OrganizationId;
         }
         public async Task<IEnumerable<Organization>> GetAllOrganizations()
         {
@@ -197,5 +217,19 @@ namespace RentACar.Services
 
             return await _userRepo.DeleteCar(id);
         }
+
+        public async Task<IEnumerable<User>> GetAll(string name, int pageNumber, int pageSize)
+        {
+            return await _userRepo.GetAll(name, pageNumber, pageSize);
+        }
+        public async Task Update(User user)
+        {
+            await _userRepo.Update(user);
+        }
+        public async Task Delete(int id)
+        {
+            await _userRepo.Delete(id);
+        }
+
     }
 }

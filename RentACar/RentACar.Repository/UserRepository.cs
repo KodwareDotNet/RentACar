@@ -45,10 +45,10 @@ namespace MenuManagement.Repositories
             }
         }
 
-        public async Task<User?> GetByEmailOrGoogleIdAsync(string pEmail, string? googleId)
+        public async Task<User?> GetByEmailOrGoogleIdAsync(string? pEmail, string? googleId)
         {
-            if (string.IsNullOrWhiteSpace(pEmail))
-                throw new ArgumentException("Email cannot be null or empty.", nameof(pEmail));
+            //if (string.IsNullOrWhiteSpace(pEmail))
+            //    throw new ArgumentException("Email cannot be null or empty.", nameof(pEmail));
 
 
             var parameters = new
@@ -163,11 +163,27 @@ namespace MenuManagement.Repositories
 
         public async Task<IEnumerable<Organization>> GetAllOrganizations()
         {
-            // _connection is the IDbConnection passed to the repository
-            return await _connection.QueryAsync<Organization>(
-                "sp_GetAllOrganizations",
-                commandType: CommandType.StoredProcedure
-            );
+            var parameters = new { };
+            (IEnumerable<Organization> data1, IEnumerable<RoleAndUserIdViewModel> data2) = await
+            QueryMultipleAsync<Organization, RoleAndUserIdViewModel>("sp_GetAllOrganizations", parameters, commandType: CommandType.StoredProcedure);
+            IEnumerable<Organization> orgnaizations = data1;
+            IEnumerable<RoleAndUserIdViewModel> roles = data2;
+
+            foreach (Organization org in orgnaizations)
+            {
+                org.Roles = roles.Any() ? roles.Where(p => p.UserId == org.UserId).ToList()
+                : new List<RoleAndUserIdViewModel>();
+            }
+
+
+
+            //var result = await QueryAsync<Organization>("uspGetAllOrganizations", parameters);
+            return orgnaizations;
+            //// _connection is the IDbConnection passed to the repository
+            //return await _connection.QueryAsync<Organization>(
+            //    "sp_GetAllOrganizations",
+            //    commandType: CommandType.StoredProcedure
+            //);
         }
         public async Task<int> UpdateOrganization(Organization organization)
         {
@@ -292,7 +308,7 @@ namespace MenuManagement.Repositories
         {
             var parameters = new { @psearchString = searchString, pPageNumber = pageNumber, pUserId = userId, pOrganizationid = organizationId, ppageSize = pageSize };
             (IEnumerable<Role> data1, IEnumerable<PermissionIdViewModel> data2) = await
-                QueryMultipleAsync<Role, PermissionIdViewModel>("sp_GetAllRoles", parameters);
+                QueryMultipleAsync<Role, PermissionIdViewModel>("sp_GetAllRoles", parameters, commandType: CommandType.StoredProcedure);
             IEnumerable<Role> roles = data1;
             IEnumerable<PermissionIdViewModel> rolePermissions = data2;
             foreach (Role role in roles)
@@ -302,8 +318,6 @@ namespace MenuManagement.Repositories
             }
             return roles;
         }
-
-
 
 
         public async Task<int> UpdateRole(Role role)
@@ -485,9 +499,80 @@ namespace MenuManagement.Repositories
 
             return result > 0; // true if deleted
         }
+
+        public async Task<IEnumerable<User>> GetAll(string name, int pageNumber, int pageSize)
+        {
+            var parameters = new
+            {
+                pName = name,
+                pPageNumber = pageNumber,
+                pPageSize = pageSize
+            };
+            var User = await QueryAsync<User>("uspGetAllUsers", parameters);
+            return User;
+        }
+        public async Task<int> Update(User user)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            var parameters = new
+            {
+                pId = user.Id,
+                pName = user.Name ?? string.Empty,
+                pEmail = user.Email ?? string.Empty,
+                pUserType = user.UserType,
+                pRefreshToken = user.RefreshToken ?? string.Empty
+            };
+
+            return await ExecuteAsync(
+                "uspUpdateUser",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+        public async Task<int> Delete(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Invalid user id");
+
+            var parameters = new
+            {
+                pId = id
+            };
+
+            return await ExecuteAsync(
+                "uspDeleteUser",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<bool> CreateOrganizationRole(Organization adminUser)
+        {
+            DynamicParameters dynamParameters = new DynamicParameters();
+
+            // Add OrganizationId to parameters
+            dynamParameters.Add("@pOrganizationId", adminUser.OrganizationId);
+            dynamParameters.Add("@pUserType", adminUser.UserType);
+            // Convert roledata into a DataTable with all required fields
+            var roleDataTable = adminUser.Roles?.Select(s => new
+            {
+                s.RoleId,
+                s.DisplayName
+            }).ToList().ToDataTable(); // Use your custom `.ToDataTable()` method here.
+
+            // Pass the data as a table-valued parameter
+            dynamParameters.Add(
+        name: "@pOrganizationRoleData",
+        value: roleDataTable?.AsTableValuedParameter("UDT_OrganizationRoleData"),
+        dbType: (DbType?)SqlDbType.Structured
+        );
+            return await ExecuteAsync("uspCreateUserRole", dynamParameters, commandType: CommandType.StoredProcedure) > 0;
+        }
     }
 }
-   
+
 #endregion
 
 

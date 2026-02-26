@@ -85,10 +85,12 @@ namespace RentACar.Controllers
         {
             try
             {
-                if (long.TryParse(HttpContext.Items["OrganizationId"] as string, out long orgId))
+                var orgClaim = User.FindFirst("OrganizationId")?.Value;
+
+                if (long.TryParse(orgClaim, out long orgId))
                     return orgId;
-                else
-                    return -1;
+
+                return -1;
             }
             catch (Exception ex)
             {

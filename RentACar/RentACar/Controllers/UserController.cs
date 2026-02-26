@@ -29,11 +29,27 @@ namespace RentACar.Controllers
         }
 
         [HttpGet("GetAllUsers")]
-        public async Task<IEnumerable<UserViewModel>> GetAll(string name, int pagenumber, int pageSize)
+        public async Task<IEnumerable<UserViewModel>> GetAll(string? name, int pagenumber, int pageSize)
         {
             return await _userMap.GetAll(name, pagenumber, pageSize);
+            return new List<UserViewModel>();
         }
-        [HttpPost("CreateUser")]
+
+        [HttpPut("UpdateUser")]
+        public async Task<IActionResult> Update(UserViewModel model)
+        {
+            await _userMap.Update(model);
+            return Ok(new { message = "User updated successfully" });
+        }
+        [HttpDelete("DeleteUser/{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _userMap.Delete(id);
+            return Ok(new { message = "User deleted successfully" });
+        }
+
+
+        [HttpPost("CreateUser")]        
         public async Task<IActionResult> CreateUser([FromBody] UserCreateDto dto)
         {
 
@@ -118,7 +134,7 @@ namespace RentACar.Controllers
             }
             return Ok(new { response = false, ErrorMessage = string.Format(SomethingWrongHappenedMessage, "role") });
         }
-
+        [Authorize]
         [HttpGet("GetAllRoles")]
         public async Task<IEnumerable<RoleViewModel>> GetAllRoles(string? searchString, int pageNumber, long? pageSize = null)
         {
@@ -150,19 +166,28 @@ namespace RentACar.Controllers
             return Ok(isDeleted);
         }
         [HttpGet("GetRolesByOrganization")]
-        public async Task<IEnumerable<RoleViewModel>> GetRolesByOrganization()
-
+        public async Task<IActionResult> GetRolesByOrganization()
         {
-            var orgIdClaim = User.Claims.FirstOrDefault(c => c.Type == "OrganizationId")?.Value;
-
+            // Try to get OrganizationId from JWT claims (case-insensitive)
+            var orgIdClaim = User.Claims.FirstOrDefault(c =>
+                c.Type.Equals("OrganizationId", StringComparison.OrdinalIgnoreCase))?.Value;
 
             if (string.IsNullOrEmpty(orgIdClaim))
-                throw new Exception("OrganizationId not found in token.");
+                return Unauthorized("OrganizationId not found in token."); // return 401 instead of throwing
 
-            int orgId = int.Parse(orgIdClaim);
+            if (!int.TryParse(orgIdClaim, out int orgId))
+                return BadRequest("Invalid OrganizationId in token."); // return 400 if invalid
 
-            return await _userMap.GetRolesByOrganization(orgId);
+            // Fetch roles from map/service layer
+            var roles = await _userMap.GetRolesByOrganization(orgId);
+
+            // If no roles found, return empty list
+            if (roles == null || !roles.Any())
+                return Ok(new List<RoleViewModel>());
+
+            return Ok(roles);
         }
+
 
         [HttpGet("GetAllPermissions")]
         public async Task<List<PermissionsViewModel>> GetAllPermissions()

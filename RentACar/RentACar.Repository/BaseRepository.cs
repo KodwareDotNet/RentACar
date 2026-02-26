@@ -13,7 +13,7 @@ namespace MenuManagement.Repositories
             _connection = connection;
         }
 
-        protected async Task<(IEnumerable<T1>, IEnumerable<T2>)> QueryMultipleAsync<T1, T2>(string storedProcedure, object parameters)
+        protected async Task<(IEnumerable<T1>, IEnumerable<T2>)> QueryMultipleAsync<T1, T2>(string storedProcedure, object parameters, CommandType commandType)
         {
             using (var multi = await _connection.QueryMultipleAsync(storedProcedure, parameters, commandType: CommandType.StoredProcedure))
             {

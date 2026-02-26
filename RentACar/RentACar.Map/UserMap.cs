@@ -18,30 +18,51 @@ namespace RentACar.Map
             _userService = userService;
         }
 
-        public async Task<IEnumerable<UserViewModel>> GetAll(string name, int pageNumber, int pageSize)
+        public async Task<List<UserViewModel>> GetAll(string name, int pageNumber, int pageSize)
+        { return DomainToViewModel(await _userService.GetAll(name, pageNumber, pageSize));
+}
+public List<UserViewModel> DomainToViewModel(IEnumerable<User> domain)
         {
-           
-            var users = await _userService.GetByEmailOrGoogleIdAsync(name, null); 
-            var list = new List<UserViewModel>();
-
-            var userType = Enum.TryParse<UserType>(users.UserRole, ignoreCase: true, out var result)
-                  ? result
-                  : UserType.User;
-
-            if (users != null)
+            List<UserViewModel> model = new List<UserViewModel>();
+            foreach (User of in domain)
             {
-                list.Add(new UserViewModel
-                {
-                    Id = users.Id,
-                    Name = users.Name,
-                    Email = users.Email,
-                    UserType = userType,
-                    Role = users.UserRole
-                });
+                model.Add(DomainToViewModel(of));
             }
-
-            return list;
+            return model;
         }
+        public UserViewModel DomainToViewModel(User domain)
+        {
+
+            UserViewModel model = new UserViewModel();
+            model.Id = domain.Id;
+            model.Name = domain.Name;
+            model.Email = domain.Email;
+            model.UserType = (UserType)domain.UserType;
+          
+            model.RefreshToken = domain.RefreshToken;
+            return model;
+        }
+
+        public async Task Update(UserViewModel model)
+        {
+            await _userService.Update(ViewModelToDomain(model));
+        }
+        public User ViewModelToDomain(UserViewModel model)
+        {
+            return new User
+            {
+                Id = model.Id,
+                Name = model.Name,
+                Email = model.Email,
+                RefreshToken = model.RefreshToken
+            };
+        }
+        public async Task Delete(int id)
+        {
+            await _userService.Delete(id);
+        }
+
+
 
         public async Task<int> Create(UserViewModel user)
         {
@@ -84,7 +105,9 @@ namespace RentACar.Map
                 Phone = organization.Phone,
                 Address = organization.Address,
                 password = organization.password,
-                UserType = organization.UserType
+                UserType = organization.UserType,
+                UserId = organization.UserId,
+                Roles=organization.Roles
             };
 
             return await _userService.CreateOrganization(model);
@@ -106,7 +129,9 @@ namespace RentACar.Map
                 Phone = org.Phone,
                 Address = org.Address,
                 password = org.password,
-                CreatedDate = org.CreatedDate
+                CreatedDate = org.CreatedDate,
+                Roles = org.Roles,
+                UserType = org.UserType
             });
         }
         public async Task<int> UpdateOrganization(OrganizationViewModel organization)

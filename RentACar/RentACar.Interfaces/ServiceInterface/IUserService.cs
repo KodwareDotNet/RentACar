@@ -30,5 +30,10 @@ namespace RentACar.Interfaces.ServiceInterface
         Task<bool> UpdateRole(Role role);
 Task<bool> DeleteRole(int roleId);
         Task<IEnumerable<Role>> GetAllRoles(string searchString, int pageNumber, long? userId, long? organizationId, long? pageSize);
+        Task<IEnumerable<User>> GetAll(string name, int pageNumber, int pageSize);
+        Task Update(User user);
+        Task Delete(int id);
+
+
     }
 }

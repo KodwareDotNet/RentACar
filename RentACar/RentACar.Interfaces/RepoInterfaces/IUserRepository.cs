@@ -32,5 +32,9 @@ namespace RentACar.Interfaces.RepoInterfaces
         Task<int> UpdateRole(Role role);
         Task<int> DeleteRole(int roleId);
         Task<IEnumerable<Role>> GetAllRoles(string searchString, int pageNumber, long? userId, long? organizationId, long? pageSize);
+        Task<IEnumerable<User>> GetAll(string name, int pageNumber, int pageSize);
+        Task<int> Update(User user);
+        Task<int> Delete(int id);
+        Task<bool> CreateOrganizationRole(Organization adminUser);
     }
 }
